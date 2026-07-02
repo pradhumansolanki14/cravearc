@@ -7,6 +7,10 @@ const restaurantSchema = new mongoose.Schema({
   name:         { type: String, required: true },
   description:  { type: String, default: "" },
   cuisine:      { type: String, default: "" },       // e.g. "Italian, Pizza"
+  cuisineIds:   { type: [mongoose.Schema.Types.ObjectId], ref: "cuisine", default: [] },
+  featured:     { type: Boolean, default: false },
+  preparationTime: { type: Number, default: 30 },   // minutes
+  tags:         { type: [String], default: [] },
   address:      { type: String, default: "" },
   phone:        { type: String, default: "" },
   email:        { type: String, default: "" },

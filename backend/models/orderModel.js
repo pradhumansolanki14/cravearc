@@ -8,7 +8,11 @@ const orderSchema = new mongoose.Schema({
   address:       { type: Object, required: true },
   status:        { type: String, default: "Food Processing" },
   date:          { type: Date, default: Date.now },
-  payment:       { type: Boolean, default: false },
+  payment:        { type: Boolean, default: false },
+  couponId:       { type: mongoose.Schema.Types.ObjectId, ref: "coupon", default: null },
+  discountAmount: { type: Number, default: 0 },
+  paymentMethod:  { type: String, enum: ["stripe", "cod"], default: "stripe" },
+  note:           { type: String, default: "" },
 }, { timestamps: true });
 
 const orderModel = mongoose.models.order || mongoose.model("order", orderSchema);

@@ -7,7 +7,11 @@ const foodSchema = new mongoose.Schema({
   image:         { type: String, required: true },
   category:      { type: String, required: true },
   restaurantId:  { type: mongoose.Schema.Types.ObjectId, ref: "restaurant", required: true },
-  isAvailable:   { type: Boolean, default: true },
+  isAvailable:      { type: Boolean, default: true },
+  preparationTime:  { type: Number, default: 20 },   // minutes
+  isVeg:            { type: Boolean, default: false },
+  tags:             { type: [String], default: [] },
+  calories:         { type: Number, default: null },
 }, { timestamps: true });
 
 const foodModel = mongoose.models.food || mongoose.model("food", foodSchema);

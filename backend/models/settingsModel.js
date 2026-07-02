@@ -11,6 +11,9 @@ const settingsSchema = new mongoose.Schema({
   currency:       { type: String, default: "USD" },
   aboutUs:        { type: String, default: "Premium food delivery from your city's best restaurants." },
   vendorSignupOpen: { type: Boolean, default: true }, // allow new vendor registrations
+  maintenanceMode:    { type: Boolean, default: false },
+  platformFeePercent: { type: Number, default: 0 },
+  supportEmail:       { type: String, default: "" },
 }, { timestamps: true });
 
 const settingsModel = mongoose.models.settings || mongoose.model("settings", settingsSchema);
