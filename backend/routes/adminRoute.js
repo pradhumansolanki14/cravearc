@@ -5,6 +5,8 @@ import {
   getAdminProfile, listVendors, approveVendor,
   listUsers, getUserDetail, platformStats
 } from "../controllers/adminController.js";
+import { adminDeleteReview, replyToReview } from "../controllers/reviewController.js";
+import vendorOnly from "../middlewares/vendorOnly.js";
 
 const adminRouter = express.Router();
 
@@ -22,5 +24,9 @@ adminRouter.post("/vendors/approve",    adminAuthMiddleware, superAdminOnly, app
 adminRouter.get("/users",               adminAuthMiddleware, superAdminOnly, listUsers);
 adminRouter.get("/users/:id",           adminAuthMiddleware, superAdminOnly, getUserDetail);
 adminRouter.get("/platform-stats",      adminAuthMiddleware, superAdminOnly, platformStats);
+adminRouter.delete("/reviews/:id",      adminAuthMiddleware, superAdminOnly, adminDeleteReview);
+
+// ─── Vendor only (Restaurant Manager) ────────────────────────
+adminRouter.put("/reviews/:reviewId/reply", adminAuthMiddleware, vendorOnly, replyToReview);
 
 export default adminRouter;

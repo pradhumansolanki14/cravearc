@@ -1,5 +1,6 @@
 import foodModel from "../models/foodModel.js";
 import restaurantModel from "../models/restaurantModel.js";
+import reviewModel from "../models/reviewModel.js";
 import fs from "fs";
 
 // ─── Add food (vendor adds to their restaurant) ──────────────
@@ -64,7 +65,11 @@ const getFood = async (req, res) => {
   try {
     const food = await foodModel.findById(req.params.id).populate("restaurantId", "name logo address phone openingHours isOpen");
     if (!food) return res.json({ success: false, message: "Food not found" });
-    res.json({ success: true, data: food });
+
+    // Fetch reviews including vendorReply and vendorRepliedAt
+    const reviews = await reviewModel.find({ foodId: req.params.id }).sort({ createdAt: -1 });
+
+    res.json({ success: true, data: { ...food.toObject(), reviews } });
   } catch (error) {
     res.json({ success: false, message: "Error" });
   }

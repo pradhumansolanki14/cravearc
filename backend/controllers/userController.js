@@ -98,4 +98,50 @@ const changePassword = async (req, res) => {
   }
 }
 
-export { loginUser, registerUser, getProfile, updateProfile, changePassword }
+// ─── Get Addresses ───────────────────────────────────────────
+const getAddresses = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId).select('addresses');
+    if (!user) return res.json({ success: false, message: "User not found" });
+    res.json({ success: true, data: user.addresses || [] });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// ─── Add Address ─────────────────────────────────────────────
+const addAddress = async (req, res) => {
+  try {
+    const { label, street, city, state, zip, country } = req.body;
+    const user = await userModel.findById(req.userId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+    
+    user.addresses.push({ label, street, city, state, zip, country });
+    await user.save();
+    
+    res.json({ success: true, message: "Address added", data: user.addresses });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// ─── Delete Address ──────────────────────────────────────────
+const deleteAddress = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId);
+    if (!user) return res.json({ success: false, message: "User not found" });
+    
+    const addressId = req.params.addressId;
+    user.addresses = user.addresses.filter(addr => addr._id.toString() !== addressId);
+    await user.save();
+    
+    res.json({ success: true, message: "Address deleted", data: user.addresses });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+export { loginUser, registerUser, getProfile, updateProfile, changePassword, getAddresses, addAddress, deleteAddress }
