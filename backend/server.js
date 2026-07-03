@@ -14,6 +14,7 @@ import settingsRouter from "./routes/settingsRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import cuisineRouter from "./routes/cuisineRoute.js";
 import bannerRouter from "./routes/bannerRoute.js";
+import restaurantRouter from "./routes/restaurantRoute.js";
 import fs from "fs";
 
 // Validate required environment variables before anything else
@@ -54,6 +55,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/cuisines", cuisineRouter);
 app.use("/api/banners", bannerRouter);
+app.use("/api/admin/restaurant", restaurantRouter);
 
 app.get("/", (req, res) => res.send("API Working"));
 app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
