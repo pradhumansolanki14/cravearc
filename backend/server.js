@@ -11,6 +11,9 @@ import favoriteRouter from "./routes/favoriteRoute.js";
 import couponRouter from "./routes/couponRoute.js";
 import reviewRouter from "./routes/reviewRoute.js";
 import settingsRouter from "./routes/settingsRoute.js";
+import categoryRouter from "./routes/categoryRoute.js";
+import cuisineRouter from "./routes/cuisineRoute.js";
+import bannerRouter from "./routes/bannerRoute.js";
 import fs from "fs";
 
 // Validate required environment variables before anything else
@@ -48,6 +51,9 @@ app.use("/api/favorites",favoriteRouter);
 app.use("/api/coupons",  couponRouter);
 app.use("/api/reviews",  reviewRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/categories", categoryRouter);
+app.use("/api/cuisines", cuisineRouter);
+app.use("/api/banners", bannerRouter);
 
 app.get("/", (req, res) => res.send("API Working"));
 app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
