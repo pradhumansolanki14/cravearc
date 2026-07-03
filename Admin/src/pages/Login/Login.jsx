@@ -15,7 +15,7 @@ const Login = () => {
     try {
       const res = await axios.post(`${url}/api/admin/login`, data);
       if (res.data.success) {
-        adminLogin(res.data.token, res.data.name);
+        adminLogin(res.data.token, res.data.name, res.data.role, res.data.restaurantId);
       } else {
         setError(res.data.message);
       }
@@ -130,10 +130,11 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-              <p className="text-xs font-semibold text-slate-500 mb-1">Default credentials</p>
-              <p className="text-xs text-slate-400">Email: <span className="font-mono text-slate-600">admin@tomato.com</span></p>
-              <p className="text-xs text-slate-400">Password: <span className="font-mono text-slate-600">Admin@1234</span></p>
+            <div className="mt-4 text-center">
+              <span className="text-xs text-slate-400">Want to join as a restaurant? </span>
+              <a href="/vendor/register" className="text-xs font-semibold text-orange-500 hover:underline">
+                Register your restaurant
+              </a>
             </div>
           </div>
         </div>
