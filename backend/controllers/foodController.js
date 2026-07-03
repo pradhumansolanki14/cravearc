@@ -33,6 +33,7 @@ const listFood = async (req, res) => {
   try {
     const filter = {};
     if (req.query.restaurantId) filter.restaurantId = req.query.restaurantId;
+    if (req.query.isVeg === "true") filter.isVeg = true;
     const foods = await foodModel.find(filter).populate("restaurantId", "name logo isOpen isApproved");
     // Only show foods from approved, open restaurants to customers
     // If restaurant filter is explicit, show regardless (for vendor dashboard)
@@ -142,9 +143,22 @@ const removeFood = async (req, res) => {
 // ─── List all restaurants (public) ───────────────────────────
 const listRestaurants = async (req, res) => {
   try {
-    const restaurants = await restaurantModel.find({ isApproved: true }).sort({ createdAt: -1 });
+    const filter = { isApproved: true };
+    
+    // Filter by cuisineId (restaurant has this cuisine in cuisineIds array)
+    if (req.query.cuisineId) {
+      filter.cuisineIds = req.query.cuisineId;
+    }
+    
+    // Filter by featured flag
+    if (req.query.featured === "true") {
+      filter.featured = true;
+    }
+    
+    const restaurants = await restaurantModel.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: restaurants });
   } catch (error) {
+    console.log(error);
     res.json({ success: false, message: "Error" });
   }
 };
