@@ -189,11 +189,64 @@ const platformStats = async (req, res) => {
       orderModel.countDocuments(),
       restaurantModel.find({ isApproved: true }).lean(),
     ]);
-    const orders = await orderModel.find({});
+    const orders = await orderModel.find({}).populate('restaurantId', 'name');
     const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
     const pendingApprovals = await adminModel.countDocuments({ role: "vendor", isApproved: false });
-    res.json({ success: true, data: { totalVendors, totalUsers, totalOrders, totalRevenue, restaurants: restaurants.length, pendingApprovals } });
+
+    // Per-restaurant revenue breakdown
+    const restaurantBreakdown = {};
+    orders.forEach(order => {
+      if (order.restaurantId) {
+        const id = order.restaurantId._id.toString();
+        const name = order.restaurantId.name || 'Unknown Restaurant';
+        if (!restaurantBreakdown[id]) {
+          restaurantBreakdown[id] = {
+            name,
+            orderCount: 0,
+            totalRevenue: 0,
+          };
+        }
+        restaurantBreakdown[id].orderCount += 1;
+        restaurantBreakdown[id].totalRevenue += order.amount;
+      }
+    });
+
+    const restaurantStats = Object.values(restaurantBreakdown)
+      .sort((a, b) => b.totalRevenue - a.totalRevenue); // Sort by revenue descending
+
+    res.json({
+      success: true,
+      data: {
+        totalVendors,
+        totalUsers,
+        totalOrders,
+        totalRevenue,
+        restaurants: restaurants.length,
+        pendingApprovals,
+        restaurantBreakdown: restaurantStats, // NEW
+      },
+    });
   } catch (error) {
+    res.json({ success: false, message: "Error" });
+  }
+};
+
+// ─── SuperAdmin: toggle user active status ───────────────────
+const toggleUserActive = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.id);
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    user.isActive = req.body.isActive !== undefined ? req.body.isActive : !user.isActive;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `User ${user.isActive ? "activated" : "suspended"}`,
+      data: { isActive: user.isActive },
+    });
+  } catch (error) {
+    console.log(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -201,5 +254,6 @@ const platformStats = async (req, res) => {
 export {
   loginAdmin, registerSuperAdmin, registerVendor,
   getAdminProfile, listVendors, approveVendor,
-  listUsers, getUserDetail, platformStats
+  listUsers, getUserDetail, platformStats,
+  toggleUserActive,
 };
