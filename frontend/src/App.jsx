@@ -19,6 +19,8 @@ import AppPage from './Pages/AppPage/AppPage'
 import ContactPage from './Pages/ContactPage/ContactPage'
 import OrderDetail from './Pages/OrderDetail/OrderDetail'
 import CartConflictModal from './components/CartConflictModal/CartConflictModal'
+import RestaurantsPage from './Pages/Restaurants/RestaurantsPage'
+import RestaurantDetail from './Pages/RestaurantDetail/RestaurantDetail'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false)
@@ -48,6 +50,10 @@ const App = () => {
         <Route path='/menu' element={<MenuPage />} />
         <Route path='/app' element={<AppPage />} />
         <Route path='/contact' element={<ContactPage />} />
+
+        {/* Restaurant listing + detail (Task 18) */}
+        <Route path='/restaurants' element={<RestaurantsPage />} />
+        <Route path='/restaurant/:id' element={<RestaurantDetail />} />
 
         {/* 404 */}
         <Route path='*' element={<NotFound />} />
