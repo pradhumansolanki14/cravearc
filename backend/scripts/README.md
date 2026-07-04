@@ -28,43 +28,45 @@ Creates the first Platform Admin (superadmin) account if one doesn't already exi
 
 ### Usage
 
-**Basic usage (with default credentials):**
 ```bash
 node scripts/initPlatformAdmin.js
 ```
 
-**Default credentials:**
-- Email: `admin@tomato.com`
-- Password: `Admin@123456`
-- Name: `Platform Administrator`
+Credentials are read **exclusively from environment variables** — no defaults are
+hard-coded. Both `PLATFORM_ADMIN_EMAIL` and `PLATFORM_ADMIN_PASSWORD` must be set
+in your `.env` file (or exported in the shell) before running the script.
 
-### Custom Credentials
+### Required Environment Variables
 
-Set environment variables before running to customize credentials:
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGODB_URI` | ✅ Yes | MongoDB connection string |
+| `PLATFORM_ADMIN_EMAIL` | ✅ Yes | Email address for the Platform Admin account |
+| `PLATFORM_ADMIN_PASSWORD` | ✅ Yes | Password (min 8 characters) |
+| `PLATFORM_ADMIN_NAME` | No | Display name (default: "Platform Administrator") |
 
-```bash
-# Windows (PowerShell)
-$env:PLATFORM_ADMIN_EMAIL="myemail@example.com"; $env:PLATFORM_ADMIN_PASSWORD="MySecurePass123"; $env:PLATFORM_ADMIN_NAME="My Name"; node scripts/initPlatformAdmin.js
+### Setup
 
-# Linux/Mac (bash)
-PLATFORM_ADMIN_EMAIL=myemail@example.com PLATFORM_ADMIN_PASSWORD=MySecurePass123 PLATFORM_ADMIN_NAME="My Name" node scripts/initPlatformAdmin.js
-```
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Fill in `PLATFORM_ADMIN_EMAIL` and `PLATFORM_ADMIN_PASSWORD` with your own values.
+3. Run the script:
+   ```bash
+   node scripts/initPlatformAdmin.js
+   ```
 
-### Environment Variables
+### What happens if a variable is missing?
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `MONGODB_URI` | ✅ Yes | - | MongoDB connection string (from `.env`) |
-| `PLATFORM_ADMIN_EMAIL` | No | `admin@tomato.com` | Platform Admin email |
-| `PLATFORM_ADMIN_PASSWORD` | No | `Admin@123456` | Platform Admin password (min 8 chars) |
-| `PLATFORM_ADMIN_NAME` | No | `Platform Administrator` | Platform Admin display name |
+The script exits immediately with a list of the missing variables and a reference to `.env.example`. No database connection is attempted.
 
 ### Safety Features
 
-- **Idempotent**: Safe to run multiple times. If a superadmin already exists, the script reports the existing account and exits without making changes.
-- **Password hashing**: Uses bcrypt with salt (same mechanism as the registration endpoint).
-- **Validation**: Checks password length (minimum 8 characters) and required environment variables.
-- **Exit codes**: Returns `0` on success or when admin already exists, `1` on error.
+- **No hardcoded credentials** — all values come from environment variables.
+- **Idempotent** — safe to run multiple times. If a superadmin already exists, the script reports it and exits without making changes.
+- **Password hashing** — uses bcrypt with salt (same mechanism as the registration endpoint).
+- **Exit codes** — returns `0` on success or when admin already exists, `1` on error.
 
 ### Sample Output
 
@@ -73,16 +75,12 @@ PLATFORM_ADMIN_EMAIL=myemail@example.com PLATFORM_ADMIN_PASSWORD=MySecurePass123
 ✓ Connected to MongoDB
 
 ✓ Platform Admin created successfully!
-  Email: admin@tomato.com
-  Name: Platform Administrator
-  Role: superadmin
-  ID: 65f8a2b3c4d5e6f7a8b9c0d1
+  Email: admin@yourdomain.com
+  Name:  Platform Administrator
+  Role:  superadmin
+  ID:    65f8a2b3c4d5e6f7a8b9c0d1
 
-⚠️  IMPORTANT: Save these credentials securely!
-  Login Email: admin@tomato.com
-  Login Password: Admin@123456
-
-  You can now log in to the Admin dashboard with these credentials.
+  You can now log in to the Admin dashboard with the credentials you provided.
 
 ✓ Disconnected from MongoDB
 ```
@@ -91,39 +89,46 @@ PLATFORM_ADMIN_EMAIL=myemail@example.com PLATFORM_ADMIN_PASSWORD=MySecurePass123
 ```
 ✓ Connected to MongoDB
 ✓ Platform Admin already exists:
-  Email: admin@tomato.com
-  Name: Platform Administrator
+  Email: admin@yourdomain.com
+  Name:  Platform Administrator
   Created: 2024-03-15T10:30:45.123Z
 
 No action taken. Script is idempotent.
 ```
 
+**Missing environment variable:**
+```
+[FATAL] Missing required environment variables:
+  - PLATFORM_ADMIN_EMAIL
+  - PLATFORM_ADMIN_PASSWORD
+
+Set these variables in your .env file before running this script.
+See .env.example for reference.
+```
+
 ### Security Best Practices
 
-1. **Change the default password immediately** after first login through the Admin dashboard.
-2. **Never commit credentials** to version control.
-3. **Use strong passwords** in production (combination of uppercase, lowercase, numbers, and special characters).
+1. **Never commit `.env`** to version control (it is in `.gitignore`).
+2. **Use a strong password** — uppercase, lowercase, numbers, and special characters.
+3. **Use `.env.example`** as the committed reference for required variables (placeholder values only).
 4. **Run this script only once** per environment (development, staging, production).
-5. **Keep credentials secure** - store them in a password manager.
 
 ### When to Use
 
-- **Initial setup**: Run once when setting up a new environment.
-- **Fresh database**: Run after dropping/recreating the database.
-- **Recovery**: Run if the Platform Admin account is accidentally deleted.
+- **Initial setup** — run once when setting up a new environment.
+- **Fresh database** — run after dropping/recreating the database.
+- **Recovery** — run if the Platform Admin account is accidentally deleted.
 
 ### Troubleshooting
 
-**Error: "MONGODB_URI environment variable is required"**
-- Ensure `.env` file exists in the backend directory with `MONGODB_URI` set.
+**Error: "Missing required environment variables"**
+- Check your `.env` file and ensure `PLATFORM_ADMIN_EMAIL` and `PLATFORM_ADMIN_PASSWORD` are set.
 
 **Error: "Password must be at least 8 characters long"**
-- Use a password with at least 8 characters when setting `PLATFORM_ADMIN_PASSWORD`.
+- Set `PLATFORM_ADMIN_PASSWORD` to a value with 8 or more characters.
 
 **Connection errors:**
-- Verify MongoDB Atlas connection string is correct.
-- Check network connectivity and firewall settings.
-- Ensure IP whitelist includes your current IP (MongoDB Atlas).
+- Verify your `MONGODB_URI` is correct and reachable.
 
 ---
 

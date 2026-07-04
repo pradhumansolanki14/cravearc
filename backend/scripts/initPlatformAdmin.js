@@ -5,87 +5,90 @@ import adminModel from "../models/adminModel.js";
 
 /**
  * Platform Admin Initialization Script
- * 
+ *
  * Creates the first Platform Admin (superadmin) account if one doesn't exist.
  * Safe to run multiple times (idempotent).
- * 
- * Environment Variables:
- * - MONGODB_URI: Required
- * - PLATFORM_ADMIN_EMAIL: Default "admin@tomato.com"
- * - PLATFORM_ADMIN_PASSWORD: Default "Admin@123456"
- * - PLATFORM_ADMIN_NAME: Default "Platform Administrator"
- * 
+ *
+ * Required environment variables (no defaults — must be set explicitly):
+ *   MONGODB_URI              MongoDB connection string
+ *   PLATFORM_ADMIN_EMAIL     Email address for the Platform Admin account
+ *   PLATFORM_ADMIN_PASSWORD  Password (minimum 8 characters)
+ *
+ * Optional:
+ *   PLATFORM_ADMIN_NAME      Display name  (default: "Platform Administrator")
+ *
  * Usage:
  *   node scripts/initPlatformAdmin.js
- * 
- * To customize credentials, set env vars before running:
- *   PLATFORM_ADMIN_EMAIL=myemail@example.com PLATFORM_ADMIN_PASSWORD=MySecurePass123 node scripts/initPlatformAdmin.js
+ *
+ * Set variables in your .env file or export them before running:
+ *   PLATFORM_ADMIN_EMAIL=admin@yourdomain.com \
+ *   PLATFORM_ADMIN_PASSWORD=YourSecurePass123 \
+ *   node scripts/initPlatformAdmin.js
  */
-
-const DEFAULT_EMAIL = "admin@tomato.com";
-const DEFAULT_PASSWORD = "Admin@123456";
-const DEFAULT_NAME = "Platform Administrator";
 
 async function initPlatformAdmin() {
   try {
-    // Validate required env
-    if (!process.env.MONGODB_URI) {
-      console.error("[FATAL] MONGODB_URI environment variable is required");
+    // ── Validate required environment variables ──────────────
+    const missing = [];
+    if (!process.env.MONGODB_URI)           missing.push("MONGODB_URI");
+    if (!process.env.PLATFORM_ADMIN_EMAIL)  missing.push("PLATFORM_ADMIN_EMAIL");
+    if (!process.env.PLATFORM_ADMIN_PASSWORD) missing.push("PLATFORM_ADMIN_PASSWORD");
+
+    if (missing.length > 0) {
+      console.error("[FATAL] Missing required environment variables:");
+      missing.forEach(v => console.error(`  - ${v}`));
+      console.error("\nSet these variables in your .env file before running this script.");
+      console.error("See .env.example for reference.");
       process.exit(1);
     }
 
-    // Connect to MongoDB
+    const email    = process.env.PLATFORM_ADMIN_EMAIL.trim();
+    const password = process.env.PLATFORM_ADMIN_PASSWORD;
+    const name     = (process.env.PLATFORM_ADMIN_NAME || "Platform Administrator").trim();
+
+    // ── Validate password strength ───────────────────────────
+    if (password.length < 8) {
+      console.error("[ERROR] PLATFORM_ADMIN_PASSWORD must be at least 8 characters long");
+      process.exit(1);
+    }
+
+    // ── Connect to MongoDB ───────────────────────────────────
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✓ Connected to MongoDB");
 
-    // Check if any superadmin already exists
+    // ── Idempotency check ────────────────────────────────────
     const existingSuperAdmin = await adminModel.findOne({ role: "superadmin" });
     if (existingSuperAdmin) {
       console.log("✓ Platform Admin already exists:");
       console.log(`  Email: ${existingSuperAdmin.email}`);
-      console.log(`  Name: ${existingSuperAdmin.name}`);
+      console.log(`  Name:  ${existingSuperAdmin.name}`);
       console.log(`  Created: ${existingSuperAdmin.createdAt}`);
       console.log("\nNo action taken. Script is idempotent.");
       await mongoose.disconnect();
       process.exit(0);
     }
 
-    // Read credentials from env or use defaults
-    const email = process.env.PLATFORM_ADMIN_EMAIL || DEFAULT_EMAIL;
-    const password = process.env.PLATFORM_ADMIN_PASSWORD || DEFAULT_PASSWORD;
-    const name = process.env.PLATFORM_ADMIN_NAME || DEFAULT_NAME;
-
-    // Validate password strength
-    if (password.length < 8) {
-      console.error("[ERROR] Password must be at least 8 characters long");
-      await mongoose.disconnect();
-      process.exit(1);
-    }
-
-    // Hash password using the same mechanism as registerSuperAdmin
-    const salt = await bcrypt.genSalt(10);
+    // ── Hash password ────────────────────────────────────────
+    const salt           = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create Platform Admin
+    // ── Create Platform Admin ────────────────────────────────
     const admin = await adminModel.create({
       name,
       email,
       password: hashedPassword,
-      role: "superadmin",
-      isApproved: true,
+      role:         "superadmin",
+      isApproved:   true,
       restaurantId: null,
-      phone: "",
+      phone:        "",
     });
 
     console.log("\n✓ Platform Admin created successfully!");
     console.log(`  Email: ${admin.email}`);
-    console.log(`  Name: ${admin.name}`);
-    console.log(`  Role: ${admin.role}`);
-    console.log(`  ID: ${admin._id}`);
-    console.log("\n⚠️  IMPORTANT: Save these credentials securely!");
-    console.log(`  Login Email: ${email}`);
-    console.log(`  Login Password: ${password}`);
-    console.log("\n  You can now log in to the Admin dashboard with these credentials.");
+    console.log(`  Name:  ${admin.name}`);
+    console.log(`  Role:  ${admin.role}`);
+    console.log(`  ID:    ${admin._id}`);
+    console.log("\n  You can now log in to the Admin dashboard with the credentials you provided.");
 
     await mongoose.disconnect();
     console.log("\n✓ Disconnected from MongoDB");
