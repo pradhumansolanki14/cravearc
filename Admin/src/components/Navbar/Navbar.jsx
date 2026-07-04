@@ -3,7 +3,8 @@ import { assets } from '../../assets/assets'
 import { useAdmin } from '../../context/AdminContext'
 
 const Navbar = () => {
-  const { adminName, adminLogout } = useAdmin()
+  const { adminName, adminRole, adminLogout } = useAdmin()
+  const roleLabel = adminRole === 'superadmin' ? 'Platform Admin' : adminRole === 'vendor' ? 'Restaurant Manager' : 'Admin'
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 lg:px-8 flex-shrink-0 sticky top-0 z-50">
@@ -37,7 +38,7 @@ const Navbar = () => {
           </div>
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-slate-900 leading-none">{adminName || 'Admin'}</p>
-            <p className="text-xs text-slate-400 mt-0.5">Restaurant Manager</p>
+            <p className="text-xs text-slate-400 mt-0.5">{roleLabel}</p>
           </div>
         </div>
 

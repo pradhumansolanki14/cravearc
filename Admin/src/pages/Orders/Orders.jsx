@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { assets } from "../../assets/assets";
 
 const statusConfig = {
   "Food Processing": {
@@ -28,17 +27,22 @@ const Orders = ({ url }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
+  const adminToken = localStorage.getItem("adminToken");
 
   const fetchAllOrders = async () => {
     setLoading(true);
-    const response = await axios.get(url + "/api/order/list");
-    if (response.data.success) setOrders(response.data.data);
-    else toast.error("Error fetching orders");
+    try {
+      const response = await axios.get(url + "/api/order/list", { headers: { token: adminToken } });
+      if (response.data.success) setOrders(response.data.data);
+      else toast.error("Error fetching orders");
+    } catch {
+      toast.error("Error fetching orders");
+    }
     setLoading(false);
   };
 
   const statusHandler = async (event, orderId) => {
-    const response = await axios.post(url + "/api/order/status", { orderId, status: event.target.value });
+    const response = await axios.post(url + "/api/order/status", { orderId, status: event.target.value }, { headers: { token: adminToken } });
     if (response.data.success) await fetchAllOrders();
   };
 
