@@ -18,6 +18,7 @@ import MenuPage from './Pages/MenuPage/MenuPage'
 import AppPage from './Pages/AppPage/AppPage'
 import ContactPage from './Pages/ContactPage/ContactPage'
 import OrderDetail from './Pages/OrderDetail/OrderDetail'
+import CartConflictModal from './components/CartConflictModal/CartConflictModal'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false)
@@ -25,6 +26,7 @@ const App = () => {
   return (
     <div className="min-h-screen bg-white">
       {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
+      <CartConflictModal />
       <Navbar setShowLogin={setShowLogin} />
       <Routes>
         {/* Core */}
