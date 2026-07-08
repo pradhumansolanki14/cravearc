@@ -9,6 +9,7 @@ const StoreContextProvider = (props) => {
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
   const [favorites, setFavorites] = useState([]); // array of food IDs
+  const [userName, setUserName] = useState("");
 
   // ─── Multi-restaurant cart enforcement (Task 17) ───────────
   // Tracks which restaurant the current cart belongs to.
@@ -167,12 +168,23 @@ const StoreContextProvider = (props) => {
     loadData();
   }, []);
 
-  // Reload favorites when token changes (login/logout)
+  const fetchUserName = async (tkn) => {
+    try {
+      const res = await axios.get(url + "/api/user/profile", { headers: { token: tkn } });
+      if (res.data.success) {
+        setUserName(res.data.data.name);
+      }
+    } catch {}
+  };
+
+  // Reload favorites and username when token changes (login/logout)
   useEffect(() => {
     if (token) {
       loadFavorites(token);
+      fetchUserName(token);
     } else {
       setFavorites([]);
+      setUserName("");
     }
   }, [token, loadFavorites]);
 
@@ -196,6 +208,8 @@ const StoreContextProvider = (props) => {
     showCartConflictModal,
     confirmCartSwitch,
     cancelCartSwitch,
+    userName,
+    setUserName,
   };
 
   return (

@@ -10,13 +10,13 @@ const NAV_ITEMS = [
   { label: "Menu",    path: "/menu",    exact: false },
   { label: "App",     path: "/app",     exact: false },
   { label: "Contact", path: "/contact", exact: false },
-]
+];
 
 const Navbar = ({ setShowLogin }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const { token, setToken, cartItems, favorites } = useContext(StoreContext);
+  const { token, setToken, cartItems, favorites, userName } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,66 +45,76 @@ const Navbar = ({ setShowLogin }) => {
   return (
     <>
       <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled 
-            ? "bg-white/80 backdrop-blur-md shadow-card border-b border-slate-100" 
-            : "bg-white/40 backdrop-blur-sm"
+            ? "py-3 bg-white/80 backdrop-blur-md shadow-card border-b border-slate-100" 
+            : "py-5 bg-white/20 backdrop-blur-xs border-b border-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-14">
 
             {/* ── Logo ── */}
             <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald transition-all duration-300 group-hover:scale-105">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald transition-all duration-300 group-hover:scale-105">
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
               </div>
-              <span className="font-poppins font-bold text-xl text-slate-900 tracking-tight group-hover:text-emerald-500 transition-colors">
-                Tomato
+              <span className="font-poppins font-extrabold text-xl text-slate-900 tracking-tight transition-colors">
+                Tomato<span className="text-emerald-500">.</span>
               </span>
             </Link>
 
             {/* ── Desktop Nav Links ── */}
-            <div className="hidden md:flex items-center bg-slate-50 border border-slate-100 rounded-2xl p-1 gap-1">
-              {NAV_ITEMS.map(item => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`relative px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                    isActive(item.path, item.exact)
-                      ? "bg-white text-emerald-600 shadow-sm"
-                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/50"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div className="hidden md:flex items-center bg-slate-100/50 border border-slate-150/20 rounded-2xl p-1 gap-1 backdrop-blur-xs">
+              {NAV_ITEMS.map(item => {
+                const active = isActive(item.path, item.exact);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`relative px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                      active
+                        ? "text-emerald-700 font-extrabold"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/30"
+                    }`}
+                  >
+                    {active && (
+                      <motion.span 
+                        layoutId="active-pill" 
+                        className="absolute inset-0 bg-white border border-slate-150/30 shadow-2xs rounded-xl -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* ── Right Actions ── */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
 
               {/* Search Toggle */}
               <button
                 onClick={() => navigate("/search")}
-                className="w-10 h-10 flex items-center justify-center rounded-2xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200"
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-150/40 text-slate-550 hover:bg-white hover:border-slate-350 hover:text-slate-800 transition-all duration-300 hover:scale-105 shadow-3xs"
                 aria-label="Search"
               >
-                <FiSearch size={20} />
+                <FiSearch size={17} />
               </button>
 
               {/* Favorites — only when logged in */}
               {token && (
                 <button
                   onClick={() => navigate("/favorites")}
-                  className="relative w-10 h-10 flex items-center justify-center rounded-2xl text-slate-500 hover:bg-rose-50 hover:text-rose-500 transition-all duration-200"
+                  className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-150/40 text-slate-550 hover:bg-white hover:border-rose-200 hover:text-rose-500 transition-all duration-300 hover:scale-105 shadow-3xs"
                   aria-label="Favorites"
                 >
-                  <FiHeart size={20} className={favCount > 0 ? "fill-rose-500 text-rose-500" : ""} />
+                  <FiHeart size={17} className={favCount > 0 ? "fill-rose-550 text-rose-550" : ""} />
                   {favCount > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-white shadow-3xs animate-fadeUp">
                       {favCount > 9 ? '9+' : favCount}
                     </span>
                   )}
@@ -114,12 +124,12 @@ const Navbar = ({ setShowLogin }) => {
               {/* Cart */}
               <Link
                 to="/cart"
-                className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-all duration-200"
+                className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 border border-slate-150/40 text-slate-550 hover:bg-white hover:border-emerald-200 hover:text-emerald-650 transition-all duration-300 hover:scale-105 shadow-3xs"
                 aria-label="Cart"
               >
-                <FiShoppingBag size={18} />
+                <FiShoppingBag size={17} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-emerald">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 text-white text-[9px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-white shadow-emerald-sm animate-fadeUp">
                     {cartCount > 9 ? '9+' : cartCount}
                   </span>
                 )}
@@ -131,7 +141,7 @@ const Navbar = ({ setShowLogin }) => {
                   onClick={() => setShowLogin(true)}
                   variant="primary"
                   size="sm"
-                  className="hidden md:flex font-semibold shadow-emerald-lg"
+                  className="hidden md:flex font-bold shadow-emerald px-5 py-2.5 h-10 text-xs uppercase tracking-wider rounded-xl"
                 >
                   Sign in
                 </Button>
@@ -142,11 +152,14 @@ const Navbar = ({ setShowLogin }) => {
                   onMouseLeave={() => setShowProfileMenu(false)}
                 >
                   <button 
-                    className="flex items-center justify-center w-10 h-10 rounded-2xl overflow-hidden ring-2 ring-emerald-100 hover:ring-emerald-300 transition-all duration-200" 
+                    className="flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border border-slate-150/40 hover:border-emerald-250 transition-all duration-300 hover:scale-105 shadow-3xs" 
                     aria-label="Profile"
                   >
-                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-                      <FiUser size={18} />
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-poppins font-extrabold text-xs tracking-wider">
+                      {userName 
+                        ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                        : <FiUser size={16} />
+                      }
                     </div>
                   </button>
 
@@ -158,21 +171,22 @@ const Navbar = ({ setShowLogin }) => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-dropdown border border-slate-100 p-2 z-50"
+                        className="absolute right-0 top-full mt-2.5 w-56 bg-white rounded-2xl shadow-dropdown border border-slate-100 p-2.5 z-50 animate-fadeUp"
                       >
-                        <div className="px-3 py-2.5 mb-1 border-b border-slate-50">
-                          <p className="text-2xs text-slate-400 font-bold uppercase tracking-wider">Account</p>
+                        <div className="px-3 py-2 border-b border-slate-50 mb-1.5">
+                          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Account</p>
+                          {userName && <p className="text-xs font-bold text-slate-800 truncate mt-1.5 leading-none">{userName}</p>}
                         </div>
 
                         {[
-                          { label: "My Profile",    path: "/profile",   icon: <FiUser size={16} />, color: "hover:bg-slate-50 hover:text-slate-900" },
-                          { label: "My Orders",     path: "/myorders",  icon: <FiShoppingBag size={16} />, color: "hover:bg-emerald-50 hover:text-emerald-600" },
-                          { label: "My Favorites",  path: "/favorites", icon: <FiHeart size={16} />, color: "hover:bg-rose-50 hover:text-rose-600" },
+                          { label: "My Profile",    path: "/profile",   icon: <FiUser size={15} />, color: "hover:bg-slate-55 hover:text-slate-900" },
+                          { label: "My Orders",     path: "/myorders",  icon: <FiShoppingBag size={15} />, color: "hover:bg-emerald-50 hover:text-emerald-605" },
+                          { label: "My Favorites",  path: "/favorites", icon: <FiHeart size={15} />, color: "hover:bg-rose-50 hover:text-rose-605" },
                         ].map(item => (
                           <button
                             key={item.path}
                             onClick={() => { navigate(item.path); setShowProfileMenu(false); }}
-                            className={`flex items-center gap-3 w-full px-3 py-2.5 text-sm text-slate-650 font-medium ${item.color} rounded-xl transition-all duration-150`}
+                            className={`flex items-center gap-3 w-full px-3 py-2.5 text-xs text-slate-655 font-bold uppercase tracking-wider rounded-xl transition-all duration-150 ${item.color}`}
                           >
                             <span className="text-slate-400 group-hover:text-inherit">{item.icon}</span>
                             <span>{item.label}</span>
@@ -183,9 +197,9 @@ const Navbar = ({ setShowLogin }) => {
 
                         <button
                           onClick={logout}
-                          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-150"
+                          className="flex items-center gap-3 w-full px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-55 rounded-xl transition-all duration-150"
                         >
-                          <FiLogOut size={16} />
+                          <FiLogOut size={15} />
                           <span>Sign Out</span>
                         </button>
                       </motion.div>
@@ -197,10 +211,10 @@ const Navbar = ({ setShowLogin }) => {
               {/* Mobile Hamburger menu */}
               <button
                 onClick={() => setMobileOpen(true)}
-                className="md:hidden w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
+                className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-150/40 transition-colors shadow-3xs"
                 aria-label="Open menu"
               >
-                <FiMenu size={20} />
+                <FiMenu size={18} />
               </button>
             </div>
           </div>
@@ -208,7 +222,7 @@ const Navbar = ({ setShowLogin }) => {
       </nav>
 
       {/* Spacer to prevent page content overlap */}
-      <div className="h-20" />
+      <div className="h-24" />
 
       {/* ── Mobile Side Drawer Menu ── */}
       <AnimatePresence>
