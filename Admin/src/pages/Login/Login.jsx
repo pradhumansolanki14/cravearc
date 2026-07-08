@@ -130,12 +130,8 @@ const Login = () => {
               </button>
             </form>
 
-            <div className="mt-4 text-center">
-              <span className="text-xs text-slate-400">Want to join as a restaurant? </span>
-              <a href="/vendor/register" className="text-xs font-semibold text-orange-500 hover:underline">
-                Register your restaurant
-              </a>
-            </div>
+
+
           </div>
         </div>
 
