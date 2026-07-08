@@ -9,6 +9,7 @@ import Footer from './components/Footer/Footer'
 // ── Modals / Overlays ─────────────────────────────────────────
 import LoginPopup from './components/LoginPopup/LoginPopup'
 import CartConflictModal from './components/CartConflictModal/CartConflictModal'
+import BecomePartnerModal from './components/BecomePartnerModal/BecomePartnerModal'
 
 // ── Pages ─────────────────────────────────────────────────────
 import Home from './Pages/Home/Home'
@@ -31,6 +32,7 @@ import RestaurantDetail from './Pages/RestaurantDetail/RestaurantDetail'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false)
+  const [showPartnerModal, setShowPartnerModal] = useState(false)
 
   return (
     <div className="min-h-screen bg-white">
@@ -86,11 +88,14 @@ const App = () => {
       {/* ── Auth Modal ────────────────────────────────────────── */}
       {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
 
+      {/* ── Vendor Registration Modal ─────────────────────────── */}
+      <BecomePartnerModal isOpen={showPartnerModal} onClose={() => setShowPartnerModal(false)} />
+
       {/* ── Cart Conflict Guard ───────────────────────────────── */}
       <CartConflictModal />
 
       {/* ── Navigation ───────────────────────────────────────── */}
-      <Navbar setShowLogin={setShowLogin} />
+      <Navbar setShowLogin={setShowLogin} setShowPartnerModal={setShowPartnerModal} />
 
       {/* ── Routes ───────────────────────────────────────────── */}
       <Routes>

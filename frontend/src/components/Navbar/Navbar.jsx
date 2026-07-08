@@ -21,7 +21,6 @@ import {
   FiGrid,
   FiPackage,
   FiHome,
-  FiClock,
 } from "react-icons/fi";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
@@ -30,30 +29,24 @@ import { StoreContext } from "../../context/StoreContext";
    NAV LINKS  — marketplace-grade, not tutorial-grade
 ──────────────────────────────────────────────────────────── */
 const NAV_ITEMS = [
-  { label: "Discover",    path: "/",            exact: true,   icon: <FiStar size={14} /> },
-  { label: "Restaurants", path: "/restaurants", exact: false,  icon: <FiGrid size={14} /> },
+  { label: "Discover",    path: "/",            exact: true,  icon: <FiStar size={14} /> },
+  { label: "Restaurants", path: "/restaurants", exact: false, icon: <FiGrid size={14} /> },
 ];
 
 /* ────────────────────────────────────────────────────────────
    PROFILE DROPDOWN ITEMS (logged in)
 ──────────────────────────────────────────────────────────── */
 const PROFILE_ITEMS = [
-  { label: "My Profile",    path: "/profile",   icon: <FiUser size={15} /> },
-  { label: "My Orders",     path: "/myorders",  icon: <FiPackage size={15} /> },
-  { label: "Saved Addresses", path: "/profile", icon: <FiMapPin size={15} />, tab: "addresses" },
-  { label: "Favorites",     path: "/favorites", icon: <FiHeart size={15} /> },
+  { label: "My Profile",       path: "/profile",   icon: <FiUser size={15} /> },
+  { label: "My Orders",        path: "/myorders",  icon: <FiPackage size={15} /> },
+  { label: "Saved Addresses",  path: "/profile",   icon: <FiMapPin size={15} /> },
+  { label: "Favorites",        path: "/favorites", icon: <FiHeart size={15} /> },
 ];
-
-/* ────────────────────────────────────────────────────────────
-   VENDOR REGISTRATION URL (Admin app)
-──────────────────────────────────────────────────────────── */
-const VENDOR_REGISTER_URL = "http://localhost:5174/vendor/register";
 
 /* ════════════════════════════════════════════════════════════
    EXPANDABLE SEARCH — desktop: pill that expands inline
-                        mobile: full-width below nav
 ════════════════════════════════════════════════════════════ */
-const ExpandableSearch = ({ onSearch }) => {
+const ExpandableSearch = () => {
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
@@ -64,9 +57,7 @@ const ExpandableSearch = ({ onSearch }) => {
     setTimeout(() => inputRef.current?.focus(), 60);
   };
 
-  const collapse = () => {
-    if (!query) setExpanded(false);
-  };
+  const collapse = () => { if (!query) setExpanded(false); };
 
   const submit = (e) => {
     e.preventDefault();
@@ -127,7 +118,7 @@ const ExpandableSearch = ({ onSearch }) => {
 };
 
 /* ════════════════════════════════════════════════════════════
-   LOCATION SELECTOR — pulls saved addresses from profile API
+   LOCATION SELECTOR
 ════════════════════════════════════════════════════════════ */
 const LocationSelector = ({ url, token }) => {
   const [open, setOpen] = useState(false);
@@ -135,7 +126,6 @@ const LocationSelector = ({ url, token }) => {
   const [selected, setSelected] = useState("Current Location");
   const ref = useRef(null);
 
-  // Load saved addresses when user is logged in
   useEffect(() => {
     if (!token) { setSelected("Set Location"); return; }
     const load = async () => {
@@ -144,7 +134,7 @@ const LocationSelector = ({ url, token }) => {
         if (res.data.success && res.data.data?.length) {
           setAddresses(res.data.data);
           const primary = res.data.data[0];
-          setSelected(`${primary.city || primary.label || "Saved Address"}`);
+          setSelected(primary.city || primary.label || "Saved Address");
         } else {
           setSelected("Current Location");
         }
@@ -153,7 +143,6 @@ const LocationSelector = ({ url, token }) => {
     load();
   }, [token, url]);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", handler);
@@ -187,8 +176,6 @@ const LocationSelector = ({ url, token }) => {
             <p className="px-3 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">
               Delivery To
             </p>
-
-            {/* Current location option */}
             <button
               onClick={() => { setSelected("Current Location"); setOpen(false); }}
               className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 text-sm font-semibold text-slate-700 transition-colors text-left"
@@ -196,10 +183,9 @@ const LocationSelector = ({ url, token }) => {
               <span className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <FiMapPin size={13} className="text-emerald-600" />
               </span>
-              <span>Current Location</span>
+              Current Location
             </button>
 
-            {/* Saved addresses */}
             {addresses.length > 0 && (
               <>
                 <div className="mx-3 my-1.5 border-t border-slate-100" />
@@ -209,10 +195,7 @@ const LocationSelector = ({ url, token }) => {
                 {addresses.map((addr, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      setSelected(addr.city || addr.label || "Saved Address");
-                      setOpen(false);
-                    }}
+                    onClick={() => { setSelected(addr.city || addr.label || "Saved Address"); setOpen(false); }}
                     className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-semibold text-slate-700 transition-colors text-left"
                   >
                     <span className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
@@ -243,7 +226,7 @@ const LocationSelector = ({ url, token }) => {
 };
 
 /* ════════════════════════════════════════════════════════════
-   PROFILE DROPDOWN — logged in only
+   PROFILE DROPDOWN
 ════════════════════════════════════════════════════════════ */
 const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
   const [open, setOpen] = useState(false);
@@ -286,7 +269,6 @@ const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
             transition={{ duration: 0.15 }}
             className="absolute right-0 top-full mt-2.5 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 z-50"
           >
-            {/* User header */}
             <div className="flex items-center gap-3 px-3 py-3 border-b border-slate-50 mb-1">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {initials}
@@ -297,7 +279,6 @@ const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
               </div>
             </div>
 
-            {/* Nav items */}
             {PROFILE_ITEMS.map((item) => (
               <button
                 key={item.label}
@@ -330,7 +311,7 @@ const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
 /* ════════════════════════════════════════════════════════════
    MOBILE DRAWER
 ════════════════════════════════════════════════════════════ */
-const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, setShowLogin, onLogout, navigate }) => {
+const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, setShowLogin, setShowPartnerModal, onLogout, navigate }) => {
   const [mobileSearch, setMobileSearch] = useState("");
 
   const submitMobileSearch = (e) => {
@@ -346,7 +327,6 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -355,7 +335,6 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] cursor-pointer"
           />
 
-          {/* Panel */}
           <motion.aside
             role="dialog"
             aria-modal="true"
@@ -417,20 +396,17 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
 
             <div className="mx-5 my-4 border-t border-slate-100" />
 
-            {/* Become a Partner */}
+            {/* Become a Partner — only when NOT logged in */}
             {!token && (
               <div className="px-3 space-y-1">
                 <p className="px-2 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Partners</p>
-                <a
-                  href={VENDOR_REGISTER_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={onClose}
-                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors"
+                <button
+                  onClick={() => { setShowPartnerModal(true); onClose(); }}
+                  className="flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl text-sm font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors text-left"
                 >
                   <FiStar size={15} className="text-emerald-500" />
                   Become a Partner
-                </a>
+                </button>
               </div>
             )}
 
@@ -438,7 +414,6 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
             <div className="px-3 mt-4 space-y-1">
               {token ? (
                 <>
-                  {/* User Header */}
                   <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-slate-50 rounded-2xl">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
                       {userName ? userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U"}
@@ -461,7 +436,6 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
                     </button>
                   ))}
 
-                  {/* Quick Actions */}
                   <div className="grid grid-cols-2 gap-2 pt-2">
                     <button
                       onClick={() => { navigate("/cart"); onClose(); }}
@@ -496,18 +470,16 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
                   >
                     Sign In
                   </button>
-                  <Link
-                    to="/register"
+                  <button
                     onClick={() => { setShowLogin(true); onClose(); }}
                     className="flex items-center justify-center w-full px-4 py-3.5 rounded-2xl text-sm font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors mt-1"
                   >
                     Create Account
-                  </Link>
+                  </button>
                 </>
               )}
             </div>
 
-            {/* Bottom padding */}
             <div className="h-8" />
           </motion.aside>
         </>
@@ -519,21 +491,19 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
 /* ════════════════════════════════════════════════════════════
    MAIN NAVBAR
 ════════════════════════════════════════════════════════════ */
-const Navbar = ({ setShowLogin }) => {
+const Navbar = ({ setShowLogin, setShowPartnerModal }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { token, setToken, cartItems, favorites, userName, url } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation();
 
-  /* scroll detection */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* close drawer on route change */
   useEffect(() => setMobileOpen(false), [location.pathname]);
 
   const logout = useCallback(() => {
@@ -562,13 +532,13 @@ const Navbar = ({ setShowLogin }) => {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center h-[68px] gap-4">
 
-            {/* ── Logo ────────────────────────────────────────── */}
+            {/* ── Logo ── */}
             <Link
               to="/"
               className="flex items-center gap-2.5 flex-shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl"
               aria-label="Tomato — Home"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-emerald">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald-sm transition-all duration-300 group-hover:scale-105">
                 <FiMapPin size={16} className="text-white" />
               </div>
               <span className="font-poppins font-extrabold text-xl text-slate-900 tracking-tight">
@@ -576,12 +546,12 @@ const Navbar = ({ setShowLogin }) => {
               </span>
             </Link>
 
-            {/* ── Location Selector ────────────────────────────── */}
+            {/* ── Location Selector ── */}
             <div className="hidden lg:flex items-center border-r border-slate-200 pr-4">
               <LocationSelector url={url} token={token} />
             </div>
 
-            {/* ── Desktop Nav Links ────────────────────────────── */}
+            {/* ── Desktop Nav Links ── */}
             <nav role="navigation" aria-label="Main navigation" className="hidden md:flex items-center gap-1 flex-1">
               {NAV_ITEMS.map((item) => {
                 const active = isActive(item.path, item.exact);
@@ -611,19 +581,18 @@ const Navbar = ({ setShowLogin }) => {
 
               {/* Become a Partner — only when NOT logged in */}
               {!token && (
-                <a
-                  href={VENDOR_REGISTER_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setShowPartnerModal(true)}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
                 >
                   <FiStar size={14} className="text-slate-400" />
                   Become a Partner
-                </a>
+                </button>
               )}
             </nav>
 
-            {/* ── Right Actions ────────────────────────────────── */}
+            {/* ── Right Actions ── */}
             <div className="flex items-center gap-2 ml-auto">
 
               {/* Expandable Search */}
@@ -693,7 +662,6 @@ const Navbar = ({ setShowLogin }) => {
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open navigation menu"
                 aria-expanded={mobileOpen}
-                aria-controls="mobile-drawer"
                 className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100/80 text-slate-700 hover:bg-slate-200 border border-slate-200/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
               >
                 <FiMenu size={20} />
@@ -707,7 +675,7 @@ const Navbar = ({ setShowLogin }) => {
       {/* Spacer */}
       <div className="h-[68px]" aria-hidden="true" />
 
-      {/* ── Mobile Drawer ──────────────────────────────────────── */}
+      {/* ── Mobile Drawer ── */}
       <MobileDrawer
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
@@ -716,6 +684,7 @@ const Navbar = ({ setShowLogin }) => {
         cartCount={cartCount}
         favCount={favCount}
         setShowLogin={setShowLogin}
+        setShowPartnerModal={setShowPartnerModal}
         onLogout={logout}
         navigate={navigate}
       />
