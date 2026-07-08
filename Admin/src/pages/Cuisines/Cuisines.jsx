@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FiBookOpen, FiPlus, FiX, FiEdit, FiTrash2, FiInfo } from "react-icons/fi";
+import { Card, Badge, Button, Input } from "../../components/ui";
 
-const EMOJI_OPTIONS = ["🍝","🥡","🍛","🍔","🌮","🍱","🍜","🥙","🍕","🥩","🍣","🍤","🥗","🌯","🍲","🫕","🧆","🥘","🍖","🫔"];
-
-const inp = "w-full px-4 py-3 rounded-2xl border-2 border-slate-100 bg-white text-slate-900 text-sm focus:outline-none focus:border-orange-300 transition-all";
+const EMOJI_OPTIONS = ["🍝","🥡","🍛","🍔","🌮","🍱","🍜","🥙","🍕","🥩","🍣","🍤","🍲","🫕","🧆","🥘","🍖","🫔"];
 
 const Cuisines = ({ url }) => {
   const [cuisines, setCuisines] = useState([]);
@@ -19,16 +19,35 @@ const Cuisines = ({ url }) => {
     setLoading(true);
     try {
       const res = await axios.get(`${url}/api/cuisines`);
-      if (res.data.success) setCuisines(res.data.data);
-    } catch { toast.error("Failed to load cuisines"); }
+      if (res.data.success) {
+        setCuisines(res.data.data);
+      }
+    } catch {
+      toast.error("Failed to load cuisines");
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchCuisines(); }, []);
+  useEffect(() => { 
+    fetchCuisines(); 
+  }, []);
 
-  const openAdd = () => { setEditing(null); setForm({ name: "", icon: "🍽️" }); setShowForm(true); };
-  const openEdit = (c) => { setEditing(c); setForm({ name: c.name, icon: c.icon || "🍽️" }); setShowForm(true); };
-  const closeForm = () => { setShowForm(false); setEditing(null); };
+  const openAdd = () => { 
+    setEditing(null); 
+    setForm({ name: "", icon: "🍽️" }); 
+    setShowForm(true); 
+  };
+  
+  const openEdit = (c) => { 
+    setEditing(c); 
+    setForm({ name: c.name, icon: c.icon || "🍽️" }); 
+    setShowForm(true); 
+  };
+  
+  const closeForm = () => { 
+    setShowForm(false); 
+    setEditing(null); 
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -42,7 +61,7 @@ const Cuisines = ({ url }) => {
         res = await axios.post(`${url}/api/cuisines`, form, { headers: { token } });
       }
       if (res.data.success) {
-        toast.success(editing ? "Cuisine updated" : "Cuisine created");
+        toast.success(editing ? "Cuisine updated successfully!" : "New cuisine successfully created!");
         closeForm();
         fetchCuisines();
       } else {
@@ -59,115 +78,180 @@ const Cuisines = ({ url }) => {
     try {
       const res = await axios.delete(`${url}/api/cuisines/${c._id}`, { headers: { token } });
       if (res.data.success) {
-        toast.success("Cuisine deleted");
+        toast.success("Cuisine successfully deleted!");
         fetchCuisines();
       } else {
         toast.error(res.data.message || "Cannot delete");
       }
     } catch (err) {
       const msg = err.response?.data?.message || "Delete failed";
-      if (err.response?.status === 409) toast.error("Cannot delete: cuisine is used by existing restaurants");
-      else toast.error(msg);
+      if (err.response?.status === 409) {
+        toast.error("Cannot delete: cuisine is used by existing restaurants");
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
   return (
-    <div className="max-w-3xl animate-fadeUp">
+    <div className="max-w-3xl animate-fadeUp space-y-6">
+      
       {/* Modal form */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }} onClick={e => e.target === e.currentTarget && closeForm()}>
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-fadeUp">
-            <div className="h-1.5 w-full bg-gradient-to-r from-orange-400 to-orange-600" />
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-bold text-xl text-slate-900">{editing ? "Edit Cuisine" : "Add Cuisine"}</h2>
-                <button onClick={closeForm} className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4" 
+          style={{ background: "rgba(15,23,42,0.65)", backdropFilter: "blur(5px)" }} 
+          onClick={e => e.target === e.currentTarget && closeForm()}
+        >
+          <Card variant="default" radius="3xl" padding="none" className="bg-white shadow-2xl w-full max-w-md overflow-hidden animate-fadeUp">
+            <div className="h-1.5 w-full bg-gradient-to-r from-emerald-500 to-emerald-600" />
+            
+            <div className="p-6 sm:p-8">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5 pb-2 border-b border-slate-50">
+                <h2 className="font-poppins font-extrabold text-lg text-slate-900 leading-none">
+                  {editing ? "Edit Cuisine" : "Add Cuisine"}
+                </h2>
+                <button 
+                  onClick={closeForm} 
+                  className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-100 transition-colors"
+                >
+                  <FiX size={16} />
                 </button>
               </div>
+
               <form onSubmit={handleSave} className="space-y-4">
+                <Input 
+                  label="Cuisine Name"
+                  required
+                  value={form.name} 
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
+                  placeholder="e.g. Italian" 
+                />
+                
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Name *</label>
-                  <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Italian" required className={inp} />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Icon</label>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-3xl w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl">{form.icon}</span>
-                    <input value={form.icon} onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} placeholder="Emoji or text" className={`${inp} flex-1`} />
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Icon / Emoji</label>
+                  
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl w-11 h-11 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0">
+                      {form.icon}
+                    </span>
+                    <input 
+                      value={form.icon} 
+                      onChange={e => setForm(f => ({ ...f, icon: e.target.value }))} 
+                      placeholder="Emoji or short text" 
+                      className="w-full h-11 px-4 py-2.5 bg-white border-2 border-slate-100 focus:border-emerald-450 rounded-xl text-sm text-slate-950 placeholder-slate-400 outline-none transition-all duration-200" 
+                    />
                   </div>
-                  <div className="grid grid-cols-10 gap-1.5">
+
+                  <div className="grid grid-cols-9 gap-1.5 p-2 bg-slate-50 border border-slate-100 rounded-2xl">
                     {EMOJI_OPTIONS.map(em => (
-                      <button key={em} type="button" onClick={() => setForm(f => ({ ...f, icon: em }))}
-                        className={`w-8 h-8 rounded-xl text-base flex items-center justify-center transition-all ${form.icon === em ? 'bg-orange-100 ring-2 ring-orange-400' : 'bg-slate-50 hover:bg-slate-100'}`}>
+                      <button 
+                        key={em} 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, icon: em }))}
+                        className={`w-8 h-8 rounded-xl text-base flex items-center justify-center transition-all ${
+                          form.icon === em 
+                            ? 'bg-emerald-100 ring-2 ring-emerald-400' 
+                            : 'bg-white hover:bg-slate-100 shadow-3xs'
+                        }`}
+                      >
                         {em}
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={closeForm} className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-sm transition-all">Cancel</button>
-                  <button type="submit" disabled={saving} className="flex-1 py-3 bg-slate-900 hover:bg-slate-700 text-white font-bold rounded-2xl text-sm transition-all disabled:opacity-60">
+
+                <div className="flex gap-3 pt-3">
+                  <Button type="button" onClick={closeForm} variant="outline" size="md" className="flex-1 font-bold">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={saving} variant="primary" size="md" className="flex-1 font-bold shadow-emerald-lg">
                     {saving ? "Saving..." : editing ? "Update" : "Create"}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      {/* ── Page Header ── */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-xl">🍽️</div>
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <FiBookOpen size={18} />
+          </div>
           <div>
-            <h1 className="font-bold text-2xl text-slate-900">Cuisines</h1>
-            <p className="text-slate-400 text-sm">{cuisines.length} active cuisine{cuisines.length !== 1 ? "s" : ""}</p>
+            <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Cuisines</h1>
+            <p className="text-slate-405 text-xs font-semibold">{cuisines.length} registered global cuisines</p>
           </div>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-700 text-white font-bold rounded-2xl text-sm transition-all">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+        <Button 
+          onClick={openAdd}
+          variant="primary" 
+          size="sm"
+          leftIcon={<FiPlus />}
+          className="font-bold shadow-emerald"
+        >
           Add Cuisine
-        </button>
+        </Button>
       </div>
 
-      {/* Grid */}
+      {/* ── Grid ── */}
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="h-24 bg-white rounded-3xl border border-slate-100 animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-24 bg-white rounded-3xl border border-slate-105 animate-pulse" />)}
         </div>
       ) : cuisines.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100">
-          <span className="text-5xl mb-3">🍽️</span>
-          <p className="font-semibold text-slate-700">No cuisines yet</p>
-          <p className="text-sm text-slate-400 mt-1">Click "Add Cuisine" to get started</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 text-center p-8">
+          <FiBookOpen size={28} className="text-slate-350 mb-3" />
+          <p className="font-bold text-slate-705 text-sm">No cuisines yet</p>
+          <p className="text-xs text-slate-400 mt-1">Create your first global cuisine category wrapper.</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {cuisines.map(c => (
-            <div key={c._id} className="bg-white rounded-3xl border border-slate-100 shadow-card p-5 flex items-center justify-between group hover:border-orange-200 transition-all">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl">{c.icon || "🍽️"}</div>
-                <div>
-                  <p className="font-bold text-slate-900">{c.name}</p>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${c.isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
-                    {c.isActive ? "Active" : "Inactive"}
-                  </span>
+            <Card 
+              key={c._id} 
+              variant="default"
+              radius="2xl"
+              padding="sm"
+              className="border border-slate-100 shadow-sm p-4 flex items-center justify-between group hover:border-emerald-200 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-150/45 flex items-center justify-center text-2xl flex-shrink-0">
+                  {c.icon || "🍽️"}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-805 text-sm truncate leading-none mb-2">{c.name}</p>
+                  <Badge variant={c.isActive !== false ? "success" : "neutral"} size="sm" className="font-bold">
+                    {c.isActive !== false ? "Active" : "Inactive"}
+                  </Badge>
                 </div>
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => openEdit(c)} className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-orange-50 hover:text-orange-500 flex items-center justify-center text-slate-500 transition-all">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => openEdit(c)} 
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-100/50 transition-all duration-200"
+                  title="Edit cuisine"
+                >
+                  <FiEdit size={14} />
                 </button>
-                <button onClick={() => handleDelete(c)} className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-slate-500 transition-all">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <button 
+                  onClick={() => handleDelete(c)} 
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100/50 transition-all duration-200"
+                  title="Delete cuisine"
+                >
+                  <FiTrash2 size={14} />
                 </button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
+
     </div>
   );
 };

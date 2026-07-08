@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-const StatusBadge = ({ ok, label }) => (
-  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg border ${ok ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-amber-50 text-amber-600 border-amber-200"}`}>
-    {label}
-  </span>
-);
+import { FiHome, FiCheck, FiX, FiRefreshCw, FiStar, FiTrash2, FiSearch, FiLayers, FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
+import { Card, Badge, Button, Input } from "../../components/ui";
 
 const Restaurants = ({ url }) => {
   const [restaurants, setRestaurants] = useState([]);
@@ -20,23 +16,37 @@ const Restaurants = ({ url }) => {
     setLoading(true);
     try {
       const res = await axios.get(`${url}/api/admin/restaurant/`, { headers: { token } });
-      if (res.data.success) setRestaurants(res.data.data);
-      else toast.error("Failed to load restaurants");
-    } catch { toast.error("Failed to load restaurants"); }
+      if (res.data.success) {
+        setRestaurants(res.data.data);
+      } else {
+        toast.error("Failed to load restaurants");
+      }
+    } catch {
+      toast.error("Failed to load restaurants");
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchRestaurants(); }, []);
+  useEffect(() => { 
+    fetchRestaurants(); 
+  }, []);
 
   const handleApprove = async (r, approved) => {
     setActioning(r._id + (approved ? "_approve" : "_reject"));
     try {
-      const res = await axios.post(`${url}/api/admin/vendors/approve`, { vendorId: r.ownerId?._id || r.ownerId, approved }, { headers: { token } });
+      const res = await axios.post(`${url}/api/admin/vendors/approve`, { 
+        vendorId: r.ownerId?._id || r.ownerId, 
+        approved 
+      }, { headers: { token } });
       if (res.data.success) {
-        toast.success(`Restaurant ${approved ? "approved" : "rejected"}`);
+        toast.success(`Restaurant ${approved ? "approved" : "rejected"} successfully!`);
         fetchRestaurants();
-      } else toast.error(res.data.message);
-    } catch { toast.error("Action failed"); }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch {
+      toast.error("Action failed");
+    }
     setActioning("");
   };
 
@@ -45,10 +55,14 @@ const Restaurants = ({ url }) => {
     try {
       const res = await axios.patch(`${url}/api/admin/restaurant/${r._id}/featured`, {}, { headers: { token } });
       if (res.data.success) {
-        toast.success(`Featured ${res.data.data?.featured ? "enabled" : "disabled"}`);
+        toast.success(`Featured state ${res.data.data?.featured ? "enabled" : "disabled"}`);
         fetchRestaurants();
-      } else toast.error(res.data.message);
-    } catch { toast.error("Action failed"); }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch {
+      toast.error("Action failed");
+    }
     setActioning("");
   };
 
@@ -58,16 +72,23 @@ const Restaurants = ({ url }) => {
     try {
       const res = await axios.delete(`${url}/api/admin/restaurant/${r._id}`, { headers: { token } });
       if (res.data.success) {
-        toast.success("Restaurant deactivated");
+        toast.success("Restaurant successfully deactivated!");
         fetchRestaurants();
-      } else toast.error(res.data.message);
-    } catch { toast.error("Action failed"); }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch {
+      toast.error("Action failed");
+    }
     setActioning("");
   };
 
   const filtered = restaurants.filter(r => {
-    const matchSearch = r.name?.toLowerCase().includes(search.toLowerCase()) || r.ownerId?.email?.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "All" || (filter === "Approved" && r.isApproved) || (filter === "Pending" && !r.isApproved);
+    const matchSearch = r.name?.toLowerCase().includes(search.toLowerCase()) || 
+                        r.ownerId?.email?.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "All" || 
+                        (filter === "Approved" && r.isApproved) || 
+                        (filter === "Pending" && !r.isApproved);
     return matchSearch && matchFilter;
   });
 
@@ -79,128 +100,215 @@ const Restaurants = ({ url }) => {
   };
 
   return (
-    <div className="max-w-5xl animate-fadeUp">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="max-w-5xl animate-fadeUp space-y-6">
+      
+      {/* ── Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-xl">🏪</div>
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <FiHome size={18} />
+          </div>
           <div>
-            <h1 className="font-bold text-2xl text-slate-900">Restaurants</h1>
-            <p className="text-slate-400 text-sm">{restaurants.length} total restaurants</p>
+            <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Restaurants</h1>
+            <p className="text-slate-405 text-xs font-semibold">{restaurants.length} registered restaurant profiles</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-2.5 w-full sm:w-64 focus-within:border-orange-300 transition-colors">
-          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input placeholder="Search name or owner..." value={search} onChange={e => setSearch(e.target.value)} className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none" />
+
+        {/* Search */}
+        <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-4 py-2.5 w-full sm:w-72 focus-within:border-emerald-450 transition-colors shadow-2xs">
+          <FiSearch className="text-slate-400 flex-shrink-0" size={16} />
+          <input 
+            placeholder="Search name or owner..." 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 outline-none font-medium" 
+          />
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      {/* ── Stats Indicators ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total", value: stats.total, icon: "🏪", color: "bg-blue-50 border-blue-100" },
-          { label: "Approved", value: stats.approved, icon: "✅", color: "bg-emerald-50 border-emerald-100" },
-          { label: "Pending", value: stats.pending, icon: "⏳", color: "bg-amber-50 border-amber-100" },
-          { label: "Featured", value: stats.featured, icon: "⭐", color: "bg-orange-50 border-orange-100" },
+          { label: "Total Stores", value: stats.total, icon: <FiHome size={16} />, color: "bg-blue-50/50 border-blue-105 text-blue-650" },
+          { label: "Approved", value: stats.approved, icon: <FiCheckCircle size={16} />, color: "bg-emerald-50/50 border-emerald-105 text-emerald-650" },
+          { label: "Pending Review", value: stats.pending, icon: <FiClock size={16} />, color: "bg-amber-50/50 border-amber-105 text-amber-650" },
+          { label: "Featured Stores", value: stats.featured, icon: <FiStar size={16} />, color: "bg-purple-50/50 border-purple-105 text-purple-650" },
         ].map((s, i) => (
-          <div key={i} className={`bg-white rounded-2xl border shadow-card p-4 ${s.color}`}>
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl">{s.icon}</span>
-              <div>
-                <p className="text-xl font-bold text-slate-900">{s.value}</p>
-                <p className="text-xs text-slate-400">{s.label}</p>
-              </div>
+          <div key={i} className={`bg-white rounded-2xl border p-4 flex items-center gap-3 shadow-sm ${s.color}`}>
+            <div className="w-9 h-9 bg-white border border-slate-100/80 rounded-xl flex items-center justify-center">
+              {s.icon}
+            </div>
+            <div>
+              <p className="text-lg font-poppins font-extrabold text-slate-900 leading-tight">{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-5">
-        {["All", "Approved", "Pending"].map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${filter === f ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-500 hover:border-slate-300"}`}>
-            {f}
-          </button>
-        ))}
-        <button onClick={fetchRestaurants} className="ml-auto flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-500 text-xs font-semibold rounded-xl transition-all">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      {/* ── Filtering Tabs ── */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {["All", "Approved", "Pending"].map(f => (
+            <button 
+              key={f} 
+              onClick={() => setFilter(f)}
+              className={`px-3.5 py-1.5 rounded-xl text-2xs font-bold uppercase tracking-wider border transition-all duration-200 ${
+                filter === f 
+                  ? "bg-slate-900 text-white border-slate-900 shadow-sm" 
+                  : "bg-white border-slate-205 text-slate-500 hover:border-slate-350 hover:text-slate-800"
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        <Button 
+          onClick={fetchRestaurants} 
+          variant="outline" 
+          size="sm"
+          leftIcon={<FiRefreshCw size={12} />}
+          className="font-bold border-slate-200 text-slate-655 bg-white hover:bg-slate-50"
+        >
           Refresh
-        </button>
+        </Button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-card overflow-hidden">
+      {/* ── Table Grid view ── */}
+      <Card variant="default" radius="3xl" padding="none" className="border border-slate-100 shadow-card overflow-hidden">
+        
+        {/* Table Header */}
+        <div className="hidden sm:grid grid-cols-[80px_2.5fr_1.5fr_1fr_auto] gap-4 px-6 py-4.5 bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+          <span>Logo</span>
+          <span>Store / Owner</span>
+          <span>Attributes</span>
+          <span>Status</span>
+          <span className="text-right">Actions</span>
+        </div>
+
         {loading ? (
-          <div className="p-6 space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse"/>)}</div>
+          <div className="p-6 space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-4 animate-pulse h-12 bg-slate-50 rounded-xl" />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-            <span className="text-5xl mb-3">🏪</span>
-            <p className="font-semibold text-slate-700">No restaurants found</p>
+          <div className="flex flex-col items-center justify-center py-20 text-slate-440 text-center p-8">
+            <FiAlertCircle size={28} className="text-slate-350 mb-3" />
+            <p className="font-bold text-slate-705 text-sm">No restaurants found</p>
+            <p className="text-xs text-slate-400 mt-1">No restaurants match the selected status filter.</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-slate-100">
             {filtered.map(r => {
               const isActioning = actioning.startsWith(r._id);
               return (
-                <div key={r._id} className="p-5 hover:bg-slate-50/50 transition-colors">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* Logo + info */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {r.logo ? (
-                        <img src={`${url}/images/${r.logo}`} alt={r.name} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0 border border-slate-100" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-2xl flex-shrink-0">🏪</div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-slate-900 truncate">{r.name}</p>
-                          {r.featured && <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 font-semibold px-2 py-0.5 rounded-lg">⭐ Featured</span>}
-                        </div>
-                        <p className="text-xs text-slate-400 truncate mt-0.5">{r.ownerId?.email || "No owner email"}</p>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <StatusBadge ok={r.isApproved} label={r.isApproved ? "Approved" : "Pending"} />
-                          <StatusBadge ok={r.isOpen} label={r.isOpen ? "Open" : "Closed"} />
-                          {r.cuisine && <span className="text-xs text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">{r.cuisine}</span>}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {!r.isApproved ? (
-                        <>
-                          <button disabled={isActioning} onClick={() => handleApprove(r, true)}
-                            className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold rounded-xl text-xs transition-all disabled:opacity-50">
-                            ✓ Approve
-                          </button>
-                          <button disabled={isActioning} onClick={() => handleApprove(r, false)}
-                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-xl text-xs transition-all disabled:opacity-50">
-                            ✗ Reject
-                          </button>
-                        </>
-                      ) : (
-                        <button disabled={isActioning} onClick={() => handleApprove(r, false)}
-                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold rounded-xl text-xs transition-all disabled:opacity-50">
-                          Revoke
-                        </button>
-                      )}
-                      <button disabled={isActioning} onClick={() => handleToggleFeatured(r)}
-                        className={`px-3 py-1.5 font-semibold rounded-xl text-xs transition-all disabled:opacity-50 ${r.featured ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
-                        {r.featured ? "★ Unfeature" : "☆ Feature"}
-                      </button>
-                      <button disabled={isActioning} onClick={() => handleSoftDelete(r)}
-                        className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-500 flex items-center justify-center text-slate-400 transition-all disabled:opacity-50">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                      </button>
-                    </div>
+                <div 
+                  key={r._id} 
+                  className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[80px_2.5fr_1.5fr_1fr_auto] gap-4 items-center px-6 py-4.5 hover:bg-slate-50/40 transition-colors group"
+                >
+                  {/* Logo */}
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-50 border border-slate-150/45 flex-shrink-0 flex items-center justify-center text-slate-400 text-lg shadow-3xs">
+                    {r.logo ? (
+                      <img src={`${url}/images/${r.logo}`} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <span>🏪</span>
+                    )}
                   </div>
+
+                  {/* Info */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-slate-805 text-xs sm:text-sm truncate">{r.name}</p>
+                      {r.featured && (
+                        <span className="bg-amber-50 text-amber-700 border border-amber-100 text-[8px] font-extrabold uppercase tracking-widest px-1.5 py-0.5 rounded leading-none">
+                          ★ Featured
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-2xs text-slate-400 font-bold truncate mt-1">{r.ownerId?.email || "No manager email"}</p>
+                  </div>
+
+                  {/* Attributes */}
+                  <div className="hidden sm:block">
+                    {r.cuisine ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-50 border border-slate-100 text-slate-500">
+                        {r.cuisine}
+                      </span>
+                    ) : (
+                      <span className="text-2xs text-slate-400 font-bold uppercase tracking-wider">No cuisine</span>
+                    )}
+                  </div>
+
+                  {/* Status Badges */}
+                  <div className="flex sm:flex-col gap-1.5">
+                    <Badge variant={r.isApproved ? "success" : "warning"} size="sm" dot className="font-bold">
+                      {r.isApproved ? "Approved" : "Pending"}
+                    </Badge>
+                    <Badge variant={r.isOpen ? "primary" : "neutral"} size="sm" dot className="font-bold">
+                      {r.isOpen ? "Open" : "Closed"}
+                    </Badge>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 ml-auto sm:ml-0 flex-wrap justify-end">
+                    {!r.isApproved ? (
+                      <>
+                        <button 
+                          disabled={isActioning} 
+                          onClick={() => handleApprove(r, true)}
+                          className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 border border-emerald-100/50"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          disabled={isActioning} 
+                          onClick={() => handleApprove(r, false)}
+                          className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 border border-rose-105/50"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        disabled={isActioning} 
+                        onClick={() => handleApprove(r, false)}
+                        className="px-2.5 py-1.5 bg-slate-55 hover:bg-slate-100 text-slate-655 font-bold rounded-xl text-[10px] uppercase tracking-wider transition-all disabled:opacity-50 border border-slate-200"
+                      >
+                        Revoke
+                      </button>
+                    )}
+                    
+                    <button 
+                      disabled={isActioning} 
+                      onClick={() => handleToggleFeatured(r)}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all duration-200 ${
+                        r.featured 
+                          ? "bg-amber-50 border-amber-100 text-amber-500 hover:bg-amber-100" 
+                          : "bg-slate-50 border-slate-150 text-slate-400 hover:text-amber-500 hover:bg-amber-50/50"
+                      }`}
+                      title={r.featured ? "Unfeature restaurant" : "Feature restaurant"}
+                    >
+                      <FiStar size={14} className={r.featured ? "fill-amber-500" : ""} />
+                    </button>
+
+                    <button 
+                      disabled={isActioning} 
+                      onClick={() => handleSoftDelete(r)}
+                      className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center text-slate-400 border border-transparent hover:border-rose-100/50 transition-all duration-200"
+                      title="Deactivate storefront"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </div>
+
                 </div>
               );
             })}
           </div>
         )}
-      </div>
+      </Card>
+
     </div>
   );
 };

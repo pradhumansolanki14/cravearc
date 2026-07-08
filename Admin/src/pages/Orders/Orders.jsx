@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { FiShoppingBag, FiClock, FiTruck, FiCheckCircle, FiRefreshCw, FiDollarSign, FiUser, FiMapPin, FiPhone, FiAlertCircle } from "react-icons/fi";
+import { useAdmin } from "../../context/AdminContext";
 import { Card, Badge, Button } from "../../components/ui";
 
 const statusConfig = {
@@ -24,8 +25,12 @@ const statusConfig = {
 
 const Orders = ({ url }) => {
   const [orders, setOrders] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
+  const [restaurantFilter, setRestaurantFilter] = useState("All");
+  const [restaurantMap, setRestaurantMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
+  const { adminRole } = useAdmin();
   const adminToken = localStorage.getItem("adminToken");
 
   const fetchAllOrders = async () => {
@@ -41,6 +46,22 @@ const Orders = ({ url }) => {
       toast.error("Error fetching orders");
     }
     setLoading(false);
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      const res = await axios.get(`${url}/api/admin/restaurant/`, { headers: { token: adminToken } });
+      if (res.data.success) {
+        setRestaurants(res.data.data);
+        const mapping = {};
+        res.data.data.forEach(r => {
+          mapping[r._id] = r.name;
+        });
+        setRestaurantMap(mapping);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const statusHandler = async (event, orderId) => {
@@ -59,41 +80,62 @@ const Orders = ({ url }) => {
 
   useEffect(() => { 
     fetchAllOrders(); 
-  }, []);
+    if (adminRole === 'superadmin') {
+      fetchRestaurants();
+    }
+  }, [adminRole]);
 
-  const filtered = filter === "All" ? orders : orders.filter(o => o.status === filter);
+  const currentOrders = (adminRole === 'superadmin' && restaurantFilter !== "All")
+    ? orders.filter(o => o.restaurantId === restaurantFilter)
+    : orders;
+
+  const filtered = filter === "All" ? currentOrders : currentOrders.filter(o => o.status === filter);
 
   const stats = {
-    total: orders.length,
-    processing: orders.filter(o => o.status === "Food Processing").length,
-    delivery: orders.filter(o => o.status === "Out for Delivery").length,
-    delivered: orders.filter(o => o.status === "Delivered").length,
-    revenue: orders.reduce((a, b) => a + b.amount, 0),
+    total: currentOrders.length,
+    processing: currentOrders.filter(o => o.status === "Food Processing").length,
+    delivery: currentOrders.filter(o => o.status === "Out for Delivery").length,
+    delivered: currentOrders.filter(o => o.status === "Delivered").length,
+    revenue: currentOrders.reduce((a, b) => a + b.amount, 0),
   };
 
   return (
     <div className="max-w-5xl animate-fadeUp space-y-6">
       
       {/* ── Page Header ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
             <FiShoppingBag size={18} />
           </div>
           <div>
             <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Manage Orders</h1>
-            <p className="text-slate-405 text-xs font-semibold">{orders.length} total orders received</p>
+            <p className="text-slate-405 text-xs font-semibold">{currentOrders.length} total orders received</p>
           </div>
         </div>
-        <Button 
-          onClick={fetchAllOrders}
-          variant="outline" 
-          size="sm"
-          leftIcon={<FiRefreshCw size={12} />}
-          className="font-bold border-slate-200 text-slate-655 bg-white hover:bg-slate-50"
-        >
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2.5">
+          {adminRole === 'superadmin' && (
+            <select
+              value={restaurantFilter}
+              onChange={e => setRestaurantFilter(e.target.value)}
+              className="px-3.5 py-2 bg-white border border-slate-205 focus:border-emerald-500 rounded-xl text-2xs font-bold uppercase tracking-wider text-slate-655 outline-none cursor-pointer"
+            >
+              <option value="All">All Restaurants</option>
+              {restaurants.map(r => (
+                <option key={r._id} value={r._id}>{r.name}</option>
+              ))}
+            </select>
+          )}
+          <Button 
+            onClick={fetchAllOrders}
+            variant="outline" 
+            size="sm"
+            leftIcon={<FiRefreshCw size={12} />}
+            className="font-bold border-slate-200 text-slate-655 bg-white hover:bg-slate-50"
+          >
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* ── Stats block ── */}
@@ -144,7 +186,7 @@ const Orders = ({ url }) => {
             }`}
           >
             <span>{f}</span>
-            <span className="text-[10px] ml-1 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-extrabold">
+            <span className="text-[10px] ml-1 bg-slate-100 text-slate-655 px-1.5 py-0.5 rounded font-extrabold">
               {f === "All" ? stats.total : f === "Food Processing" ? stats.processing : f === "Out for Delivery" ? stats.delivery : stats.delivered}
             </span>
           </button>
@@ -161,7 +203,7 @@ const Orders = ({ url }) => {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 text-center p-8">
           <FiAlertCircle size={28} className="text-slate-350 mb-3 animate-bounce" />
-          <p className="font-bold text-slate-705 text-sm">No orders found</p>
+          <p className="font-bold text-slate-755 text-sm">No orders found</p>
           <p className="text-xs text-slate-400 mt-1">
             {filter !== "All" ? `You have no active orders in "${filter}" stage.` : "No customer orders have been received yet."}
           </p>
@@ -198,6 +240,13 @@ const Orders = ({ url }) => {
                       
                       {/* Items lists */}
                       <div>
+                        {adminRole === 'superadmin' && order.restaurantId && (
+                          <div className="mb-3">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-50 border border-emerald-100 text-emerald-705">
+                              Store: {restaurantMap[order.restaurantId] || "Loading..."}
+                            </span>
+                          </div>
+                        )}
                         <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-3.5">Items Ordered</p>
                         <p className="text-xs font-semibold text-slate-800 leading-relaxed">
                           {order.items.map((item, i) => (
