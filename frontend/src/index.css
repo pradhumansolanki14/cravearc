@@ -226,10 +226,6 @@
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-10px); }
 }
-@keyframes bounceSlow {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-8px); }
-}
 @keyframes rotate {
   100% { transform: rotate(360deg); }
 }
@@ -257,7 +253,6 @@
 .animate-slideUp     { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-slideLeft   { animation: slideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .animate-float       { animation: float 3s ease-in-out infinite; }
-.animate-bounce-slow { animation: bounceSlow 4s ease-in-out infinite; }
 .animate-bounce-in   { animation: bounceIn 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
 
 /* ─── Animation Delay Utilities (PRESERVED + new) ──────── */

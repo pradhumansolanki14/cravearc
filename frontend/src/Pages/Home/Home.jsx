@@ -25,35 +25,37 @@ const Hero = ({ setShowLogin }) => {
   };
 
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-white pt-10 pb-16 lg:py-24">
-      {/* Background soft blur gradients */}
+    <section className="relative min-h-[88vh] flex items-center overflow-hidden bg-slate-950 text-white pt-10 pb-20 lg:py-24">
+      {/* Premium ambient glow background filters */}
       <div 
-        className="absolute top-0 right-0 w-[550px] h-[550px] rounded-full opacity-30 pointer-events-none filter blur-3xl" 
-        style={{ background: 'radial-gradient(circle, #a7f3d0 0%, transparent 70%)', transform: 'translate(10%, -20%)' }} 
+        className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none filter blur-[120px]" 
+        style={{ background: 'radial-gradient(circle, #059669 0%, transparent 70%)', transform: 'translate(10%, -20%)' }} 
       />
       <div 
-        className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full opacity-20 pointer-events-none filter blur-3xl" 
-        style={{ background: 'radial-gradient(circle, #fef3c7 0%, transparent 70%)', transform: 'translate(-20%, 20%)' }} 
+        className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full opacity-10 pointer-events-none filter blur-[100px]" 
+        style={{ background: 'radial-gradient(circle, #d97706 0%, transparent 70%)', transform: 'translate(-20%, 20%)' }} 
       />
+      {/* Decorative dot grid overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
 
       <Container>
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
           {/* Left Hero Content */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="order-2 lg:order-1 flex flex-col items-center lg:items-start text-center lg:text-left"
           >
             {/* Speed Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-2xl mb-6">
-              <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-xs font-bold text-emerald-700 tracking-wider uppercase">Lightning Fast Delivery</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-6 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+              <span className="w-2 h-2 bg-emerald-450 rounded-full animate-pulse" />
+              <span className="text-xs font-bold text-emerald-400 tracking-wider uppercase">Lightning Fast Delivery</span>
             </div>
 
             {/* Headline */}
-            <h1 className="font-poppins text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-6">
+            <h1 className="font-poppins text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
               Craving satisfied in{" "}
               <span className="relative inline-block text-gradient-emerald">
                 minutes
@@ -64,20 +66,20 @@ const Hero = ({ setShowLogin }) => {
             </h1>
 
             {/* Subtext */}
-            <p className="text-base sm:text-lg text-slate-500 leading-relaxed max-w-lg mb-8">
+            <p className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-lg mb-8">
               Order premium food from the city&apos;s best rated restaurants. Fresh ingredients, professional chefs, and contactless delivery to your doorstep.
             </p>
 
             {/* Search Address Bar */}
             <form onSubmit={handleSearchSubmit} className="w-full max-w-lg flex flex-col sm:flex-row gap-3 mb-10">
-              <div className="flex-1 flex items-center gap-3 bg-slate-50 border border-slate-200/80 rounded-2xl px-4 py-3.5 focus-within:border-emerald-450 focus-within:bg-white focus-within:shadow-[0_8px_30px_rgb(16,185,129,0.04)] transition-all duration-300">
-                <FiMapPin className="text-slate-400 flex-shrink-0" size={18} />
+              <div className="flex-1 flex items-center gap-3 bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-3.5 focus-within:border-emerald-500/80 focus-within:bg-slate-900/90 focus-within:shadow-[0_0_25px_rgba(16,185,129,0.12)] transition-all duration-300">
+                <FiMapPin className="text-slate-500 flex-shrink-0" size={18} />
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="Enter your delivery address..."
-                  className="flex-1 bg-transparent text-sm font-medium text-slate-700 placeholder-slate-400 outline-none"
+                  className="flex-1 bg-transparent text-sm font-medium text-white placeholder-slate-500 outline-none"
                 />
               </div>
               <Button
@@ -92,7 +94,7 @@ const Hero = ({ setShowLogin }) => {
             </form>
 
             {/* Micro Stats Grid */}
-            <div className="grid grid-cols-4 gap-6 sm:gap-8 w-full max-w-md pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-4 gap-6 sm:gap-8 w-full max-w-md pt-6 border-t border-slate-900">
               {[
                 { value: "100+", label: "Restaurants" },
                 { value: "20k+", label: "Orders" },
@@ -100,8 +102,8 @@ const Hero = ({ setShowLogin }) => {
                 { value: "4.9★", label: "Rating" },
               ].map((s, i) => (
                 <div key={i} className="text-center lg:text-left">
-                  <p className="text-lg font-bold text-slate-900 leading-tight font-poppins">{s.value}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{s.label}</p>
+                  <p className="text-lg font-bold text-white leading-tight font-poppins">{s.value}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -116,32 +118,32 @@ const Hero = ({ setShowLogin }) => {
           >
             <div className="relative w-full max-w-lg">
               {/* Circular backing decor */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100/50 scale-[0.92] pointer-events-none" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-950/40 via-emerald-800/10 to-transparent scale-[0.92] shadow-[0_0_80px_rgba(16,185,129,0.06)] pointer-events-none" />
 
               <img
                 src="/header_img.png"
                 alt="Tomato delicious fresh cuisine"
-                className="relative w-full h-auto object-contain drop-shadow-2xl animate-float"
+                className="relative w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-float"
                 style={{ maxHeight: '460px' }}
               />
 
-              {/* Float Item Card 1 */}
-              <div className="absolute top-10 -left-6 bg-white rounded-2xl p-3.5 shadow-card border border-slate-100/80 animate-slideRight">
+              {/* Float Item Card 1 - Dark Glass */}
+              <div className="absolute top-10 -left-6 bg-slate-900/90 backdrop-blur-md rounded-2xl p-3.5 shadow-2xl border border-slate-800/80 animate-slideRight">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-lg">🥗</div>
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center text-lg">🥗</div>
                   <div>
-                    <p className="text-xs font-bold text-slate-800">Fresh Salad</p>
-                    <p className="text-[10px] text-emerald-500 font-bold">100% Organic</p>
+                    <p className="text-xs font-bold text-slate-200">Fresh Salad</p>
+                    <p className="text-[10px] text-emerald-400 font-bold">100% Organic</p>
                   </div>
                 </div>
               </div>
 
-              {/* Float Item Card 2 */}
-              <div className="absolute bottom-10 -right-6 bg-white rounded-2xl p-3.5 shadow-card border border-slate-100/80 animate-slideUp delay-200">
+              {/* Float Item Card 2 - Dark Glass */}
+              <div className="absolute bottom-10 -right-6 bg-slate-900/90 backdrop-blur-md rounded-2xl p-3.5 shadow-2xl border border-slate-800/80 animate-slideUp delay-200">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-lg">🍔</div>
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center text-lg">🍔</div>
                   <div>
-                    <p className="text-xs font-bold text-slate-800">Fast Burger</p>
+                    <p className="text-xs font-bold text-slate-200">Fast Burger</p>
                     <div className="flex gap-0.5 mt-0.5">
                       {[1, 2, 3, 4, 5].map(star => (
                         <FiStar key={star} size={9} className="text-amber-400 fill-amber-400" />

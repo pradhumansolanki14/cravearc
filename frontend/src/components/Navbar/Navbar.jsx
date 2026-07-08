@@ -46,7 +46,7 @@ const PROFILE_ITEMS = [
 /* ════════════════════════════════════════════════════════════
    EXPANDABLE SEARCH — desktop: pill that expands inline
 ════════════════════════════════════════════════════════════ */
-const ExpandableSearch = () => {
+const ExpandableSearch = ({ isHome, scrolled }) => {
   const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef(null);
@@ -73,13 +73,19 @@ const ExpandableSearch = () => {
       <motion.div
         animate={{ width: expanded ? 280 : 44 }}
         transition={{ type: "spring", stiffness: 320, damping: 30 }}
-        className="relative flex items-center h-11 overflow-hidden rounded-2xl bg-slate-100/80 border border-slate-200/60 backdrop-blur-sm"
+        className={`relative flex items-center h-11 overflow-hidden rounded-2xl border transition-all duration-300 backdrop-blur-sm ${
+          !scrolled && isHome
+            ? "bg-slate-900/60 border-slate-800/80 focus-within:border-emerald-500/80 focus-within:shadow-[0_0_20px_rgba(16,185,129,0.12)]"
+            : "bg-slate-150/80 border-slate-200/60 focus-within:border-emerald-400"
+        }`}
       >
         <button
           type="button"
           onClick={expanded ? submit : expand}
           aria-label="Search"
-          className="absolute left-0 z-10 w-11 h-11 flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-colors flex-shrink-0"
+          className={`absolute left-0 z-10 w-11 h-11 flex items-center justify-center transition-colors flex-shrink-0 ${
+            !scrolled && isHome ? "text-slate-400 hover:text-emerald-400" : "text-slate-500 hover:text-emerald-600"
+          }`}
         >
           <FiSearch size={18} />
         </button>
@@ -97,7 +103,9 @@ const ExpandableSearch = () => {
               onChange={(e) => setQuery(e.target.value)}
               onBlur={collapse}
               placeholder="Restaurants, cuisines, dishes…"
-              className="absolute inset-0 pl-11 pr-10 bg-transparent text-sm font-medium text-slate-800 placeholder-slate-400 outline-none"
+              className={`absolute inset-0 pl-11 pr-10 bg-transparent text-sm font-medium outline-none ${
+                !scrolled && isHome ? "text-white placeholder-slate-500" : "text-slate-800 placeholder-slate-400"
+              }`}
             />
           )}
         </AnimatePresence>
@@ -120,7 +128,7 @@ const ExpandableSearch = () => {
 /* ════════════════════════════════════════════════════════════
    LOCATION SELECTOR
 ════════════════════════════════════════════════════════════ */
-const LocationSelector = ({ url, token }) => {
+const LocationSelector = ({ url, token, isHome, scrolled }) => {
   const [open, setOpen] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selected, setSelected] = useState("Current Location");
@@ -155,12 +163,16 @@ const LocationSelector = ({ url, token }) => {
         onClick={() => setOpen((o) => !o)}
         aria-label="Delivery location"
         aria-expanded={open}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-all duration-200 group"
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-200 group ${
+          !scrolled && isHome
+            ? "text-slate-300 hover:bg-white/10 hover:text-emerald-450"
+            : "text-slate-600 hover:bg-slate-100 hover:text-emerald-600"
+        }`}
       >
         <FiMapPin size={15} className="text-emerald-500 flex-shrink-0" />
         <span className="text-sm font-semibold max-w-[120px] truncate">{selected}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <FiChevronDown size={13} className="text-slate-400 group-hover:text-slate-600" />
+          <FiChevronDown size={13} className={`transition-colors ${!scrolled && isHome ? "text-slate-500 group-hover:text-slate-300" : "text-slate-400 group-hover:text-slate-600"}`} />
         </motion.span>
       </button>
 
@@ -228,7 +240,7 @@ const LocationSelector = ({ url, token }) => {
 /* ════════════════════════════════════════════════════════════
    PROFILE DROPDOWN
 ════════════════════════════════════════════════════════════ */
-const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
+const ProfileDropdown = ({ userName, onLogout, onNavigate, isHome, scrolled }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -250,7 +262,11 @@ const ProfileDropdown = ({ userName, onLogout, onNavigate }) => {
         aria-expanded={open}
         aria-haspopup="true"
         className={`flex items-center justify-center w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 ${
-          open ? "border-emerald-400 shadow-emerald-sm" : "border-slate-200 hover:border-emerald-300"
+          open 
+            ? "border-emerald-400 shadow-emerald-sm" 
+            : !scrolled && isHome 
+              ? "border-slate-800 hover:border-emerald-500/80" 
+              : "border-slate-200 hover:border-emerald-300"
         }`}
       >
         <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-poppins font-extrabold text-xs tracking-wider">
@@ -512,11 +528,7 @@ const Navbar = ({ setShowLogin }) => {
     navigate("/");
   }, [setToken, navigate]);
 
-  const cartCount = Object.values(cartItems || {}).reduce((a, b) => a + (b > 0 ? b : 0), 0);
-  const favCount  = favorites?.length || 0;
-
-  const isActive = (path, exact) =>
-    exact ? location.pathname === path : location.pathname.startsWith(path);
+  const isHome = location.pathname === "/";
 
   return (
     <>
@@ -526,7 +538,9 @@ const Navbar = ({ setShowLogin }) => {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
           scrolled
             ? "bg-white/90 backdrop-blur-xl shadow-[0_2px_32px_-4px_rgba(0,0,0,0.10)] border-b border-slate-100/80"
-            : "bg-white/60 backdrop-blur-sm border-b border-transparent"
+            : isHome
+              ? "bg-slate-950/45 backdrop-blur-md border-b border-transparent"
+              : "bg-white/60 backdrop-blur-sm border-b border-transparent"
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -541,14 +555,16 @@ const Navbar = ({ setShowLogin }) => {
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald-sm transition-all duration-300 group-hover:scale-105">
                 <FiMapPin size={16} className="text-white" />
               </div>
-              <span className="font-poppins font-extrabold text-xl text-slate-900 tracking-tight">
+              <span className={`font-poppins font-extrabold text-xl tracking-tight transition-colors duration-300 ${
+                !scrolled && isHome ? "text-white" : "text-slate-900"
+              }`}>
                 Tomato<span className="text-emerald-500">.</span>
               </span>
             </Link>
 
             {/* ── Location Selector ── */}
-            <div className="hidden lg:flex items-center border-r border-slate-200 pr-4">
-              <LocationSelector url={url} token={token} />
+            <div className={`hidden lg:flex items-center border-r pr-4 ${!scrolled && isHome ? "border-slate-805" : "border-slate-200"}`}>
+              <LocationSelector url={url} token={token} isHome={isHome} scrolled={scrolled} />
             </div>
 
             {/* ── Desktop Nav Links ── */}
@@ -562,18 +578,26 @@ const Navbar = ({ setShowLogin }) => {
                     aria-current={active ? "page" : undefined}
                     className={`relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
                       active
-                        ? "text-emerald-700"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/60"
+                        ? !scrolled && isHome
+                          ? "text-emerald-400"
+                          : "text-emerald-700"
+                        : !scrolled && isHome
+                          ? "text-slate-300 hover:text-white hover:bg-white/10"
+                          : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/60"
                     }`}
                   >
                     {active && (
                       <motion.span
                         layoutId="nav-pill"
-                        className="absolute inset-0 bg-emerald-50 border border-emerald-100/80 rounded-xl -z-10"
+                        className={`absolute inset-0 rounded-xl -z-10 ${
+                          !scrolled && isHome
+                            ? "bg-emerald-500/10 border border-emerald-500/25"
+                            : "bg-emerald-50 border border-emerald-100/80"
+                        }`}
                         transition={{ type: "spring", stiffness: 380, damping: 32 }}
                       />
                     )}
-                    <span className={active ? "text-emerald-600" : "text-slate-400"}>{item.icon}</span>
+                    <span className={active ? "text-emerald-500" : "text-slate-400"}>{item.icon}</span>
                     {item.label}
                   </Link>
                 );
@@ -584,7 +608,11 @@ const Navbar = ({ setShowLogin }) => {
                 <button
                   type="button"
                   onClick={() => navigate('/become-a-partner')}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+                    !scrolled && isHome
+                      ? "text-slate-300 hover:text-emerald-400 hover:bg-white/5"
+                      : "text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"
+                  }`}
                 >
                   <FiStar size={14} className="text-slate-400" />
                   Become a Partner
@@ -596,14 +624,18 @@ const Navbar = ({ setShowLogin }) => {
             <div className="flex items-center gap-2 ml-auto">
 
               {/* Expandable Search */}
-              <ExpandableSearch />
+              <ExpandableSearch isHome={isHome} scrolled={scrolled} />
 
               {/* Favorites — logged in only */}
               {token && (
                 <Link
                   to="/favorites"
                   aria-label={`Favorites${favCount > 0 ? `, ${favCount} items` : ""}`}
-                  className="relative hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-rose-50 hover:text-rose-500 border border-slate-200/60 hover:border-rose-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                  className={`relative hidden sm:flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-450 ${
+                    !scrolled && isHome
+                      ? "bg-slate-900/50 text-slate-300 hover:bg-rose-500/10 hover:text-rose-400 border border-slate-800/80 hover:border-rose-500/30"
+                      : "bg-slate-100/80 text-slate-500 hover:bg-rose-50 hover:text-rose-500 border border-slate-200/60 hover:border-rose-200"
+                  }`}
                 >
                   <FiHeart size={18} className={favCount > 0 ? "fill-rose-500 text-rose-500" : ""} />
                   {favCount > 0 && (
@@ -618,7 +650,11 @@ const Navbar = ({ setShowLogin }) => {
               <Link
                 to="/cart"
                 aria-label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
-                className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 border border-slate-200/60 hover:border-emerald-200 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-450 ${
+                  !scrolled && isHome
+                    ? "bg-slate-900/50 text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-400 border border-slate-800/80 hover:border-emerald-500/30"
+                    : "bg-slate-100/80 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 border border-slate-200/60 hover:border-emerald-200"
+                }`}
               >
                 <FiShoppingBag size={18} />
                 {cartCount > 0 && (
@@ -633,7 +669,11 @@ const Navbar = ({ setShowLogin }) => {
                 <div className="hidden md:flex items-center gap-2">
                   <button
                     onClick={() => setShowLogin(true)}
-                    className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                    className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
+                      !scrolled && isHome
+                        ? "text-slate-200 hover:text-white hover:bg-white/10"
+                        : "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
                   >
                     Sign In
                   </button>
@@ -653,6 +693,8 @@ const Navbar = ({ setShowLogin }) => {
                     userName={userName}
                     onLogout={logout}
                     onNavigate={(path) => navigate(path)}
+                    isHome={isHome}
+                    scrolled={scrolled}
                   />
                 </div>
               )}
@@ -662,7 +704,11 @@ const Navbar = ({ setShowLogin }) => {
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open navigation menu"
                 aria-expanded={mobileOpen}
-                className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100/80 text-slate-700 hover:bg-slate-200 border border-slate-200/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                className={`md:hidden w-10 h-10 flex items-center justify-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-450 ${
+                  !scrolled && isHome
+                    ? "bg-slate-900/50 text-slate-200 border-slate-800/80 hover:bg-slate-800"
+                    : "bg-slate-100/80 text-slate-700 border-slate-200/60 hover:bg-slate-200"
+                }`}
               >
                 <FiMenu size={20} />
               </button>
@@ -673,7 +719,7 @@ const Navbar = ({ setShowLogin }) => {
       </header>
 
       {/* Spacer */}
-      <div className="h-[68px]" aria-hidden="true" />
+      <div className={`h-[68px] ${isHome && !scrolled ? "bg-slate-950" : "bg-white"}`} aria-hidden="true" />
 
       {/* ── Mobile Drawer ── */}
       <MobileDrawer
