@@ -67,14 +67,14 @@ const Sidebar = () => {
           <NavLink key={item.to} to={item.to}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 group ${
-                isActive ? 'bg-orange-500 text-white shadow-orange' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                isActive ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`
             }
           >
             {({ isActive }) => (
               <>
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
-                  isActive ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-orange-50 group-hover:text-orange-500'
+                  isActive ? 'bg-white/20' : 'bg-slate-100 group-hover:bg-emerald-50 group-hover:text-emerald-650'
                 }`}>
                   {item.icon}
                 </div>

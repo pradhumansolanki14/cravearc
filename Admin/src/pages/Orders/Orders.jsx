@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { FiShoppingBag, FiClock, FiTruck, FiCheckCircle, FiRefreshCw, FiDollarSign, FiUser, FiMapPin, FiPhone, FiAlertCircle } from "react-icons/fi";
+import { Card, Badge, Button } from "../../components/ui";
 
 const statusConfig = {
   "Food Processing": {
-    badge: "bg-amber-50 text-amber-700 border border-amber-200",
-    icon: "👨‍🍳",
-    bar: "bg-amber-400",
-    width: "w-1/3",
+    badge: "warning",
+    icon: <FiClock size={16} />,
+    barClass: "bg-amber-400 w-1/3",
   },
   "Out for Delivery": {
-    badge: "bg-blue-50 text-blue-700 border border-blue-200",
-    icon: "🛵",
-    bar: "bg-blue-400",
-    width: "w-2/3",
+    badge: "blue",
+    icon: <FiTruck size={16} />,
+    barClass: "bg-blue-400 w-2/3",
   },
   "Delivered": {
-    badge: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    icon: "✅",
-    bar: "bg-emerald-400",
-    width: "w-full",
+    badge: "success",
+    icon: <FiCheckCircle size={16} />,
+    barClass: "bg-emerald-500 w-full",
   },
 };
 
@@ -33,8 +32,11 @@ const Orders = ({ url }) => {
     setLoading(true);
     try {
       const response = await axios.get(url + "/api/order/list", { headers: { token: adminToken } });
-      if (response.data.success) setOrders(response.data.data);
-      else toast.error("Error fetching orders");
+      if (response.data.success) {
+        setOrders(response.data.data);
+      } else {
+        toast.error("Error fetching orders");
+      }
     } catch {
       toast.error("Error fetching orders");
     }
@@ -42,11 +44,22 @@ const Orders = ({ url }) => {
   };
 
   const statusHandler = async (event, orderId) => {
-    const response = await axios.post(url + "/api/order/status", { orderId, status: event.target.value }, { headers: { token: adminToken } });
-    if (response.data.success) await fetchAllOrders();
+    try {
+      const response = await axios.post(url + "/api/order/status", { orderId, status: event.target.value }, { headers: { token: adminToken } });
+      if (response.data.success) {
+        toast.success("Order status updated successfully!");
+        await fetchAllOrders();
+      } else {
+        toast.error(response.data.message || "Failed to update status");
+      }
+    } catch {
+      toast.error("Error updating status");
+    }
   };
 
-  useEffect(() => { fetchAllOrders(); }, []);
+  useEffect(() => { 
+    fetchAllOrders(); 
+  }, []);
 
   const filtered = filter === "All" ? orders : orders.filter(o => o.status === filter);
 
@@ -59,87 +72,98 @@ const Orders = ({ url }) => {
   };
 
   return (
-    <div className="max-w-5xl animate-fadeUp">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-xl">📦</div>
-        <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900">Orders</h1>
-          <p className="text-slate-400 text-sm">{orders.length} total orders</p>
+    <div className="max-w-5xl animate-fadeUp space-y-6">
+      
+      {/* ── Page Header ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+            <FiShoppingBag size={18} />
+          </div>
+          <div>
+            <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Manage Orders</h1>
+            <p className="text-slate-405 text-xs font-semibold">{orders.length} total orders received</p>
+          </div>
         </div>
-        <button onClick={fetchAllOrders}
-          className="ml-auto flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:border-orange-300 text-slate-600 hover:text-orange-500 text-xs font-semibold rounded-xl transition-all">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
+        <Button 
+          onClick={fetchAllOrders}
+          variant="outline" 
+          size="sm"
+          leftIcon={<FiRefreshCw size={12} />}
+          className="font-bold border-slate-200 text-slate-655 bg-white hover:bg-slate-50"
+        >
           Refresh
-        </button>
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      {/* ── Stats block ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total Orders", value: stats.total, icon: "📋", color: "text-slate-900" },
-          { label: "Processing", value: stats.processing, icon: "👨‍🍳", color: "text-amber-600" },
-          { label: "On the Way", value: stats.delivery, icon: "🛵", color: "text-blue-600" },
-          { label: "Delivered", value: stats.delivered, icon: "✅", color: "text-emerald-600" },
+          { label: "Total Orders", value: stats.total, icon: <FiShoppingBag size={16} />, variant: "neutral" },
+          { label: "Processing", value: stats.processing, icon: <FiClock size={16} />, variant: "warning" },
+          { label: "On the Way", value: stats.delivery, icon: <FiTruck size={16} />, variant: "blue" },
+          { label: "Delivered", value: stats.delivered, icon: <FiCheckCircle size={16} />, variant: "success" },
         ].map((s, i) => (
-          <div key={i} className={`bg-white rounded-2xl border border-slate-100 shadow-card p-4 animate-fadeUp delay-${(i+1)*100}`}>
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl">{s.icon}</span>
-              <div>
-                <p className={`text-xl font-display font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-xs text-slate-400">{s.label}</p>
-              </div>
+          <div key={i} className="bg-white rounded-2xl border border-slate-100/70 p-4 shadow-sm flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              s.variant === 'success' ? 'bg-emerald-50 text-emerald-600' :
+              s.variant === 'warning' ? 'bg-amber-50 text-amber-600' :
+              s.variant === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'
+            }`}>
+              {s.icon}
+            </div>
+            <div>
+              <p className="text-lg font-poppins font-extrabold text-slate-900 leading-tight">{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Revenue card */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-5 mb-6 flex items-center justify-between">
+      {/* ── Revenue Summary Banner ── */}
+      <Card variant="default" radius="2xl" padding="md" className="bg-gradient-to-r from-emerald-500 to-emerald-600 p-5 flex items-center justify-between text-white border-0 shadow-emerald-lg">
         <div>
-          <p className="text-orange-100 text-sm font-medium mb-1">Total Revenue</p>
-          <p className="font-display text-3xl font-bold text-white">${stats.revenue.toFixed(2)}</p>
+          <p className="text-emerald-100 text-2xs font-extrabold uppercase tracking-widest mb-1 leading-none">Restaurant Revenue Summary</p>
+          <p className="font-poppins font-extrabold text-3xl tracking-tight">${stats.revenue.toFixed(2)}</p>
         </div>
-        <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl">💰</div>
-      </div>
+        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-white">
+          <FiDollarSign size={24} />
+        </div>
+      </Card>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 mb-5 overflow-x-auto scrollbar-hide pb-1">
+      {/* ── Filters Scroll Pills ── */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
         {["All", "Food Processing", "Out for Delivery", "Delivered"].map((f) => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+          <button 
+            key={f} 
+            onClick={() => setFilter(f)}
+            className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-2xs font-bold uppercase tracking-wider border transition-all duration-200 ${
               filter === f
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-            }`}>
-            {f} {f === "All" ? `(${stats.total})` : f === "Food Processing" ? `(${stats.processing})` : f === "Out for Delivery" ? `(${stats.delivery})` : `(${stats.delivered})`}
+                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                : 'bg-white border border-slate-205 text-slate-500 hover:border-slate-350 hover:text-slate-700'
+            }`}
+          >
+            <span>{f}</span>
+            <span className="text-[10px] ml-1 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-extrabold">
+              {f === "All" ? stats.total : f === "Food Processing" ? stats.processing : f === "Out for Delivery" ? stats.delivery : stats.delivered}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* Orders list */}
+      {/* ── Orders Listing ── */}
       {loading ? (
         <div className="space-y-4">
           {[1,2,3].map(i => (
-            <div key={i} className="bg-white rounded-3xl border border-slate-100 p-6 animate-pulse">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-slate-100 rounded-2xl" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-100 rounded-xl w-3/4" />
-                  <div className="h-3 bg-slate-50 rounded-xl w-1/2" />
-                </div>
-              </div>
-            </div>
+            <div key={i} className="bg-white rounded-3xl border border-slate-100 p-6 animate-pulse h-40" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100">
-          <span className="text-5xl mb-4">📭</span>
-          <p className="font-semibold text-slate-700">No orders found</p>
-          <p className="text-sm text-slate-400 mt-1">
-            {filter !== "All" ? `No "${filter}" orders` : "No orders placed yet"}
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 text-center p-8">
+          <FiAlertCircle size={28} className="text-slate-350 mb-3 animate-bounce" />
+          <p className="font-bold text-slate-705 text-sm">No orders found</p>
+          <p className="text-xs text-slate-400 mt-1">
+            {filter !== "All" ? `You have no active orders in "${filter}" stage.` : "No customer orders have been received yet."}
           </p>
         </div>
       ) : (
@@ -147,63 +171,84 @@ const Orders = ({ url }) => {
           {filtered.map((order, index) => {
             const sc = statusConfig[order.status] || statusConfig["Food Processing"];
             return (
-              <div key={index}
-                className="bg-white rounded-3xl border border-slate-100 shadow-card hover:shadow-md transition-all duration-300 overflow-hidden">
-                {/* Progress bar */}
-                <div className="h-1 bg-slate-100 w-full">
-                  <div className={`h-full ${sc.bar} ${sc.width} transition-all duration-500 rounded-full`} />
+              <div 
+                key={index}
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-card transition-all duration-300 overflow-hidden animate-fadeUp"
+              >
+                {/* Status indicator Progress Line */}
+                <div className="h-1.5 bg-slate-50 border-b border-slate-100 w-full">
+                  <div className={`h-full ${sc.barClass} transition-all duration-500 rounded-full`} />
                 </div>
 
                 <div className="p-5 sm:p-6">
                   <div className="flex flex-col lg:flex-row lg:items-start gap-5">
-                    {/* Icon + Order ID */}
-                    <div className="flex items-center gap-3 lg:block">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl flex-shrink-0">
+                    
+                    {/* Left icon marker block */}
+                    <div className="flex items-center gap-3 lg:flex-col lg:items-center">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-150/60 flex items-center justify-center text-slate-655 flex-shrink-0 shadow-3xs">
                         {sc.icon}
                       </div>
-                      <p className="text-xs text-slate-400 font-mono mt-2 hidden lg:block">
+                      <span className="text-[10px] font-bold text-slate-400 font-mono tracking-wider mt-2.5 bg-slate-100 px-2 py-0.5 rounded">
                         #{String(index + 1).padStart(4, '0')}
-                      </p>
+                      </span>
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-5">
-                      {/* Items */}
+                    {/* Content grids split columns */}
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                      
+                      {/* Items lists */}
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Items Ordered</p>
-                        <p className="text-sm text-slate-800 font-medium leading-relaxed">
+                        <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-3.5">Items Ordered</p>
+                        <p className="text-xs font-semibold text-slate-800 leading-relaxed">
                           {order.items.map((item, i) => (
-                            <span key={i}>{item.name} <span className="text-slate-400">×{item.quantity}</span>{i < order.items.length - 1 ? ", " : ""}</span>
+                            <span key={i} className="block mb-1.5">
+                              <span className="font-extrabold text-emerald-650 bg-emerald-50 px-1.5 py-0.5 rounded mr-1.5">×{item.quantity}</span>
+                              {item.name}
+                            </span>
                           ))}
                         </p>
-                        <p className="text-xs text-slate-400 mt-1">{order.items.length} item{order.items.length > 1 ? 's' : ''}</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-3.5">
+                          Total items: {order.items.length}
+                        </p>
                       </div>
 
-                      {/* Customer */}
+                      {/* Customer Address Details */}
                       <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Customer</p>
-                        <p className="text-sm font-bold text-slate-900">{order.address.firstName} {order.address.lastName}</p>
-                        <div className="mt-1 space-y-0.5">
-                          <p className="text-xs text-slate-400">{order.address.street},</p>
-                          <p className="text-xs text-slate-400">{order.address.city}, {order.address.state}</p>
-                          <p className="text-xs text-slate-500 font-medium">{order.address.phone}</p>
+                        <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-3.5 flex items-center gap-1.5">
+                          <FiUser className="text-slate-400" /> Customer & Delivery
+                        </p>
+                        <p className="text-xs font-bold text-slate-905">{order.address.firstName} {order.address.lastName}</p>
+                        <div className="mt-2 space-y-1 text-slate-500 font-medium text-xs leading-relaxed">
+                          <p className="flex items-center gap-1"><FiMapPin className="text-slate-350" size={11} /> {order.address.street}</p>
+                          <p className="text-2xs text-slate-400 pl-4">{order.address.city}, {order.address.state} {order.address.zipcode}</p>
+                          <p className="flex items-center gap-1 mt-2 text-slate-700 font-semibold"><FiPhone className="text-slate-350" size={11} /> {order.address.phone}</p>
                         </div>
                       </div>
 
-                      {/* Amount + Status */}
-                      <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Amount & Status</p>
-                        <p className="text-xl font-display font-bold text-slate-900 mb-3">${order.amount}</p>
+                      {/* Payment values & status select dropdowns */}
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-405 uppercase tracking-widest mb-2.5">Total & Status Action</p>
+                          <p className="font-poppins font-extrabold text-2xl text-slate-900 leading-none mb-4">${order.amount.toFixed(2)}</p>
+                        </div>
+                        
                         <select
                           onChange={(e) => statusHandler(e, order._id)}
                           value={order.status}
-                          className={`text-xs font-semibold px-3 py-2.5 rounded-xl border cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all w-full ${sc.badge}`}
+                          className={`text-2xs font-bold uppercase tracking-wider px-3.5 py-2.5 rounded-xl border-2 outline-none cursor-pointer focus:ring-1 focus:ring-emerald-350 transition-all duration-300 w-full ${
+                            order.status === "Delivered" 
+                              ? "bg-emerald-50 border-emerald-100 text-emerald-805" 
+                              : order.status === "Out for Delivery"
+                                ? "bg-blue-50 border-blue-105 text-blue-805"
+                                : "bg-amber-50 border-amber-105 text-amber-805"
+                          }`}
                         >
-                          <option value="Food Processing">👨‍🍳 Food Processing</option>
-                          <option value="Out for Delivery">🛵 Out for Delivery</option>
-                          <option value="Delivered">✅ Delivered</option>
+                          <option value="Food Processing">Food Processing</option>
+                          <option value="Out for Delivery">Out for Delivery</option>
+                          <option value="Delivered">Delivered</option>
                         </select>
                       </div>
+
                     </div>
                   </div>
                 </div>

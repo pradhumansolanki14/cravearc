@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiArrowLeft, FiShoppingBag, FiTag, FiX, FiTrash2, FiChevronRight } from "react-icons/fi";
 import { StoreContext } from "../../context/StoreContext";
-import { Container, Button, Card, Input } from "../../components/ui";
+import { Container, Button, Card, Input, Badge } from "../../components/ui";
 
 const Cart = () => {
   const { cartItems, food_list, removeFromCart, getTotalCartAmount, url, token } = useContext(StoreContext);

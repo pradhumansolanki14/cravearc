@@ -13,6 +13,19 @@ const addFood = async (req, res) => {
     const image_filename = req.file ? req.file.filename : null;
     if (!image_filename) return res.json({ success: false, message: "Image required" });
 
+    let tagsArray = [];
+    if (req.body.tags) {
+      try {
+        tagsArray = JSON.parse(req.body.tags);
+      } catch (e) {
+        if (typeof req.body.tags === 'string') {
+          tagsArray = req.body.tags.split(',').map(t => t.trim()).filter(Boolean);
+        } else if (Array.isArray(req.body.tags)) {
+          tagsArray = req.body.tags;
+        }
+      }
+    }
+
     const food = new foodModel({
       name: req.body.name,
       description: req.body.description,
@@ -20,6 +33,10 @@ const addFood = async (req, res) => {
       category: req.body.category,
       image: image_filename,
       restaurantId,
+      preparationTime: req.body.preparationTime ? Number(req.body.preparationTime) : undefined,
+      isVeg: req.body.isVeg === "true" || req.body.isVeg === true,
+      calories: req.body.calories ? Number(req.body.calories) : undefined,
+      tags: tagsArray,
     });
     await food.save();
     res.json({ success: true, message: "Food Added" });
@@ -86,12 +103,29 @@ const updateFood = async (req, res) => {
       return res.json({ success: false, message: "Not authorized to edit this item" });
     }
 
+    let tagsArray = undefined;
+    if (req.body.tags) {
+      try {
+        tagsArray = JSON.parse(req.body.tags);
+      } catch (e) {
+        if (typeof req.body.tags === 'string') {
+          tagsArray = req.body.tags.split(',').map(t => t.trim()).filter(Boolean);
+        } else if (Array.isArray(req.body.tags)) {
+          tagsArray = req.body.tags;
+        }
+      }
+    }
+
     const updates = {
       name: req.body.name || food.name,
       description: req.body.description || food.description,
       price: req.body.price ? Number(req.body.price) : food.price,
       category: req.body.category || food.category,
-      isAvailable: req.body.isAvailable !== undefined ? req.body.isAvailable : food.isAvailable,
+      isAvailable: req.body.isAvailable !== undefined ? (req.body.isAvailable === "true" || req.body.isAvailable === true) : food.isAvailable,
+      preparationTime: req.body.preparationTime !== undefined ? Number(req.body.preparationTime) : food.preparationTime,
+      isVeg: req.body.isVeg !== undefined ? (req.body.isVeg === "true" || req.body.isVeg === true) : food.isVeg,
+      calories: req.body.calories !== undefined ? Number(req.body.calories) : food.calories,
+      tags: tagsArray !== undefined ? tagsArray : food.tags,
     };
 
     if (req.file) {

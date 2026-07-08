@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-const inp = "w-full px-4 py-3 rounded-2xl border-2 border-slate-100 bg-white text-slate-900 text-sm focus:outline-none focus:border-orange-300 transition-all";
-const label = "text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 block";
+import { FiHome, FiStar, FiMessageSquare, FiAward, FiUpload, FiMapPin, FiPhone, FiMail, FiClock, FiDollarSign, FiInfo } from "react-icons/fi";
+import { Card, Badge, Button, Input } from "../../components/ui";
 
 const RestaurantProfile = ({ url }) => {
   const [profile, setProfile] = useState(null);
@@ -34,18 +33,29 @@ const RestaurantProfile = ({ url }) => {
         });
         setLogoPreview(d.logo ? `${url}/images/${d.logo}` : "");
         setCoverPreview(d.coverImage ? `${url}/images/${d.coverImage}` : "");
-      } else toast.error(res.data.message);
-    } catch { toast.error("Failed to load profile"); }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch { 
+      toast.error("Failed to load profile"); 
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => { 
+    fetchProfile(); 
+  }, []);
 
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (type === "logo") { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
-    else { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    if (type === "logo") { 
+      setLogoFile(file); 
+      setLogoPreview(URL.createObjectURL(file)); 
+    } else { 
+      setCoverFile(file); 
+      setCoverPreview(URL.createObjectURL(file)); 
+    }
   };
 
   const handleToggleOpen = async () => {
@@ -83,79 +93,99 @@ const RestaurantProfile = ({ url }) => {
       if (res.data.success) {
         toast.success("Profile updated");
         setProfile(res.data.data);
-        setLogoFile(null); setCoverFile(null);
+        setLogoFile(null); 
+        setCoverFile(null);
         if (res.data.data.logo) setLogoPreview(`${url}/images/${res.data.data.logo}`);
         if (res.data.data.coverImage) setCoverPreview(`${url}/images/${res.data.data.coverImage}`);
-      } else toast.error(res.data.message);
-    } catch { toast.error("Save failed"); }
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch { 
+      toast.error("Save failed"); 
+    }
     setSaving(false);
   };
 
   if (loading) return (
-    <div className="max-w-2xl space-y-4 animate-pulse">
+    <div className="max-w-2xl space-y-5 animate-pulse">
       <div className="h-8 bg-slate-100 rounded-2xl w-48" />
-      <div className="h-48 bg-slate-100 rounded-3xl" />
+      <div className="h-44 bg-slate-100 rounded-3xl" />
       <div className="h-64 bg-slate-100 rounded-3xl" />
     </div>
   );
 
   return (
     <div className="max-w-2xl animate-fadeUp">
-      {/* Header */}
+      
+      {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-orange-100 flex items-center justify-center text-xl">🏠</div>
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100/35 flex items-center justify-center text-emerald-600">
+            <FiHome size={18} />
+          </div>
           <div>
-            <h1 className="font-bold text-2xl text-slate-900">Restaurant Profile</h1>
-            <p className="text-slate-400 text-sm">Manage your restaurant information</p>
+            <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Restaurant Profile</h1>
+            <p className="text-slate-400 text-xs font-semibold">Manage your restaurant storefront details</p>
           </div>
         </div>
-        {/* isOpen toggle */}
-        <button onClick={handleToggleOpen} disabled={togglingOpen}
-          className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-bold text-sm transition-all disabled:opacity-60 ${form.isOpen ? "bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100" : "bg-red-50 border border-red-200 text-red-600 hover:bg-red-100"}`}>
-          <div className={`relative w-9 h-5 rounded-full transition-colors ${form.isOpen ? "bg-emerald-500" : "bg-slate-300"}`}>
-            <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isOpen ? "translate-x-4" : "translate-x-0.5"}`} />
+        
+        {/* isOpen switch toggle */}
+        <button 
+          onClick={handleToggleOpen} 
+          disabled={togglingOpen}
+          className={`flex items-center gap-2.5 px-4.5 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-60 border ${
+            form.isOpen 
+              ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100" 
+              : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
+          }`}
+        >
+          <div className={`relative w-8 h-4 rounded-full transition-colors ${form.isOpen ? "bg-emerald-500" : "bg-slate-300"}`}>
+            <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform ${form.isOpen ? "translate-x-4.5" : "translate-x-0.5"}`} />
           </div>
-          {form.isOpen ? "Open" : "Closed"}
+          <span>{form.isOpen ? "Open" : "Closed"}</span>
         </button>
       </div>
 
-      {/* Read-only info */}
+      {/* ── Read-only stats block ── */}
       {profile && (
-        <div className="bg-slate-50 rounded-3xl border border-slate-100 p-4 mb-6 grid grid-cols-3 gap-3">
+        <Card variant="flat" radius="2xl" padding="sm" className="mb-6 grid grid-cols-3 gap-3 border border-slate-100/50 bg-slate-50/50">
           {[
-            { label: "Rating", value: profile.rating?.toFixed(1) || "N/A", icon: "⭐" },
-            { label: "Reviews", value: profile.totalReviews || 0, icon: "💬" },
-            { label: "Status", value: profile.isApproved ? "Approved" : "Pending", icon: "🏅" },
+            { label: "Overall Rating", value: profile.rating?.toFixed(1) || "N/A", icon: <FiStar size={16} className="text-amber-500 fill-amber-500" /> },
+            { label: "Reviews Received", value: profile.totalReviews || 0, icon: <FiMessageSquare size={16} className="text-blue-500" /> },
+            { label: "Approval Status", value: profile.isApproved ? "Approved" : "Pending", icon: <FiAward size={16} className="text-emerald-500" /> },
           ].map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl p-3 text-center border border-slate-100">
-              <p className="text-lg">{s.icon}</p>
-              <p className="font-bold text-slate-900 text-sm">{s.value}</p>
-              <p className="text-xs text-slate-400">{s.label}</p>
+            <div key={i} className="bg-white rounded-xl p-3 text-center border border-slate-100/50 shadow-2xs">
+              <div className="flex justify-center mb-1.5">{s.icon}</div>
+              <p className="font-poppins font-bold text-slate-800 text-sm leading-none">{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{s.label}</p>
             </div>
           ))}
-        </div>
+        </Card>
       )}
 
-      <form onSubmit={handleSave} className="space-y-5">
-        {/* Images */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Images</h2>
-          <div className="grid grid-cols-2 gap-4">
+      {/* ── Form settings ── */}
+      <form onSubmit={handleSave} className="space-y-6">
+        
+        {/* Photo uploads */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm">
+          <h2 className="font-poppins font-bold text-slate-805 text-sm uppercase tracking-wider mb-4">Images & Branding</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: "Logo", file: logoFile, preview: logoPreview, id: "logo-inp", onChange: e => handleFileChange(e, "logo") },
-              { label: "Cover Image", file: coverFile, preview: coverPreview, id: "cover-inp", onChange: e => handleFileChange(e, "cover") },
+              { label: "Restaurant Logo", file: logoFile, preview: logoPreview, id: "logo-inp", onChange: e => handleFileChange(e, "logo") },
+              { label: "Cover Banner Image", file: coverFile, preview: coverPreview, id: "cover-inp", onChange: e => handleFileChange(e, "cover") },
             ].map(img => (
               <div key={img.label}>
-                <label className={label}>{img.label}</label>
+                <label className="text-[10px] font-bold text-slate-405 uppercase tracking-widest block mb-2">{img.label}</label>
                 <label htmlFor={img.id} className="cursor-pointer block">
-                  <div className={`w-full h-28 rounded-2xl border-2 border-dashed overflow-hidden flex items-center justify-center transition-all ${img.preview ? "border-orange-200" : "border-slate-200 hover:border-orange-300 bg-slate-50"}`}>
+                  <div className={`w-full h-32 rounded-2xl border-2 border-dashed overflow-hidden flex items-center justify-center transition-all duration-300 ${
+                    img.preview ? "border-emerald-200 bg-emerald-50/5" : "border-slate-200 hover:border-emerald-450 bg-slate-50/50 hover:bg-emerald-50/20"
+                  }`}>
                     {img.preview ? (
                       <img src={img.preview} alt={img.label} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="flex flex-col items-center gap-1 text-slate-400">
-                        <span className="text-2xl">📸</span>
-                        <p className="text-xs">Click to upload</p>
+                      <div className="flex flex-col items-center gap-1.5 text-slate-400">
+                        <FiUpload size={20} className="text-slate-350" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider">Select Image</p>
                       </div>
                     )}
                   </div>
@@ -164,75 +194,115 @@ const RestaurantProfile = ({ url }) => {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        {/* Basic Info */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Basic Information</h2>
+        {/* Basic Details card */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
+          <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Basic Information</h2>
+          <Input
+            label="Restaurant Name"
+            required
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="e.g. Tomato Restaurant"
+          />
           <div>
-            <label className={label}>Restaurant Name *</label>
-            <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className={inp} />
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Description</label>
+            <textarea 
+              value={form.description} 
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))} 
+              rows={3} 
+              className="w-full px-4 py-3 bg-white border-2 border-slate-100 focus:border-emerald-450 rounded-2xl text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-300 resize-none"
+              placeholder="Tell customers about your kitchen..."
+            />
           </div>
-          <div>
-            <label className={label}>Description</label>
-            <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={`${inp} resize-none`} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Cuisine Tags"
+              value={form.cuisine}
+              onChange={e => setForm(f => ({ ...f, cuisine: e.target.value }))}
+              placeholder="e.g. Italian, Fast Food"
+            />
+            <Input
+              label="Opening Hours"
+              value={form.openingHours}
+              onChange={e => setForm(f => ({ ...f, openingHours: e.target.value }))}
+              placeholder="e.g. 9 AM – 11 PM"
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={label}>Cuisine</label>
-              <input value={form.cuisine} onChange={e => setForm(f => ({ ...f, cuisine: e.target.value }))} placeholder="e.g. Italian" className={inp} />
-            </div>
-            <div>
-              <label className={label}>Opening Hours</label>
-              <input value={form.openingHours} onChange={e => setForm(f => ({ ...f, openingHours: e.target.value }))} placeholder="9 AM – 11 PM" className={inp} />
-            </div>
-          </div>
-        </div>
+        </Card>
 
-        {/* Contact */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Contact & Location</h2>
-          <div>
-            <label className={label}>Address</label>
-            <input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className={inp} />
+        {/* Contact info card */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
+          <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Contact & Location</h2>
+          <Input
+            label="Street Address"
+            leftIcon={<FiMapPin size={14} />}
+            value={form.address}
+            onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+            placeholder="e.g. 123 Main St, New York, NY"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Phone Number"
+              leftIcon={<FiPhone size={14} />}
+              value={form.phone}
+              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              placeholder="e.g. +1 (555) 000-0000"
+            />
+            <Input
+              label="Email Address"
+              type="email"
+              leftIcon={<FiMail size={14} />}
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="e.g. manager@restaurant.com"
+            />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={label}>Phone</label>
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className={inp} />
-            </div>
-            <div>
-              <label className={label}>Email</label>
-              <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inp} />
-            </div>
-          </div>
-        </div>
+        </Card>
 
-        {/* Delivery Settings */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-card p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Delivery Settings</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className={label}>Delivery Fee ($)</label>
-              <input type="number" min="0" step="0.5" value={form.deliveryFee} onChange={e => setForm(f => ({ ...f, deliveryFee: Number(e.target.value) }))} className={inp} />
-            </div>
-            <div>
-              <label className={label}>Min Order ($)</label>
-              <input type="number" min="0" value={form.minOrder} onChange={e => setForm(f => ({ ...f, minOrder: Number(e.target.value) }))} className={inp} />
-            </div>
-            <div>
-              <label className={label}>Prep Time (min)</label>
-              <input type="number" min="0" value={form.preparationTime} onChange={e => setForm(f => ({ ...f, preparationTime: Number(e.target.value) }))} className={inp} />
-            </div>
+        {/* Delivery Rates card */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
+          <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Delivery Configuration</h2>
+          <div className="grid grid-cols-3 gap-3.5">
+            <Input
+              label="Delivery Fee ($)"
+              type="number"
+              min="0"
+              step="0.5"
+              leftIcon={<FiDollarSign size={13} />}
+              value={form.deliveryFee}
+              onChange={e => setForm(f => ({ ...f, deliveryFee: Number(e.target.value) }))}
+            />
+            <Input
+              label="Min Order ($)"
+              type="number"
+              min="0"
+              leftIcon={<FiDollarSign size={13} />}
+              value={form.minOrder}
+              onChange={e => setForm(f => ({ ...f, minOrder: Number(e.target.value) }))}
+            />
+            <Input
+              label="Prep Time (min)"
+              type="number"
+              min="0"
+              leftIcon={<FiClock size={13} />}
+              value={form.preparationTime}
+              onChange={e => setForm(f => ({ ...f, preparationTime: Number(e.target.value) }))}
+            />
           </div>
-        </div>
+        </Card>
 
-        <button type="submit" disabled={saving}
-          className="w-full py-4 bg-slate-900 hover:bg-slate-700 text-white font-bold rounded-2xl text-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-          {saving ? (
-            <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full" style={{ animation: "rotate 0.8s linear infinite" }} />Saving...</>
-          ) : "Save Changes"}
-        </button>
+        {/* Submit */}
+        <Button 
+          type="submit" 
+          disabled={saving}
+          variant="primary"
+          size="lg"
+          className="w-full font-bold shadow-emerald-lg h-12.5"
+        >
+          {saving ? "Saving Changes..." : "Save Profile Details"}
+        </Button>
       </form>
     </div>
   );
