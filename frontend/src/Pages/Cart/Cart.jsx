@@ -233,7 +233,7 @@ const Cart = () => {
                     <span className="font-poppins font-extrabold text-2xl text-emerald-600">${Math.max(0, total).toFixed(2)}</span>
                   </div>
                   <Button 
-                    onClick={() => navigate("/order")} 
+                    onClick={() => navigate("/order", { state: { couponCode: coupon?.code, discount: discount } })} 
                     variant="primary"
                     size="lg"
                     rightIcon={<FiChevronRight strokeWidth={2.5} />}

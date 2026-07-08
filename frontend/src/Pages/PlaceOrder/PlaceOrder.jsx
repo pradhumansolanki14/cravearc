@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { FiArrowLeft, FiMapPin, FiTruck, FiCreditCard, FiLock, FiInfo, FiCheck } from "react-icons/fi";
 import { StoreContext } from "../../context/StoreContext";
 import { Container, Button, Card, Input } from "../../components/ui";
+import useToast from "../../hooks/useToast";
 
 const steps = [
   { num: 1, label: "Delivery", active: true },
@@ -14,6 +15,8 @@ const steps = [
 const PlaceOrder = () => {
   const { getTotalCartAmount, token, food_list, cartItems, url } = useContext(StoreContext);
   const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
 
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
@@ -97,10 +100,14 @@ const PlaceOrder = () => {
       }
     });
 
+    const couponCode = location.state?.couponCode || "";
+    const discount = location.state?.discount || 0;
+
     const orderData = {
       address: data,
       items: orderItems,
-      amount: getTotalCartAmount() + 2, // Subtotal + $2 delivery fee
+      amount: Math.max(0, getTotalCartAmount() + 2 - discount),
+      couponCode: couponCode || undefined,
     };
 
     try {
@@ -108,11 +115,11 @@ const PlaceOrder = () => {
       if (response.data.success) {
         window.location.replace(response.data.session_url);
       } else {
-        alert("Error placing order");
+        toast.error("Error placing order");
       }
     } catch (error) {
       console.error(error);
-      alert("Something went wrong. Please try again");
+      toast.error("Something went wrong. Please try again");
     } finally {
       setLoading(false);
     }
@@ -120,7 +127,9 @@ const PlaceOrder = () => {
 
   const cartFoods = food_list.filter(item => cartItems[item._id] > 0);
   const subtotal = getTotalCartAmount();
-  const total = subtotal + 2;
+  const discount = location.state?.discount || 0;
+  const couponCode = location.state?.couponCode || "";
+  const total = Math.max(0, subtotal + 2 - discount);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -387,6 +396,12 @@ const PlaceOrder = () => {
                   <span>Delivery fee</span>
                   <span className="text-slate-800">$2.00</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between font-bold uppercase tracking-wider text-emerald-600">
+                    <span>Promo Discount ({couponCode})</span>
+                    <span>-${discount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
 
               {/* CTA payment triggers */}

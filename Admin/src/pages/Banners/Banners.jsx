@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiLayers, FiPlus, FiX, FiUpload, FiTrash2, FiEdit, FiClock, FiCheckCircle } from "react-icons/fi";
-import { Card, Badge, Button, Input, Select } from "../../components/ui";
+import { Card, Badge, Button, Input, Select, ConfirmationModal } from "../../components/ui";
 
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
 
@@ -16,6 +16,7 @@ const Banners = ({ url }) => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
   const token = localStorage.getItem("adminToken");
 
   const fetchData = async () => {
@@ -113,19 +114,27 @@ const Banners = ({ url }) => {
     setSaving(false);
   };
 
-  const handleDelete = async (b) => {
-    if (!window.confirm(`Delete banner "${b.title}"?`)) return;
-    try {
-      const res = await axios.delete(`${url}/api/banners/${b._id}`, { headers: { token } });
-      if (res.data.success) { 
-        toast.success("Banner deleted successfully."); 
-        fetchData(); 
-      } else {
-        toast.error(res.data.message);
-      }
-    } catch { 
-      toast.error("Delete failed"); 
-    }
+  const handleDelete = (b) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Banner",
+      message: `Are you sure you want to delete banner "${b.title}"? This cannot be undone.`,
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        try {
+          const res = await axios.delete(`${url}/api/banners/${b._id}`, { headers: { token } });
+          if (res.data.success) { 
+            toast.success("Banner deleted successfully."); 
+            fetchData(); 
+          } else {
+            toast.error(res.data.message);
+          }
+        } catch { 
+          toast.error("Delete failed"); 
+        }
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   return (
@@ -349,6 +358,13 @@ const Banners = ({ url }) => {
         </div>
       )}
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+      />
     </div>
   );
 };

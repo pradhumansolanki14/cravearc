@@ -2,12 +2,14 @@ import React, { useContext, useState } from 'react'
 import { assets } from '../../assets/assets'
 import { StoreContext } from '../../context/StoreContext'
 import axios from "axios"
+import useToast from '../../hooks/useToast'
 
 const LoginPopup = ({ setShowLogin }) => {
   const { url, setToken } = useContext(StoreContext)
   const [currState, setCurrState] = useState("Sign Up")
   const [data, setData] = useState({ name: "", email: "", password: "" })
   const [loading, setLoading] = useState(false)
+  const toast = useToast()
 
   const onChangeHandler = (event) => {
     const name = event.target.name
@@ -28,7 +30,7 @@ const LoginPopup = ({ setShowLogin }) => {
         localStorage.setItem("token", response.data.token)
         setShowLogin(false)
       } else {
-        alert(response.data.message)
+        toast.error(response.data.message)
       }
     } finally {
       setLoading(false)

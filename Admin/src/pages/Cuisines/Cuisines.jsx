@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiBookOpen, FiPlus, FiX, FiEdit, FiTrash2, FiInfo } from "react-icons/fi";
-import { Card, Badge, Button, Input } from "../../components/ui";
+import { Card, Badge, Button, Input, ConfirmationModal } from "../../components/ui";
 
 const EMOJI_OPTIONS = ["🍝","🥡","🍛","🍔","🌮","🍱","🍜","🥙","🍕","🥩","🍣","🍤","🍲","🫕","🧆","🥘","🍖","🫔"];
 
@@ -13,6 +13,7 @@ const Cuisines = ({ url }) => {
   const [editing, setEditing] = useState(null); // cuisine object being edited
   const [form, setForm] = useState({ name: "", icon: "🍽️" });
   const [saving, setSaving] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
   const token = localStorage.getItem("adminToken");
 
   const fetchCuisines = async () => {
@@ -73,24 +74,32 @@ const Cuisines = ({ url }) => {
     setSaving(false);
   };
 
-  const handleDelete = async (c) => {
-    if (!window.confirm(`Delete cuisine "${c.name}"? This will fail if any restaurant uses it.`)) return;
-    try {
-      const res = await axios.delete(`${url}/api/cuisines/${c._id}`, { headers: { token } });
-      if (res.data.success) {
-        toast.success("Cuisine successfully deleted!");
-        fetchCuisines();
-      } else {
-        toast.error(res.data.message || "Cannot delete");
-      }
-    } catch (err) {
-      const msg = err.response?.data?.message || "Delete failed";
-      if (err.response?.status === 409) {
-        toast.error("Cannot delete: cuisine is used by existing restaurants");
-      } else {
-        toast.error(msg);
-      }
-    }
+  const handleDelete = (c) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Cuisine",
+      message: `Are you sure you want to delete cuisine "${c.name}"? This will fail if any restaurant uses it.`,
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        try {
+          const res = await axios.delete(`${url}/api/cuisines/${c._id}`, { headers: { token } });
+          if (res.data.success) {
+            toast.success("Cuisine successfully deleted!");
+            fetchCuisines();
+          } else {
+            toast.error(res.data.message || "Cannot delete");
+          }
+        } catch (err) {
+          const msg = err.response?.data?.message || "Delete failed";
+          if (err.response?.status === 409) {
+            toast.error("Cannot delete: cuisine is used by existing restaurants");
+          } else {
+            toast.error(msg);
+          }
+        }
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   return (
@@ -252,6 +261,13 @@ const Cuisines = ({ url }) => {
         </div>
       )}
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+      />
     </div>
   );
 };

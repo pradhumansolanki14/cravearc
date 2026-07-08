@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiEdit, FiTrash2, FiSearch, FiX, FiTag, FiClock, FiActivity, FiLayers, FiDollarSign, FiPlus, FiAlertCircle } from "react-icons/fi";
-import { Card, Badge, Button, Input, Select } from "../../components/ui";
+import { Card, Badge, Button, Input, Select, ConfirmationModal } from "../../components/ui";
 
 const CATEGORIES = ["Salad", "Rolls", "Deserts", "Sandwich", "Cake", "Pure Veg", "Pasta", "Noodles"];
 
@@ -196,6 +196,7 @@ const List = ({ url }) => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sortBy, setSortBy] = useState("default");
   const [editItem, setEditItem] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
 
   const fetchList = async () => {
     setLoading(true);
@@ -213,20 +214,28 @@ const List = ({ url }) => {
     setLoading(false);
   };
 
-  const removeFood = async (foodId) => {
-    if (!window.confirm("Are you sure you want to remove this dish?")) return;
-    try {
-      const token = localStorage.getItem("adminToken");
-      const res = await axios.post(`${url}/api/food/remove`, { id: foodId }, { headers: { token } });
-      if (res.data.success) { 
-        toast.success(res.data.message); 
-        fetchList(); 
-      } else {
-        toast.error("Error removing item");
-      }
-    } catch {
-      toast.error("Error removing item");
-    }
+  const removeFood = (foodId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Remove Dish",
+      message: "Are you sure you want to remove this dish from the menu? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        try {
+          const token = localStorage.getItem("adminToken");
+          const res = await axios.post(`${url}/api/food/remove`, { id: foodId }, { headers: { token } });
+          if (res.data.success) { 
+            toast.success(res.data.message); 
+            fetchList(); 
+          } else {
+            toast.error("Error removing item");
+          }
+        } catch {
+          toast.error("Error removing item");
+        }
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   useEffect(() => { 
@@ -435,6 +444,13 @@ const List = ({ url }) => {
         )}
       </Card>
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+      />
     </div>
   );
 };

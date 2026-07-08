@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiUsers, FiShoppingBag, FiDollarSign, FiX, FiChevronRight, FiUser, FiPhone, FiMail, FiCalendar, FiSearch, FiAlertCircle } from "react-icons/fi";
-import { Card, Badge, Button, Input } from "../../components/ui";
+import { Card, Badge, Button, Input, ConfirmationModal } from "../../components/ui";
 
 const Users = ({ url }) => {
   const [users, setUsers] = useState([]);
@@ -11,6 +11,7 @@ const Users = ({ url }) => {
   const [selected, setSelected] = useState(null);
   const [userDetail, setUserDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
 
   const adminToken = localStorage.getItem("adminToken");
 
@@ -41,6 +42,30 @@ const Users = ({ url }) => {
   const openUser = (user) => {
     setSelected(user);
     fetchUserDetail(user._id);
+  };
+
+  const handleToggleUserActive = (user) => {
+    const actionText = user.isActive !== false ? "suspend" : "activate";
+    setConfirmDialog({
+      isOpen: true,
+      title: `${user.isActive !== false ? "Suspend" : "Activate"} User`,
+      message: `Are you sure you want to ${actionText} customer "${user.name}"?`,
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        try {
+          const res = await axios.put(`${url}/api/admin/users/${user._id}`, { isActive: !user.isActive }, { headers: { token: adminToken } });
+          if (res.data.success) {
+            toast.success(res.data.message || `User status updated!`);
+            fetchUsers();
+          } else {
+            toast.error(res.data.message);
+          }
+        } catch {
+          toast.error("Failed to update user status");
+        }
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   useEffect(() => { 
@@ -127,7 +152,7 @@ const Users = ({ url }) => {
                       return (
                         <div key={i} className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/60 rounded-xl border border-slate-150/45 transition-colors">
                           <div className="min-w-0 flex-1 pr-3">
-                            <p className="text-xs font-bold text-slate-750 truncate">{order.items?.map(it => it.name).join(", ")}</p>
+                            <p className="text-xs font-bold text-slate-755 truncate">{order.items?.map(it => it.name).join(", ")}</p>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{new Date(order.date).toLocaleDateString()}</p>
                           </div>
                           <div className="text-right flex-shrink-0">
@@ -200,11 +225,12 @@ const Users = ({ url }) => {
       {/* ── Table Grid view ── */}
       <Card variant="default" radius="3xl" padding="none" className="border border-slate-100 shadow-card overflow-hidden">
         {/* Table Header */}
-        <div className="hidden sm:grid grid-cols-[2.5fr_2.5fr_1fr_1fr_auto] gap-4 px-6 py-4.5 bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+        <div className="hidden sm:grid grid-cols-[2fr_2.5fr_0.8fr_0.8fr_1fr_auto] gap-4 px-6 py-4.5 bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
           <span>Customer Name</span>
           <span>Email Address</span>
           <span className="text-center">Orders</span>
           <span>Total Spent</span>
+          <span>Status</span>
           <span className="text-right">Actions</span>
         </div>
 
@@ -225,7 +251,7 @@ const Users = ({ url }) => {
             {filtered.map((user) => (
               <div 
                 key={user._id} 
-                className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[2.5fr_2.5fr_1fr_1fr_auto] gap-4 items-center px-6 py-4 hover:bg-slate-50/40 transition-colors cursor-pointer group" 
+                className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[2fr_2.5fr_0.8fr_0.8fr_1fr_auto] gap-4 items-center px-6 py-4 hover:bg-slate-50/40 transition-colors cursor-pointer group" 
                 onClick={() => openUser(user)}
               >
                 {/* Name */}
@@ -250,9 +276,31 @@ const Users = ({ url }) => {
                 {/* Total spent */}
                 <p className="hidden sm:block font-poppins font-extrabold text-emerald-650 text-sm">${(user.totalSpent || 0).toFixed(0)}</p>
 
-                {/* Open detail arrow */}
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-350 hover:text-emerald-600 hover:bg-emerald-50 transition-colors ml-auto sm:ml-0">
-                  <FiChevronRight size={16} />
+                {/* Status Column */}
+                <div onClick={e => e.stopPropagation()} className="hidden sm:block">
+                  <Badge variant={user.isActive !== false ? "success" : "neutral"} size="sm" className="font-bold">
+                    {user.isActive !== false ? "Active" : "Suspended"}
+                  </Badge>
+                </div>
+
+                {/* Actions Column */}
+                <div onClick={e => e.stopPropagation()} className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() => handleToggleUserActive(user)}
+                    className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                      user.isActive !== false
+                        ? "bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100"
+                        : "bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                    }`}
+                  >
+                    {user.isActive !== false ? "Suspend" : "Activate"}
+                  </button>
+                  <div 
+                    onClick={() => openUser(user)}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-350 hover:text-emerald-600 hover:bg-emerald-50 transition-colors ml-auto sm:ml-0"
+                  >
+                    <FiChevronRight size={16} />
+                  </div>
                 </div>
               </div>
             ))}
@@ -260,6 +308,14 @@ const Users = ({ url }) => {
         )}
       </Card>
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+        variant={confirmDialog.title?.startsWith("Suspend") ? "danger" : "warning"}
+      />
     </div>
   );
 };

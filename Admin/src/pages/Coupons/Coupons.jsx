@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiTag, FiPlus, FiTrash2, FiX, FiCalendar, FiDollarSign, FiClock, FiActivity, FiAlertTriangle } from "react-icons/fi";
-import { Card, Badge, Button, Input, Select } from "../../components/ui";
+import { Card, Badge, Button, Input, Select, ConfirmationModal } from "../../components/ui";
 
 const Coupons = ({ url }) => {
   const [coupons, setCoupons] = useState([]);
@@ -18,6 +18,7 @@ const Coupons = ({ url }) => {
     description: "" 
   });
   const [creating, setCreating] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
 
   const fetchCoupons = async () => {
     setLoading(true);
@@ -66,18 +67,26 @@ const Coupons = ({ url }) => {
     }
   };
 
-  const deleteCoupon = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this coupon?")) return;
-    try {
-      const adminToken = localStorage.getItem("adminToken");
-      const res = await axios.delete(`${url}/api/coupons/${id}`, { headers: { token: adminToken } });
-      if (res.data.success) { 
-        toast.success("Coupon deleted."); 
-        fetchCoupons(); 
-      }
-    } catch { 
-      toast.error("Failed to delete coupon"); 
-    }
+  const deleteCoupon = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Coupon",
+      message: "Are you sure you want to delete this promotional coupon? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        try {
+          const adminToken = localStorage.getItem("adminToken");
+          const res = await axios.delete(`${url}/api/coupons/${id}`, { headers: { token: adminToken } });
+          if (res.data.success) { 
+            toast.success("Coupon deleted."); 
+            fetchCoupons(); 
+          }
+        } catch { 
+          toast.error("Failed to delete coupon"); 
+        }
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   useEffect(() => { 
@@ -296,6 +305,13 @@ const Coupons = ({ url }) => {
         )}
       </Card>
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+      />
     </div>
   );
 };

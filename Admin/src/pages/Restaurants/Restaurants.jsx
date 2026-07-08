@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiHome, FiCheck, FiX, FiRefreshCw, FiStar, FiTrash2, FiSearch, FiLayers, FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
-import { Card, Badge, Button, Input } from "../../components/ui";
+import { Card, Badge, Button, Input, ConfirmationModal } from "../../components/ui";
 
 const Restaurants = ({ url }) => {
   const [restaurants, setRestaurants] = useState([]);
@@ -10,6 +10,7 @@ const Restaurants = ({ url }) => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All"); // All | Pending | Approved
   const [actioning, setActioning] = useState("");
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null });
   const token = localStorage.getItem("adminToken");
 
   const fetchRestaurants = async () => {
@@ -66,21 +67,29 @@ const Restaurants = ({ url }) => {
     setActioning("");
   };
 
-  const handleSoftDelete = async (r) => {
-    if (!window.confirm(`Deactivate restaurant "${r.name}"? This will set it as unapproved and closed.`)) return;
-    setActioning(r._id + "_delete");
-    try {
-      const res = await axios.delete(`${url}/api/admin/restaurant/${r._id}`, { headers: { token } });
-      if (res.data.success) {
-        toast.success("Restaurant successfully deactivated!");
-        fetchRestaurants();
-      } else {
-        toast.error(res.data.message);
-      }
-    } catch {
-      toast.error("Action failed");
-    }
-    setActioning("");
+  const handleSoftDelete = (r) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Deactivate Restaurant",
+      message: `Are you sure you want to deactivate restaurant "${r.name}"? This will set it as unapproved and closed.`,
+      onConfirm: async () => {
+        setConfirmDialog(d => ({ ...d, isOpen: false }));
+        setActioning(r._id + "_delete");
+        try {
+          const res = await axios.delete(`${url}/api/admin/restaurant/${r._id}`, { headers: { token } });
+          if (res.data.success) {
+            toast.success("Restaurant successfully deactivated!");
+            fetchRestaurants();
+          } else {
+            toast.error(res.data.message);
+          }
+        } catch {
+          toast.error("Action failed");
+        }
+        setActioning("");
+      },
+      onCancel: () => setConfirmDialog(d => ({ ...d, isOpen: false }))
+    });
   };
 
   const filtered = restaurants.filter(r => {
@@ -309,6 +318,13 @@ const Restaurants = ({ url }) => {
         )}
       </Card>
 
+      <ConfirmationModal 
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={confirmDialog.onCancel}
+      />
     </div>
   );
 };
