@@ -528,6 +528,12 @@ const Navbar = ({ setShowLogin }) => {
     navigate("/");
   }, [setToken, navigate]);
 
+  const cartCount = Object.values(cartItems || {}).reduce((a, b) => a + (b > 0 ? b : 0), 0);
+  const favCount  = favorites?.length || 0;
+
+  const isActive = (path, exact) =>
+    exact ? location.pathname === path : location.pathname.startsWith(path);
+
   const isHome = location.pathname === "/";
 
   return (
