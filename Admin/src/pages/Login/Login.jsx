@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiLock, FiArrowRight, FiLoader, FiAlertCircle, FiShield } from "react-icons/fi";
+import { FiMail, FiLock, FiArrowRight, FiLoader, FiAlertCircle } from "react-icons/fi";
 import axios from "axios";
 import { useAdmin } from "../../context/AdminContext";
+import { BrandLogo, BrandText } from "../../components/ui";
 
 const Login = () => {
   const { adminLogin, url } = useAdmin();
@@ -60,13 +61,11 @@ const Login = () => {
           <div className="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500" />
 
           <div className="p-8 sm:p-10">
-            {/* Header Icon / Logo */}
+            {/* Header Icon / Logo System */}
             <div className="flex items-center gap-3.5 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_8px_20px_-4px_rgba(16,185,129,0.3)]">
-                <FiShield className="w-6 h-6 text-white" />
-              </div>
+              <BrandLogo size={18} />
               <div>
-                <p className="font-poppins font-extrabold text-xl text-slate-900 leading-none tracking-tight">Tomato</p>
+                <BrandText className="text-xl" />
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Admin Dashboard</p>
               </div>
             </div>

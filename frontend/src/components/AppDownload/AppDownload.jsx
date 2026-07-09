@@ -1,5 +1,5 @@
 import React from 'react'
-import { assets } from '../../assets/assets'
+import { BRAND } from '../../constants/brand'
 
 const features = [
   { icon: "⚡", title: "Lightning Fast", desc: "Order in under 30 seconds" },
@@ -9,11 +9,11 @@ const features = [
 
 const AppDownload = () => {
   return (
-    <section id="app-download" className="py-20 bg-slate-900 relative overflow-hidden">
+    <section id="app-download" className="py-20 bg-slate-950 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #f97316 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }} />
         <div className="absolute bottom-0 right-0 w-[300px] h-[300px] rounded-full opacity-5"
           style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }} />
         {/* Grid pattern */}
@@ -27,14 +27,14 @@ const AppDownload = () => {
           {/* Left */}
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-xl mb-6">
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">Mobile App</span>
+              <span className="text-xs font-bold text-emerald-450 uppercase tracking-widest">Mobile App</span>
             </div>
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight mb-4">
+            <h2 className="font-poppins text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4 tracking-tight">
               Order on the go.{' '}
-              <span className="text-gradient">Anytime.</span>
+              <span className="text-gradient-emerald">Anytime.</span>
             </h2>
-            <p className="text-slate-400 text-base leading-relaxed mb-8 max-w-md">
-              Download the Tomato app for the ultimate food ordering experience. Exclusive deals, live tracking, and lightning-fast checkout.
+            <p className="text-slate-400 text-base leading-relaxed mb-8 max-w-md font-semibold">
+              Download the {BRAND.NAME} app for the ultimate food ordering experience. Exclusive deals, live tracking, and lightning-fast checkout.
             </p>
 
             {/* Features */}
@@ -46,7 +46,7 @@ const AppDownload = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">{f.title}</p>
-                    <p className="text-xs text-slate-400">{f.desc}</p>
+                    <p className="text-xs text-slate-400 font-semibold">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -82,21 +82,23 @@ const AppDownload = () => {
               <div className="w-64 h-[500px] bg-slate-800 rounded-[3rem] border-4 border-slate-700 relative overflow-hidden shadow-2xl">
                 {/* Screen */}
                 <div className="absolute inset-2 bg-white rounded-[2.5rem] overflow-hidden">
-                  <div className="h-full gradient-hero flex flex-col items-center justify-center gap-4 p-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-orange mb-2">
-                      <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  <div className="h-full bg-slate-950 flex flex-col items-center justify-center gap-4 p-6 relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 bg-emerald-500 filter blur-xl" />
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald mb-2">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
+                        <circle cx="12" cy="10" r="3"/>
                       </svg>
                     </div>
-                    <p className="font-display font-bold text-lg text-slate-900">Tomato</p>
-                    <p className="text-xs text-slate-400 text-center">Your favourite food, delivered fast</p>
-                    <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2">
-                      <div className="h-full w-2/3 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full" />
+                    <p className="font-poppins font-extrabold text-lg text-white">{BRAND.NAME}</p>
+                    <p className="text-xs text-slate-400 text-center font-semibold">Your favourite food, delivered fast</p>
+                    <div className="w-full h-1.5 bg-slate-850 rounded-full mt-2">
+                      <div className="h-full w-2/3 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full" />
                     </div>
-                    <div className="grid grid-cols-2 gap-2 w-full">
+                    <div className="grid grid-cols-2 gap-2 w-full mt-3">
                       {["🍕 Pizza", "🥗 Salad", "🍔 Burger", "🍜 Noodles"].map((item, i) => (
-                        <div key={i} className="bg-white rounded-xl p-2 text-center shadow-sm border border-slate-100">
-                          <p className="text-xs font-medium text-slate-700">{item}</p>
+                        <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl p-2 text-center shadow-sm">
+                          <p className="text-[10px] font-bold text-slate-350">{item}</p>
                         </div>
                       ))}
                     </div>

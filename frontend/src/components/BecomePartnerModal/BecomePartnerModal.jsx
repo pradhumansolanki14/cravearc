@@ -7,6 +7,7 @@ import {
   FiStar, FiGrid
 } from 'react-icons/fi';
 import { StoreContext } from '../../context/StoreContext';
+import { BRAND } from '../../constants/brand';
 
 const STEPS = ['Account', 'Restaurant', 'Review'];
 
@@ -213,7 +214,7 @@ const BecomePartnerModal = ({ isOpen, onClose }) => {
 
         <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <p className="text-xs font-semibold text-amber-700 leading-relaxed">
-            Your registration will be reviewed by the Tomato team. You will receive an email once your restaurant has been approved. This typically takes 1–2 business days.
+            Your registration will be reviewed by the {BRAND.NAME} team. You will receive an email once your restaurant has been approved. This typically takes 1–2 business days.
           </p>
         </div>
 

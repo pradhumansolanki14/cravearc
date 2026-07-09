@@ -204,7 +204,7 @@ const RestaurantProfile = ({ url }) => {
             required
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="e.g. Tomato Restaurant"
+            placeholder="e.g. CraveArc Kitchen"
           />
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Description</label>

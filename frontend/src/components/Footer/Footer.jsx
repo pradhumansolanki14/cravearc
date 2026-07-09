@@ -2,14 +2,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { FaFacebookF, FaLinkedinIn, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { FiMail, FiHeart } from "react-icons/fi";
-import { Container } from "../ui";
+import { Container, BrandLogo, BrandText } from "../ui";
+import { BRAND } from "../../constants/brand";
 
 const footerLinks = {
   Company: [
     { label: "About Us", path: "/about" },
     { label: "Careers", path: "/careers" },
     { label: "Press & News", path: "/press" },
-    { label: "Tomato Blog", path: "/blog" }
+    { label: `${BRAND.NAME} Blog`, path: "/blog" }
   ],
   Legal: [
     { label: "Privacy Policy", path: "/privacy" },
@@ -21,7 +22,7 @@ const footerLinks = {
     { label: "Help Center", path: "/help" },
     { label: "Contact Us", path: "/contact" },
     { label: "Delivery FAQ", path: "/delivery-faq" },
-    { label: "Partner with Us", path: "/partner" }
+    { label: "Become a Partner", path: "/become-a-partner" }
   ],
 }
 
@@ -42,7 +43,7 @@ const Footer = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto max-w-md">
               <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-505">
                   <FiMail size={18} />
                 </span>
                 <input
@@ -67,14 +68,10 @@ const Footer = () => {
             {/* Brand Information column */}
             <div className="lg:col-span-2 space-y-6">
               <Link to="/" className="flex items-center gap-2.5 group">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                </div>
-                <span className="font-poppins font-bold text-xl text-white tracking-tight">Tomato</span>
+                <BrandLogo size={14} className="group-hover:scale-105" />
+                <BrandText className="text-xl text-white [&>span]:text-emerald-450 [&>span:first-child]:text-white" />
               </Link>
-              <p className="text-sm leading-relaxed text-slate-400 max-w-xs">
+              <p className="text-sm leading-relaxed text-slate-400 max-w-xs font-semibold">
                 Premium food delivery bringing the city&apos;s best dishes directly to your doorstep. Hot, fresh, and hand-delivered with care.
               </p>
               
@@ -107,7 +104,7 @@ const Footer = () => {
                     <li key={link.label}>
                       <a 
                         href={link.path} 
-                        className="text-sm text-slate-400 hover:text-white transition-colors duration-200 hover:translate-x-0.5 inline-block"
+                        className="text-sm text-slate-400 hover:text-white transition-colors duration-200 hover:translate-x-0.5 inline-block font-semibold"
                       >
                         {link.label}
                       </a>
@@ -120,8 +117,8 @@ const Footer = () => {
 
           {/* Bottom Bar Details */}
           <div className="mt-16 pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500 flex items-center gap-1">
-              &copy; {new Date().getFullYear()} Tomato Inc. All rights reserved. Made with{" "}
+            <p className="text-xs text-slate-500 flex items-center gap-1 font-semibold">
+              &copy; {new Date().getFullYear()} {BRAND.NAME} Inc. All rights reserved. Made with{" "}
               <FiHeart className="text-emerald-500 fill-emerald-500 inline-block animate-pulse" size={12} />{" "}
               for food enthusiasts.
             </p>

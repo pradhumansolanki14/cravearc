@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { FiSettings, FiCheck, FiInfo, FiTruck, FiDollarSign, FiClock, FiMail, FiPhone, FiMapPin, FiHome } from "react-icons/fi";
 import { Card, Badge, Button, Input, Select } from "../../components/ui";
 
+import { BRAND } from "../../constants/brand";
+
 const Settings = ({ url }) => {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,7 @@ const Settings = ({ url }) => {
               label="Restaurant Name"
               value={settings.restaurantName || ""} 
               onChange={e => setSettings(s => ({ ...s, restaurantName: e.target.value }))} 
-              placeholder="Tomato" 
+              placeholder={BRAND.NAME} 
             />
             <Input 
               label="Phone Number"
@@ -93,7 +95,7 @@ const Settings = ({ url }) => {
               leftIcon={<FiMail size={14} />}
               value={settings.email || ""} 
               onChange={e => setSettings(s => ({ ...s, email: e.target.value }))} 
-              placeholder="contact@tomato.com" 
+              placeholder={`contact@${BRAND.NAME.toLowerCase()}.com`} 
             />
             <Input 
               label="Opening Hours"

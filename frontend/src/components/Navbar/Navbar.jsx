@@ -21,16 +21,20 @@ import {
   FiGrid,
   FiPackage,
   FiHome,
+  FiZap,
 } from "react-icons/fi";
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
+import { BrandLogo, BrandText } from "../ui";
 
 /* ────────────────────────────────────────────────────────────
    NAV LINKS  — marketplace-grade, not tutorial-grade
 ──────────────────────────────────────────────────────────── */
 const NAV_ITEMS = [
-  { label: "Discover",    path: "/",            exact: true,  icon: <FiStar size={14} /> },
-  { label: "Restaurants", path: "/restaurants", exact: false, icon: <FiGrid size={14} /> },
+  { label: "Discover",         path: "/",                  exact: true,  icon: <FiStar size={14} /> },
+  { label: "Restaurants",      path: "/restaurants",       exact: false, icon: <FiGrid size={14} /> },
+  { label: "Offers",           path: "/menu",              exact: false, icon: <FiZap size={14} /> },
+  { label: "Become a Partner", path: "/become-a-partner",  exact: false, icon: <FiUser size={14} /> },
 ];
 
 /* ────────────────────────────────────────────────────────────
@@ -556,16 +560,12 @@ const Navbar = ({ setShowLogin }) => {
             <Link
               to="/"
               className="flex items-center gap-2.5 flex-shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl"
-              aria-label="Tomato — Home"
+              aria-label="CraveArc — Home"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-emerald-sm transition-all duration-300 group-hover:scale-105">
-                <FiMapPin size={16} className="text-white" />
-              </div>
-              <span className={`font-poppins font-extrabold text-xl tracking-tight transition-colors duration-300 ${
-                !scrolled && isHome ? "text-white" : "text-slate-900"
-              }`}>
-                Tomato<span className="text-emerald-500">.</span>
-              </span>
+              <BrandLogo size={15} className="group-hover:scale-105" />
+              <BrandText className={`text-xl transition-colors duration-300 ${
+                !scrolled && isHome ? "text-white [&>span]:text-emerald-400" : "text-slate-900"
+              }`} />
             </Link>
 
             {/* ── Location Selector ── */}

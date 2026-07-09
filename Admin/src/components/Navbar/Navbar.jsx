@@ -1,6 +1,6 @@
 import React from 'react'
-import { assets } from '../../assets/assets'
 import { useAdmin } from '../../context/AdminContext'
+import { BrandLogo, BrandText } from '../ui'
 
 const Navbar = () => {
   const { adminName, adminRole, adminLogout } = useAdmin()
@@ -8,16 +8,12 @@ const Navbar = () => {
 
   return (
     <header className="h-16 bg-white border-b border-slate-100 flex items-center px-6 lg:px-8 flex-shrink-0 sticky top-0 z-50">
-      {/* Logo */}
+      {/* Logo System */}
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-          </svg>
-        </div>
+        <BrandLogo size={15} />
         <div className="flex items-center gap-2">
-          <span className="font-display font-bold text-lg text-slate-900">Tomato</span>
-          <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-xs font-bold rounded-lg">Admin</span>
+          <BrandText className="text-base" />
+          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-lg uppercase tracking-wide">Admin</span>
         </div>
       </div>
 
@@ -33,7 +29,7 @@ const Navbar = () => {
 
         {/* Admin avatar + name */}
         <div className="flex items-center gap-2.5 pl-1">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center font-bold text-orange-600 text-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center font-bold text-emerald-600 text-sm">
             {adminName?.charAt(0)?.toUpperCase() || 'A'}
           </div>
           <div className="hidden sm:block">

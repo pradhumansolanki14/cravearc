@@ -9,6 +9,7 @@ import FoodItem from '../../components/FoodItem/FoodItem';
 import RestaurantCard from '../../components/RestaurantCard/RestaurantCard';
 import BannerCarousel from '../../components/BannerCarousel/BannerCarousel';
 import { Button, Container, Card, Skeleton } from '../../components/ui';
+import { BRAND } from '../../constants/brand';
 
 // ─── Hero Section ──────────────────────────────────────────
 const Hero = ({ setShowLogin }) => {
@@ -122,7 +123,7 @@ const Hero = ({ setShowLogin }) => {
 
               <img
                 src="/header_img.png"
-                alt="Tomato delicious fresh cuisine"
+                alt={`${BRAND.NAME} delicious fresh cuisine`}
                 className="relative w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-float"
                 style={{ maxHeight: '460px' }}
               />
@@ -401,7 +402,7 @@ const WhyChooseUs = () => {
             <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Benefits</span>
           </div>
           <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
-            Why choose <span className="text-gradient-emerald">Tomato</span>?
+            Why choose <span className="text-gradient-emerald">{BRAND.NAME}</span>?
           </h2>
           <p className="text-sm text-slate-400 mt-3.5 leading-relaxed">
             We deliver visual refinement and culinary perfection from the kitchen straight to your fork.

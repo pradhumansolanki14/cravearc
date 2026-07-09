@@ -8,6 +8,7 @@ import {
   FiStar, FiGrid, FiArrowLeft, FiLoader, FiZap, FiTrendingUp, FiShield
 } from 'react-icons/fi';
 import { StoreContext } from '../../context/StoreContext';
+import { BRAND } from '../../constants/brand';
 
 /* ────────────────────────────────────────────────────────────
    Constants
@@ -266,11 +267,11 @@ const BecomePartnerPage = () => {
           <div className="flex-1 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-semibold mb-5">
               <FiStar size={13} className="text-amber-300" />
-              Partner with Tomato
+              Partner with {BRAND.NAME}
             </div>
             <h1 className="font-poppins font-extrabold text-4xl sm:text-5xl leading-tight mb-4">
               Grow Your Restaurant<br />
-              <span className="text-emerald-200">With Tomato.</span>
+              <span className="text-emerald-200">With {BRAND.NAME}.</span>
             </h1>
             <p className="text-emerald-100 font-medium text-lg leading-relaxed max-w-lg mb-8">
               Join hundreds of restaurants already on our platform. Reach new customers, accept orders online, and grow your revenue — all from one dashboard.
