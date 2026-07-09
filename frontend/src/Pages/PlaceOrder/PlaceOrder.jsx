@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { FiArrowLeft, FiMapPin, FiTruck, FiCreditCard, FiLock, FiInfo, FiCheck } from "react-icons/fi";
+import { FiArrowLeft, FiMapPin, FiTruck, FiCreditCard, FiLock, FiInfo, FiCheck, FiFileText } from "react-icons/fi";
 import { StoreContext } from "../../context/StoreContext";
-import { Container, Button, Card, Input } from "../../components/ui";
+import { Container, Button, Card, Input, Badge } from "../../components/ui";
 import useToast from "../../hooks/useToast";
 
 const steps = [
@@ -26,6 +26,7 @@ const PlaceOrder = () => {
     firstName: "", lastName: "", email: "",
     street: "", city: "", state: "",
     zipcode: "", country: "", phone: "",
+    notes: "",
   });
 
   const fetchProfileAndAddresses = async () => {
@@ -135,15 +136,15 @@ const PlaceOrder = () => {
     <div className="min-h-screen bg-slate-50">
       
       {/* ── Page Header & Progress ── */}
-      <div className="bg-white border-b border-slate-100">
+      <div className="bg-white border-b border-slate-105">
         <Container className="py-6">
           <div className="flex items-center gap-3 mb-6">
             <button 
               onClick={() => navigate("/cart")}
-              className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors border border-slate-100"
+              className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors border border-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               aria-label="Back to cart"
             >
-              <FiArrowLeft size={18} className="text-slate-600" />
+              <FiArrowLeft size={18} className="text-slate-655" />
             </button>
             <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Checkout</h1>
           </div>
@@ -184,9 +185,9 @@ const PlaceOrder = () => {
             
             {/* Saved Addresses Selector */}
             {addresses.length > 0 && (
-              <Card variant="default" radius="2xl" padding="md" className="border border-slate-100/80 shadow-sm">
-                <h3 className="font-poppins font-bold text-sm text-slate-805 mb-4 flex items-center gap-2">
-                  <FiMapPin className="text-emerald-500" />
+              <Card variant="default" radius="2xl" padding="md" className="border border-slate-100 shadow-xs bg-white">
+                <h3 className="font-poppins font-bold text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
+                  <FiMapPin className="text-emerald-555" />
                   <span>Choose from Saved Addresses</span>
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -198,12 +199,12 @@ const PlaceOrder = () => {
                         onClick={() => handleSelectAddress(addr)}
                         className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 relative ${
                           isSelected 
-                            ? 'border-emerald-500 bg-emerald-50/20' 
+                            ? 'border-emerald-500 bg-emerald-50/15' 
                             : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-2xs font-extrabold uppercase tracking-widest text-slate-450 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded">
+                          <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-450 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded">
                             {addr.label || "Home"}
                           </span>
                           {isSelected && (
@@ -212,8 +213,8 @@ const PlaceOrder = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs font-semibold text-slate-700 truncate">{addr.street}</p>
-                        <p className="text-[11px] font-medium text-slate-400 mt-0.5">
+                        <p className="text-xs font-bold text-slate-750 truncate">{addr.street}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
                           {addr.city}, {addr.state} {addr.zip}
                         </p>
                       </div>
@@ -223,18 +224,13 @@ const PlaceOrder = () => {
               </Card>
             )}
 
-            {/* Manual Delivery Form Inputs */}
-            <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100/80 shadow-sm">
-              <div className="flex items-center gap-3 mb-6 border-b border-slate-50 pb-4">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                  <FiMapPin className="text-emerald-600" size={18} />
-                </div>
-                <div>
-                  <h2 className="font-poppins font-bold text-base text-slate-900 leading-tight">Delivery Address</h2>
-                  <p className="text-xs text-slate-400">Please confirm your destination address details.</p>
-                </div>
-              </div>
-
+            {/* Form Inputs Details */}
+            <Card variant="default" radius="2xl" padding="md" className="border border-slate-100 shadow-xs bg-white">
+              <h3 className="font-poppins font-bold text-xs uppercase tracking-widest text-slate-500 mb-4.5 flex items-center gap-2">
+                <FiMapPin className="text-emerald-500" />
+                <span>Delivery Details</span>
+              </h3>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="First Name"
@@ -323,12 +319,27 @@ const PlaceOrder = () => {
                     placeholder="e.g. +1 (555) 000-0000"
                   />
                 </div>
+
+                {/* Delivery Notes / Instructions Textarea */}
+                <div className="sm:col-span-2">
+                  <label className="block text-2xs font-extrabold uppercase tracking-widest text-slate-400 mb-2 ml-1">
+                    Delivery Instructions / Order Notes
+                  </label>
+                  <textarea
+                    name="notes"
+                    rows="3"
+                    value={data.notes}
+                    onChange={onChangeHandler}
+                    placeholder="e.g. Leave at front door, ring bell twice, call on arrival..."
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 hover:border-slate-200 focus:border-emerald-500 focus:bg-white rounded-2xl text-xs font-semibold text-slate-800 placeholder-slate-400 outline-none transition-all duration-300 resize-none"
+                  />
+                </div>
               </div>
             </Card>
 
             {/* Delivery Speed / Option block */}
-            <Card variant="default" radius="2xl" padding="md" className="border border-slate-100/80 shadow-sm">
-              <h3 className="font-poppins font-bold text-slate-805 text-sm mb-4 flex items-center gap-2">
+            <Card variant="default" radius="2xl" padding="md" className="border border-slate-100 shadow-xs bg-white">
+              <h3 className="font-poppins font-bold text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
                 <FiTruck className="text-emerald-500" />
                 <span>Delivery Method</span>
               </h3>
@@ -341,7 +352,7 @@ const PlaceOrder = () => {
                     key={i} 
                     className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 ${
                       opt.checked 
-                        ? 'border-emerald-500 bg-emerald-50/20' 
+                        ? 'border-emerald-500 bg-emerald-50/15' 
                         : 'border-slate-100 bg-slate-50/50'
                     }`}
                   >
@@ -360,10 +371,21 @@ const PlaceOrder = () => {
 
           {/* Right Column — Summary & Checkout actions */}
           <div className="w-full lg:w-[400px] flex-shrink-0 lg:sticky lg:top-24 space-y-4">
-            <Card variant="default" radius="3xl" padding="none" className="border border-slate-100 shadow-card overflow-hidden">
+            {/* Delivery Speed banner */}
+            <Card variant="default" radius="2xl" padding="sm" className="border border-emerald-100 bg-emerald-50/20 text-emerald-800 shadow-xs flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+                <FiTruck size={15} />
+              </span>
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide leading-none">⚡ Lightning Express</p>
+                <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">Estimated delivery time: 20-30 minutes</p>
+              </div>
+            </Card>
+
+            <Card variant="default" radius="3xl" padding="none" className="border border-slate-100 shadow-card overflow-hidden bg-white">
               <div className="px-6 pt-6 pb-4 border-b border-slate-50">
-                <h3 className="font-poppins font-extrabold text-base text-slate-900 uppercase tracking-wide">Summary</h3>
-                <p className="text-xs text-slate-450 font-bold uppercase mt-1">{cartFoods.length} selected items</p>
+                <h3 className="font-poppins font-extrabold text-xs uppercase tracking-widest text-slate-900">Summary</h3>
+                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-1">{cartFoods.length} selected items</p>
               </div>
 
               {/* Items overview scroll */}
@@ -373,10 +395,10 @@ const PlaceOrder = () => {
                     <img 
                       src={`${url}/images/${item.image}`} 
                       alt={item.name} 
-                      className="w-10 h-10 rounded-xl object-cover flex-shrink-0 bg-slate-50 border border-slate-100/10" 
+                      className="w-10 h-10 rounded-xl object-cover flex-shrink-0 bg-slate-50 border border-slate-100" 
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-750 truncate">{item.name}</p>
+                      <p className="text-xs font-bold text-slate-755 truncate">{item.name}</p>
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Qty: {cartItems[item._id]}</p>
                     </div>
                     <span className="text-xs font-bold text-slate-800 flex-shrink-0">
@@ -392,9 +414,9 @@ const PlaceOrder = () => {
                   <span>Subtotal</span>
                   <span className="text-slate-800">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-slate-450 uppercase tracking-wider">
+                <div className="flex justify-between font-bold text-slate-455 uppercase tracking-wider">
                   <span>Delivery fee</span>
-                  <span className="text-slate-800">$2.00</span>
+                  <span className="text-slate-850">$2.00</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between font-bold uppercase tracking-wider text-emerald-600">
@@ -407,7 +429,7 @@ const PlaceOrder = () => {
               {/* CTA payment triggers */}
               <div className="px-6 py-5 bg-slate-50">
                 <div className="flex justify-between items-center mb-5">
-                  <span className="font-poppins font-extrabold text-base text-slate-900 uppercase tracking-wider">Checkout Total</span>
+                  <span className="font-poppins font-extrabold text-xs text-slate-450 uppercase tracking-widest">Checkout Total</span>
                   <span className="font-poppins font-extrabold text-2xl text-emerald-650">${total.toFixed(2)}</span>
                 </div>
 
@@ -416,10 +438,10 @@ const PlaceOrder = () => {
                   disabled={loading}
                   variant="primary"
                   size="lg"
-                  className="w-full font-bold shadow-emerald-lg h-12.5 text-sm flex items-center justify-center gap-2"
+                  className="w-full font-bold shadow-emerald-lg h-12.5 text-sm flex items-center justify-center gap-2 rounded-2xl"
                 >
                   {loading ? (
-                    <>Processing...</>
+                    <>Processing Secure Checkout...</>
                   ) : (
                     <>
                       <FiLock size={15} strokeWidth={2.5} />

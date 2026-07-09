@@ -157,6 +157,7 @@ const MenuPage = () => {
                 description={item.description} 
                 price={item.price} 
                 image={item.image} 
+                category={item.category}
               />
             ))}
           </div>
