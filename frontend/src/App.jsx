@@ -85,7 +85,7 @@ const App = () => {
       />
 
       {/* ── Auth Modal ────────────────────────────────────────── */}
-      {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
+      {showLogin && <LoginPopup setShowLogin={setShowLogin} initialState={showLogin} />}
 
       {/* ── Cart Conflict Guard ───────────────────────────────── */}
       <CartConflictModal />

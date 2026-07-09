@@ -481,13 +481,13 @@ const MobileDrawer = ({ open, onClose, token, userName, cartCount, favCount, set
                 <>
                   <p className="px-2 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Account</p>
                   <button
-                    onClick={() => { setShowLogin(true); onClose(); }}
+                    onClick={() => { setShowLogin("Login"); onClose(); }}
                     className="flex items-center justify-center w-full px-4 py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-emerald"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => { setShowLogin(true); onClose(); }}
+                    onClick={() => { setShowLogin("Sign Up"); onClose(); }}
                     className="flex items-center justify-center w-full px-4 py-3.5 rounded-2xl text-sm font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors mt-1"
                   >
                     Create Account
@@ -674,7 +674,7 @@ const Navbar = ({ setShowLogin }) => {
               {!token && (
                 <div className="hidden md:flex items-center gap-2">
                   <button
-                    onClick={() => setShowLogin(true)}
+                    onClick={() => setShowLogin("Login")}
                     className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 ${
                       !scrolled && isHome
                         ? "text-slate-200 hover:text-white hover:bg-white/10"
@@ -684,7 +684,7 @@ const Navbar = ({ setShowLogin }) => {
                     Sign In
                   </button>
                   <button
-                    onClick={() => setShowLogin(true)}
+                    onClick={() => setShowLogin("Sign Up")}
                     className="px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl shadow-emerald-sm hover:shadow-emerald transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
                   >
                     Get Started
