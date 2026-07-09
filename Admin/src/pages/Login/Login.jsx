@@ -31,16 +31,16 @@ const Login = () => {
   const inputContainerClass = (val) => {
     const hasVal = !!val;
     return `relative flex items-center bg-slate-50 border-2 rounded-2xl px-4 py-3.5 transition-all duration-300 ${
-      hasVal ? "border-slate-200 focus-within:border-orange-500" : "border-slate-100 focus-within:border-orange-500"
-    } focus-within:bg-white focus-within:shadow-[0_8px_30px_rgba(249,115,22,0.06)]`;
+      hasVal ? "border-slate-200 focus-within:border-emerald-500" : "border-slate-100 focus-within:border-emerald-500"
+    } focus-within:bg-white focus-within:shadow-[0_8px_30px_rgba(16,185,129,0.06)]`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/20 to-slate-100 flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-slate-100 flex items-center justify-center px-4 relative overflow-hidden">
       {/* Ambient background soft glows */}
       <div 
         className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none filter blur-[100px]" 
-        style={{ background: "radial-gradient(circle, #ffedd5 0%, transparent 70%)", transform: "translate(20%, -20%)" }} 
+        style={{ background: "radial-gradient(circle, #ecfdf5 0%, transparent 70%)", transform: "translate(20%, -20%)" }} 
       />
       <div 
         className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full opacity-20 pointer-events-none filter blur-[90px]" 
@@ -56,13 +56,13 @@ const Login = () => {
           transition={{ type: "spring", stiffness: 320, damping: 28 }}
           className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-100/80 overflow-hidden"
         >
-          {/* Top orange gradient bar */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-orange-500 via-orange-600 to-rose-600" />
+          {/* Top emerald gradient bar */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500" />
 
           <div className="p-8 sm:p-10">
             {/* Header Icon / Logo */}
             <div className="flex items-center gap-3.5 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-[0_8px_20px_-4px_rgba(249,115,22,0.3)]">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_8px_20px_-4px_rgba(16,185,129,0.3)]">
                 <FiShield className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -123,7 +123,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-2xl text-sm shadow-[0_8px_25px_-5px_rgba(249,115,22,0.3)] hover:shadow-[0_8px_25px_-5px_rgba(249,115,22,0.45)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+                className="w-full mt-2 py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-2xl text-sm shadow-[0_8px_25px_-5px_rgba(16,185,129,0.3)] hover:shadow-[0_8px_25px_-5px_rgba(16,185,129,0.45)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
               >
                 {loading ? (
                   <>
