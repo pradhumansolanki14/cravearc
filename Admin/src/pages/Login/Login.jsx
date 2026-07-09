@@ -30,21 +30,20 @@ const Login = () => {
 
   const inputContainerClass = (val) => {
     const hasVal = !!val;
-    return `relative flex items-center bg-slate-900/60 border-2 rounded-2xl px-4 py-3.5 transition-all duration-300 ${
-      hasVal ? "border-slate-800 focus-within:border-orange-500" : "border-slate-800/80 focus-within:border-orange-500"
-    } focus-within:bg-slate-900 focus-within:shadow-[0_0_20px_rgba(249,115,22,0.1)]`;
+    return `relative flex items-center bg-slate-900/60 border-2 rounded-2xl px-4 py-3.5 transition-all duration-300 ${hasVal ? "border-slate-800 focus-within:border-orange-500" : "border-slate-800/80 focus-within:border-orange-500"
+      } focus-within:bg-slate-900 focus-within:shadow-[0_0_20px_rgba(249,115,22,0.1)]`;
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 relative overflow-hidden">
       {/* Decorative ambient glowing background filters */}
-      <div 
-        className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none filter blur-[100px]" 
-        style={{ background: "radial-gradient(circle, #ea580c 0%, transparent 70%)", transform: "translate(20%, -20%)" }} 
+      <div
+        className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none filter blur-[100px]"
+        style={{ background: "radial-gradient(circle, #ea580c 0%, transparent 70%)", transform: "translate(20%, -20%)" }}
       />
-      <div 
-        className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full opacity-10 pointer-events-none filter blur-[90px]" 
-        style={{ background: "radial-gradient(circle, #10b981 0%, transparent 70%)", transform: "translate(-20%, 20%)" }} 
+      <div
+        className="absolute bottom-0 left-0 w-[450px] h-[450px] rounded-full opacity-10 pointer-events-none filter blur-[90px]"
+        style={{ background: "radial-gradient(circle, #10b981 0%, transparent 70%)", transform: "translate(-20%, 20%)" }}
       />
       {/* Dot pattern overlay */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
