@@ -1,6 +1,6 @@
 import foodModel from "../models/foodModel.js";
 import restaurantModel from "../models/restaurantModel.js";
-import reviewModel from "../models/reviewModel.js";
+import foodReviewModel from "../models/foodReviewModel.js";
 import fs from "fs";
 
 // ─── Add food (vendor adds to their restaurant) ──────────────
@@ -46,19 +46,51 @@ const addFood = async (req, res) => {
   }
 };
 
+// Helper to attach ratings stats to food items dynamically using Aggregation
+const attachRatingStats = async (foods) => {
+  if (!foods || foods.length === 0) return [];
+  const foodIds = foods.map(f => f._id.toString());
+  try {
+    const stats = await foodReviewModel.aggregate([
+      { $match: { foodId: { $in: foodIds } } },
+      { $group: { _id: "$foodId", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } }
+    ]);
+    const statsMap = {};
+    stats.forEach(s => {
+      statsMap[s._id] = {
+        avgRating: Math.round(s.avgRating * 10) / 10,
+        reviewCount: s.count
+      };
+    });
+    return foods.map(f => {
+      const s = statsMap[f._id.toString()] || { avgRating: 0, reviewCount: 0 };
+      return {
+        ...f.toObject(),
+        averageRating: s.avgRating,
+        reviewCount: s.reviewCount
+      };
+    });
+  } catch (err) {
+    console.error("Error attaching rating stats:", err);
+    return foods.map(f => ({ ...f.toObject(), averageRating: 0, reviewCount: 0 }));
+  }
+};
+
 // ─── List food (public — with optional restaurant filter) ────
 const listFood = async (req, res) => {
   try {
     const filter = {};
     if (req.query.restaurantId) filter.restaurantId = req.query.restaurantId;
     if (req.query.isVeg === "true") filter.isVeg = true;
-    const foods = await foodModel.find(filter).populate("restaurantId", "name logo isOpen isApproved");
+    const foods = await foodModel.find(filter).populate("restaurantId", "name logo isOpen isApproved deliveryFee");
     // Only show foods from approved, open restaurants to customers
     // If restaurant filter is explicit, show regardless (for vendor dashboard)
     const filtered = req.query.restaurantId
       ? foods
       : foods.filter(f => f.restaurantId?.isApproved);
-    res.json({ success: true, data: filtered });
+    
+    const foodsWithStats = await attachRatingStats(filtered);
+    res.json({ success: true, data: foodsWithStats });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: "Error" });
@@ -84,7 +116,7 @@ const getFood = async (req, res) => {
     if (!food) return res.json({ success: false, message: "Food not found" });
 
     // Fetch reviews including vendorReply and vendorRepliedAt
-    const reviews = await reviewModel.find({ foodId: req.params.id }).sort({ createdAt: -1 });
+    const reviews = await foodReviewModel.find({ foodId: req.params.id }).sort({ createdAt: -1 });
 
     res.json({ success: true, data: { ...food.toObject(), reviews } });
   } catch (error) {
@@ -153,9 +185,10 @@ const searchFood = async (req, res) => {
     if (category && category !== "All") filter.category = category;
     if (restaurantId) filter.restaurantId = restaurantId;
 
-    const foods = await foodModel.find(filter).populate("restaurantId", "name isApproved").limit(30);
+    const foods = await foodModel.find(filter).populate("restaurantId", "name logo isApproved").limit(30);
     const result = restaurantId ? foods : foods.filter(f => f.restaurantId?.isApproved);
-    res.json({ success: true, data: result });
+    const foodsWithStats = await attachRatingStats(result);
+    res.json({ success: true, data: foodsWithStats });
   } catch (error) {
     res.json({ success: false, message: "Error" });
   }
@@ -202,13 +235,19 @@ const listRestaurants = async (req, res) => {
   }
 };
 
-// ─── Get restaurant detail with menu ─────────────────────────
 const getRestaurant = async (req, res) => {
   try {
-    const restaurant = await restaurantModel.findById(req.params.id);
+    const isObjectId = req.params.id.match(/^[0-9a-fA-F]{24}$/);
+    let restaurant;
+    if (isObjectId) {
+      restaurant = await restaurantModel.findById(req.params.id);
+    } else {
+      restaurant = await restaurantModel.findOne({ slug: req.params.id.toLowerCase() });
+    }
     if (!restaurant) return res.json({ success: false, message: "Restaurant not found" });
-    const menu = await foodModel.find({ restaurantId: req.params.id, isAvailable: true });
-    res.json({ success: true, data: { restaurant, menu } });
+    const menu = await foodModel.find({ restaurantId: restaurant._id, isAvailable: true });
+    const menuWithStats = await attachRatingStats(menu);
+    res.json({ success: true, data: { restaurant, menu: menuWithStats } });
   } catch (error) {
     res.json({ success: false, message: "Error" });
   }

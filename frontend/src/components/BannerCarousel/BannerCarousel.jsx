@@ -66,7 +66,8 @@ const BannerCarousel = () => {
   // ─── Click handler ───────────────────────────────────────
   const handleBannerClick = (banner) => {
     if (banner.restaurantId) {
-      navigate(`/restaurant/${banner.restaurantId}`);
+      const dest = typeof banner.restaurantId === 'object' ? (banner.restaurantId.slug || banner.restaurantId._id) : banner.restaurantId;
+      navigate(`/restaurant/${dest}`);
     }
   };
 

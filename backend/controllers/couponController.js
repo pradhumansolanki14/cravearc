@@ -19,7 +19,7 @@ const validateCoupon = async (req, res) => {
 
     res.json({
       success: true,
-      message: `🎉 ${coupon.discount}${coupon.discountType === "percent" ? "%" : "$"} off applied!`,
+      message: `${coupon.discount}${coupon.discountType === "percent" ? "%" : "$"} off applied!`,
       discount: discountAmount,
       couponId: coupon._id,
       code: coupon.code,
@@ -32,17 +32,21 @@ const validateCoupon = async (req, res) => {
   }
 };
 
-// ─── Admin: list all coupons ──────────────────────────────────
+// ─── Admin / Vendor: list coupons ──────────────────────────────
 const listCoupons = async (req, res) => {
   try {
-    const coupons = await couponModel.find({}).sort({ createdAt: -1 });
+    const filter = {};
+    if (req.adminRole === "vendor") {
+      filter.restaurantId = req.restaurantId;
+    }
+    const coupons = await couponModel.find(filter).populate("restaurantId", "name logo").sort({ createdAt: -1 });
     res.json({ success: true, data: coupons });
   } catch (error) {
     res.json({ success: false, message: "Error" });
   }
 };
 
-// ─── Admin: create coupon ─────────────────────────────────────
+// ─── Admin / Vendor: create coupon ─────────────────────────────
 const createCoupon = async (req, res) => {
   try {
     const { code, discountType, discount, minOrder, maxUses, expiresAt, description } = req.body;
@@ -51,10 +55,12 @@ const createCoupon = async (req, res) => {
     const exists = await couponModel.findOne({ code: code.toUpperCase() });
     if (exists) return res.json({ success: false, message: "Code already exists" });
 
+    const restaurantId = req.adminRole === "vendor" ? req.restaurantId : (req.body.restaurantId || null);
+
     const coupon = await couponModel.create({
       code: code.toUpperCase(), discountType, discount: Number(discount),
       minOrder: Number(minOrder) || 0, maxUses: Number(maxUses) || 100,
-      expiresAt: new Date(expiresAt), description,
+      expiresAt: new Date(expiresAt), description, restaurantId
     });
     res.json({ success: true, message: "Coupon created", data: coupon });
   } catch (error) {
@@ -63,11 +69,17 @@ const createCoupon = async (req, res) => {
   }
 };
 
-// ─── Admin: toggle active ─────────────────────────────────────
+// ─── Admin / Vendor: toggle active ─────────────────────────────
 const toggleCoupon = async (req, res) => {
   try {
     const coupon = await couponModel.findById(req.params.id);
     if (!coupon) return res.json({ success: false, message: "Not found" });
+
+    // Scope check: vendor can only toggle their own restaurant's coupons
+    if (req.adminRole === "vendor" && coupon.restaurantId?.toString() !== req.restaurantId) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
     coupon.isActive = !coupon.isActive;
     await coupon.save();
     res.json({ success: true, message: `Coupon ${coupon.isActive ? "activated" : "deactivated"}`, data: coupon });
@@ -76,9 +88,17 @@ const toggleCoupon = async (req, res) => {
   }
 };
 
-// ─── Admin: delete coupon ─────────────────────────────────────
+// ─── Admin / Vendor: delete coupon ─────────────────────────────
 const deleteCoupon = async (req, res) => {
   try {
+    const coupon = await couponModel.findById(req.params.id);
+    if (!coupon) return res.json({ success: false, message: "Not found" });
+
+    // Scope check: vendor can only delete their own restaurant's coupons
+    if (req.adminRole === "vendor" && coupon.restaurantId?.toString() !== req.restaurantId) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
     await couponModel.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Coupon deleted" });
   } catch (error) {
@@ -86,4 +106,74 @@ const deleteCoupon = async (req, res) => {
   }
 };
 
-export { validateCoupon, listCoupons, createCoupon, toggleCoupon, deleteCoupon };
+// ─── Admin / Vendor: update coupon ─────────────────────────────
+const updateCoupon = async (req, res) => {
+  try {
+    const coupon = await couponModel.findById(req.params.id);
+    if (!coupon) return res.json({ success: false, message: "Coupon not found" });
+
+    // Scope check: vendor can only edit their own restaurant's coupons
+    if (req.adminRole === "vendor" && coupon.restaurantId?.toString() !== req.restaurantId) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    const { code, discountType, discount, minOrder, maxUses, expiresAt, description } = req.body;
+
+    const updates = {};
+    if (code !== undefined) {
+      const exists = await couponModel.findOne({ code: code.toUpperCase(), _id: { $ne: req.params.id } });
+      if (exists) return res.json({ success: false, message: "Code already exists" });
+      updates.code = code.toUpperCase();
+    }
+    if (discountType !== undefined) updates.discountType = discountType;
+    if (discount !== undefined) updates.discount = Number(discount);
+    if (minOrder !== undefined) updates.minOrder = Number(minOrder);
+    if (maxUses !== undefined) updates.maxUses = Number(maxUses);
+    if (expiresAt !== undefined) updates.expiresAt = new Date(expiresAt);
+    if (description !== undefined) updates.description = description;
+
+    // Platform admin can specify a different restaurantId
+    if (req.adminRole === "superadmin") {
+      if (req.body.restaurantId !== undefined) {
+        updates.restaurantId = req.body.restaurantId || null;
+      }
+    }
+
+    const updated = await couponModel.findByIdAndUpdate(req.params.id, updates, { new: true });
+    res.json({ success: true, message: "Coupon updated", data: updated });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error updating coupon" });
+  }
+};
+
+// ─── Customer: list active coupons ──────────────────────────────
+const getActiveCoupons = async (req, res) => {
+  try {
+    const { restaurantId } = req.query;
+    
+    // Find active coupons that haven't expired
+    const filter = {
+      isActive: true,
+      expiresAt: { $gt: new Date() }
+    };
+    
+    // Platform-wide OR matches the restaurantId
+    if (restaurantId) {
+      filter.$or = [
+        { restaurantId: null },
+        { restaurantId: restaurantId }
+      ];
+    } else {
+      filter.restaurantId = null;
+    }
+    
+    const coupons = await couponModel.find(filter).sort({ discount: -1 });
+    res.json({ success: true, data: coupons });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Error fetching active coupons" });
+  }
+};
+
+export { validateCoupon, listCoupons, createCoupon, toggleCoupon, deleteCoupon, updateCoupon, getActiveCoupons };

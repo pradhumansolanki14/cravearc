@@ -1,15 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiArrowLeft, FiHeart, FiShoppingBag, FiInfo } from 'react-icons/fi';
+import { FiArrowLeft, FiHeart, FiInfo, FiLayers, FiActivity } from 'react-icons/fi';
 import { StoreContext } from '../../context/StoreContext';
 import FoodItem from '../../components/FoodItem/FoodItem';
-import { Container, Button, Card } from '../../components/ui';
+import RestaurantCard from '../../components/RestaurantCard/RestaurantCard';
+import { Container, Button } from '../../components/ui';
 
 const Favorites = () => {
   const { url, token, favorites } = useContext(StoreContext);
   const [favFoods, setFavFoods] = useState([]);
+  const [favRestaurants, setFavRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("food"); // "food" or "restaurant"
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +25,8 @@ const Favorites = () => {
     try {
       const res = await axios.get(`${url}/api/favorites`, { headers: { token } });
       if (res.data.success) {
-        setFavFoods(res.data.data);
+        setFavFoods(res.data.data.foods || []);
+        setFavRestaurants(res.data.data.restaurants || []);
       }
     } catch (e) { 
       console.error(e); 
@@ -30,34 +34,64 @@ const Favorites = () => {
     setLoading(false);
   };
 
+  const activeCount = activeTab === "food" ? favFoods.length : favRestaurants.length;
+
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50/50">
       
-      {/* ── Page Header ── */}
+      {/* Page Header */}
       <div className="bg-white border-b border-slate-100">
         <Container className="py-8">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors border border-slate-100"
-              aria-label="Go back"
-            >
-              <FiArrowLeft size={18} className="text-slate-650" />
-            </button>
-            <div>
-              <h1 className="font-poppins font-extrabold text-2xl text-slate-900 flex items-center gap-2 tracking-tight">
-                <span>My Favorites</span>
-                <FiHeart className="text-rose-500 fill-rose-500 animate-pulse" size={20} />
-              </h1>
-              <p className="text-slate-400 text-xs font-semibold mt-0.5">
-                {loading ? 'Loading...' : `${favFoods.length} saved item${favFoods.length !== 1 ? 's' : ''}`}
-              </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="w-11 h-11 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors border border-slate-100"
+                aria-label="Go back"
+              >
+                <FiArrowLeft size={18} className="text-slate-650" />
+              </button>
+              <div>
+                <h1 className="font-poppins font-extrabold text-2xl text-slate-900 flex items-center gap-2 tracking-tight">
+                  <span>My Favorites</span>
+                  <FiHeart className="text-rose-500 fill-rose-500 animate-pulse" size={20} />
+                </h1>
+                <p className="text-slate-400 text-xs font-semibold mt-0.5">
+                  {loading ? 'Loading...' : `${favFoods.length} dishes · ${favRestaurants.length} kitchens`}
+                </p>
+              </div>
+            </div>
+
+            {/* Premium Tab Selector */}
+            <div className="flex bg-slate-100 p-1 rounded-2xl w-fit border border-slate-200">
+              <button
+                onClick={() => setActiveTab("food")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === "food"
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-850"
+                }`}
+              >
+                <FiLayers size={14} />
+                <span>Gourmet Dishes ({favFoods.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("restaurant")}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  activeTab === "restaurant"
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-slate-500 hover:text-slate-850"
+                }`}
+              >
+                <FiActivity size={14} />
+                <span>Favorite Kitchens ({favRestaurants.length})</span>
+              </button>
             </div>
           </div>
         </Container>
       </div>
 
-      {/* ── Grid List Content ── */}
+      {/* Grid List Content */}
       <Container className="py-8">
         {loading ? (
           /* Pulse Skeletal Loader */
@@ -73,14 +107,18 @@ const Favorites = () => {
               </div>
             ))}
           </div>
-        ) : favFoods.length === 0 ? (
+        ) : activeCount === 0 ? (
           /* Empty Favorites list state */
-          <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto bg-white border border-slate-100 rounded-3xl shadow-card p-8">
+          <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto bg-white border border-slate-100 rounded-3xl shadow-card p-8 animate-fadeUp">
             <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500 mb-5">
               <FiHeart size={28} className="fill-rose-500/10" />
             </div>
             <h2 className="font-poppins font-bold text-slate-800 text-lg mb-2">No favorites yet</h2>
-            <p className="text-slate-400 text-xs font-semibold leading-relaxed mb-6">Tap the heart icon on any gourmet dish to save it here for quick access later.</p>
+            <p className="text-slate-400 text-xs font-semibold leading-relaxed mb-6">
+              {activeTab === "food"
+                ? "Tap the heart icon on any gourmet dish to save it here for quick access later."
+                : "Tap the heart icon on any kitchen cover to keep track of your favorite restaurants."}
+            </p>
             <Button 
               onClick={() => navigate('/')} 
               variant="primary" 
@@ -101,19 +139,39 @@ const Favorites = () => {
             </div>
 
             {/* Grid List */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-6 animate-fadeUp">
-              {favFoods.map(item => (
-                <FoodItem
-                  key={item._id}
-                  id={item._id}
-                  name={item.name}
-                  description={item.description}
-                  price={item.price}
-                  image={item.image}
-                  category={item.category}
-                />
-              ))}
-            </div>
+            {activeTab === "food" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
+                {favFoods.map(item => (
+                  <FoodItem
+                    key={item._id}
+                    id={item._id}
+                    name={item.name}
+                    description={item.description}
+                    price={item.price}
+                    image={item.image}
+                    category={item.category}
+                    preparationTime={item.preparationTime}
+                    isVeg={item.isVeg}
+                    calories={item.calories}
+                    restaurantId={item.restaurantId}
+                    isAvailable={item.isAvailable}
+                    averageRating={item.averageRating}
+                    reviewCount={item.reviewCount}
+                    discount={item.discount}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
+                {favRestaurants.map(r => (
+                  <RestaurantCard
+                    key={r._id}
+                    restaurant={r}
+                    url={url}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </Container>

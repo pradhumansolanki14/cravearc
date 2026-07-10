@@ -134,21 +134,21 @@ const Settings = ({ url }) => {
           
           <div className="grid sm:grid-cols-3 gap-4">
             <Input 
-              label="Delivery Fee ($)"
+              label="Delivery Fee (₹)"
               type="number" 
               min="0" 
               step="0.5" 
-              leftIcon={<FiDollarSign size={13} />}
+              leftIcon={<span className="text-zinc-400 font-bold font-mono text-sm">₹</span>}
               value={settings.deliveryFee ?? ""} 
               onChange={e => setSettings(s => ({ ...s, deliveryFee: parseFloat(e.target.value) }))} 
-              placeholder="2" 
+              placeholder="50" 
             />
             
             <Input 
-              label="Min Order ($)"
+              label="Min Order (₹)"
               type="number" 
               min="0" 
-              leftIcon={<FiDollarSign size={13} />}
+              leftIcon={<span className="text-zinc-400 font-bold font-mono text-sm">₹</span>}
               value={settings.minOrder ?? ""} 
               onChange={e => setSettings(s => ({ ...s, minOrder: parseFloat(e.target.value) }))} 
               placeholder="0" 
@@ -156,13 +156,13 @@ const Settings = ({ url }) => {
             
             <Select 
               label="Platform Currency"
-              value={settings.currency || "USD"} 
+              value={settings.currency || "INR"} 
               onChange={e => setSettings(s => ({ ...s, currency: e.target.value }))}
             >
+              <option value="INR">INR (₹)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
               <option value="GBP">GBP (£)</option>
-              <option value="INR">INR (₹)</option>
             </Select>
           </div>
         </Card>

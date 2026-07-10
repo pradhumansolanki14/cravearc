@@ -1,24 +1,76 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "react-hot-toast"
 import { FiPlus, FiCamera, FiTrash2, FiTag, FiClock, FiActivity, FiCheck, FiFolder } from "react-icons/fi"
 import { Card, Button, Input } from "../../components/ui"
 
-const CATEGORIES = ["Salad", "Rolls", "Deserts", "Sandwich", "Cake", "Pure Veg", "Pasta", "Noodles"]
-
 const Add = ({ url }) => {
   const [image, setImage] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState([])
   const [data, setData] = useState({ 
     name: "", 
     description: "", 
     price: "", 
-    category: "Salad",
+    category: "",
     preparationTime: "20",
     isVeg: false,
     calories: "",
     tags: ""
   })
+
+  // Category Request Modal States
+  const [showRequestModal, setShowRequestModal] = useState(false)
+  const [reqName, setReqName] = useState("")
+  const [reqDesc, setReqDesc] = useState("")
+  const [reqReason, setReqReason] = useState("")
+  const [requesting, setRequesting] = useState(false)
+
+  const handleRequestSubmit = async (e) => {
+    e.preventDefault()
+    if (!reqName.trim()) {
+      toast.error("Category name is required")
+      return
+    }
+    setRequesting(true)
+    try {
+      const token = localStorage.getItem("adminToken")
+      const res = await axios.post(
+        `${url}/api/categories/requests`,
+        { name: reqName, description: reqDesc, reason: reqReason },
+        { headers: { token } }
+      )
+      if (res.data.success) {
+        toast.success("Category request submitted successfully.")
+        setShowRequestModal(false)
+        setReqName("")
+        setReqDesc("")
+        setReqReason("")
+      } else {
+        toast.error(res.data.message)
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Request failed")
+    }
+    setRequesting(false)
+  }
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${url}/api/categories`)
+        if (res.data.success) {
+          setCategories(res.data.data)
+          if (res.data.data.length > 0) {
+            setData(d => ({ ...d, category: res.data.data[0].name }))
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch categories:", err)
+      }
+    }
+    fetchCategories()
+  }, [url])
 
   const onChangeHandler = (e) => {
     const { name, value, type, checked } = e.target
@@ -32,6 +84,10 @@ const Add = ({ url }) => {
     event.preventDefault()
     if (!image) {
       toast.error("Dish photo is required")
+      return
+    }
+    if (!data.category) {
+      toast.error("Please select a category")
       return
     }
     setLoading(true)
@@ -59,7 +115,7 @@ const Add = ({ url }) => {
           name: "", 
           description: "", 
           price: "", 
-          category: "Salad",
+          category: categories[0]?.name || "",
           preparationTime: "20",
           isVeg: false,
           calories: "",
@@ -179,14 +235,25 @@ const Add = ({ url }) => {
                 onChange={onChangeHandler}
                 className={inputClass}
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
+
+              <div className="mt-2.5 pt-2.5 border-t border-dashed border-zinc-200">
+                <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider">Can't find your category?</p>
+                <button
+                  type="button"
+                  onClick={() => setShowRequestModal(true)}
+                  className="text-[10px] font-extrabold text-emerald-600 hover:text-emerald-705 transition-colors mt-0.5 inline-block uppercase tracking-wider"
+                >
+                  Request New Category
+                </button>
+              </div>
             </div>
             
             <div className="space-y-1.5">
-              <label className={labelClass}>Price (USD)</label>
+              <label className={labelClass}>Price (₹)</label>
               <input 
                 name="price"
                 type="number"
@@ -195,7 +262,7 @@ const Add = ({ url }) => {
                 value={data.price}
                 onChange={onChangeHandler}
                 required
-                placeholder="0.00"
+                placeholder="₹199"
                 className={inputClass}
               />
             </div>
@@ -285,6 +352,76 @@ const Add = ({ url }) => {
         </button>
 
       </form>
+
+      {/* ── Category Request Modal Overlay ── */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs animate-fadeIn" onClick={() => setShowRequestModal(false)}>
+          <Card 
+            radius="2xl" 
+            padding="lg" 
+            className="w-full max-w-sm bg-white border border-zinc-200 shadow-2xl relative animate-scaleIn space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div>
+              <h3 className="font-poppins font-extrabold text-zinc-900 text-sm uppercase tracking-wide">Request New Category</h3>
+              <p className="text-[10px] text-zinc-400 font-semibold mt-1">Submit a folder category suggestion to Platform Admin</p>
+            </div>
+
+            <form onSubmit={handleRequestSubmit} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">Category Name</label>
+                <input 
+                  type="text" 
+                  value={reqName} 
+                  onChange={e => setReqName(e.target.value)}
+                  placeholder="e.g. Seafood, Fastfood"
+                  className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-800 focus:outline-none focus:border-zinc-950 transition-all font-semibold"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">Description</label>
+                <textarea 
+                  value={reqDesc} 
+                  onChange={e => setReqDesc(e.target.value)}
+                  placeholder="What food items belong here?"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-800 focus:outline-none focus:border-zinc-950 transition-all font-semibold resize-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">Reason (Optional)</label>
+                <textarea 
+                  value={reqReason} 
+                  onChange={e => setReqReason(e.target.value)}
+                  placeholder="Why is this category required?"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-xs text-zinc-800 focus:outline-none focus:border-zinc-950 transition-all font-semibold resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                <button 
+                  onClick={() => setShowRequestModal(false)} 
+                  className="px-3.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-2xs font-bold rounded-lg transition-colors uppercase tracking-wider"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button 
+                  disabled={requesting} 
+                  className="px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-850 text-white text-2xs font-bold rounded-lg transition-colors uppercase tracking-wider"
+                  type="submit"
+                >
+                  {requesting ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

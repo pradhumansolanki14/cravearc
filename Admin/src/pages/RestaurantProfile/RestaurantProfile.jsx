@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FiHome, FiStar, FiMessageSquare, FiAward, FiUpload, FiMapPin, FiPhone, FiMail, FiClock, FiDollarSign, FiInfo } from "react-icons/fi";
+import { FiHome, FiStar, FiMessageSquare, FiAward, FiUpload, FiMapPin, FiPhone, FiMail, FiClock, FiDollarSign, FiInfo, FiGlobe, FiWifi, FiCheck, FiZap, FiTrash2, FiPlus } from "react-icons/fi";
+import { MdOutlineLocalParking, MdOutlineFoodBank, MdOutlineTableRestaurant } from "react-icons/md";
 import { Card, Badge, Button, Input } from "../../components/ui";
+
+const AMENITY_OPTIONS = [
+  { label: "Pure Veg",    icon: MdOutlineFoodBank },
+  { label: "Dine-In",    icon: MdOutlineTableRestaurant },
+  { label: "Free WiFi",  icon: FiWifi },
+  { label: "Parking",    icon: MdOutlineLocalParking },
+  { label: "AC Seating", icon: FiZap },
+  { label: "Fast Delivery", icon: FiCheck },
+  { label: "Outdoor Seating", icon: FiCheck },
+  { label: "Takeaway",   icon: FiCheck },
+  { label: "Award Winning", icon: FiAward },
+  { label: "Pet Friendly", icon: FiCheck },
+];
 
 const RestaurantProfile = ({ url }) => {
   const [profile, setProfile] = useState(null);
@@ -14,6 +28,7 @@ const RestaurantProfile = ({ url }) => {
   const [logoPreview, setLogoPreview] = useState("");
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState("");
+  const [galleryFiles, setGalleryFiles] = useState([]);
   const token = localStorage.getItem("adminToken");
 
   const fetchProfile = async () => {
@@ -27,9 +42,12 @@ const RestaurantProfile = ({ url }) => {
           name: d.name || "", description: d.description || "",
           cuisine: d.cuisine || "", address: d.address || "",
           phone: d.phone || "", email: d.email || "",
+          website: d.website || "",
           deliveryFee: d.deliveryFee ?? 2, minOrder: d.minOrder ?? 0,
           openingHours: d.openingHours || "", preparationTime: d.preparationTime ?? 30,
           isOpen: d.isOpen ?? true,
+          selectedTags: d.tags || [],
+          gallery: d.gallery || [],
         });
         setLogoPreview(d.logo ? `${url}/images/${d.logo}` : "");
         setCoverPreview(d.coverImage ? `${url}/images/${d.coverImage}` : "");
@@ -56,6 +74,23 @@ const RestaurantProfile = ({ url }) => {
       setCoverFile(file); 
       setCoverPreview(URL.createObjectURL(file)); 
     }
+  };
+
+  const handleGalleryChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    setGalleryFiles(prev => [...prev, ...files]);
+  };
+
+  const handleRemoveNewGallery = (index) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingGallery = (index) => {
+    setForm(f => ({
+      ...f,
+      gallery: (f.gallery || []).filter((_, i) => i !== index)
+    }));
   };
 
   const handleToggleOpen = async () => {
@@ -85,18 +120,31 @@ const RestaurantProfile = ({ url }) => {
     setSaving(true);
     try {
       const fd = new FormData();
-      const allowed = ["name","description","cuisine","address","phone","email","deliveryFee","minOrder","openingHours","preparationTime"];
+      const allowed = ["name","description","cuisine","address","phone","email","website","deliveryFee","minOrder","openingHours","preparationTime"];
       allowed.forEach(k => { if (form[k] !== undefined) fd.append(k, form[k]); });
+      fd.append("tags", JSON.stringify(form.selectedTags || []));
+      fd.append("gallery", JSON.stringify(form.gallery || []));
+      
       if (logoFile) fd.append("logo", logoFile);
       if (coverFile) fd.append("coverImage", coverFile);
+      galleryFiles.forEach(file => {
+        fd.append("gallery", file);
+      });
+
       const res = await axios.put(`${url}/api/admin/restaurant/profile`, fd, { headers: { token } });
       if (res.data.success) {
         toast.success("Profile updated");
-        setProfile(res.data.data);
+        const updatedData = res.data.data;
+        setProfile(updatedData);
         setLogoFile(null); 
         setCoverFile(null);
-        if (res.data.data.logo) setLogoPreview(`${url}/images/${res.data.data.logo}`);
-        if (res.data.data.coverImage) setCoverPreview(`${url}/images/${res.data.data.coverImage}`);
+        setGalleryFiles([]);
+        setForm(f => ({
+          ...f,
+          gallery: updatedData.gallery || []
+        }));
+        if (updatedData.logo) setLogoPreview(`${url}/images/${updatedData.logo}`);
+        if (updatedData.coverImage) setCoverPreview(`${url}/images/${updatedData.coverImage}`);
       } else {
         toast.error(res.data.message);
       }
@@ -196,6 +244,61 @@ const RestaurantProfile = ({ url }) => {
           </div>
         </Card>
 
+        {/* Hotel Gallery Uploads */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
+          <div>
+            <h2 className="font-poppins font-bold text-slate-805 text-sm uppercase tracking-wider">Hotel Gallery</h2>
+            <p className="text-xs text-slate-400 mt-1">Upload images of your hotel, premium ambiance, customers, menu lists, etc.</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            {/* Existing uploaded images */}
+            {(form.gallery || []).map((img, idx) => (
+              <div key={`exist-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 group bg-slate-50">
+                <img src={`${url}/images/${img}`} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExistingGallery(idx)}
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                >
+                  <div className="bg-red-500/90 p-2 rounded-xl hover:bg-red-600 transition-colors">
+                    <FiTrash2 size={16} />
+                  </div>
+                </button>
+              </div>
+            ))}
+
+            {/* Staged new file selections */}
+            {galleryFiles.map((file, idx) => {
+              const previewUrl = URL.createObjectURL(file);
+              return (
+                <div key={`new-${idx}`} className="relative aspect-square rounded-2xl overflow-hidden border-2 border-emerald-400 border-dashed group bg-emerald-50/5">
+                  <img src={previewUrl} alt={`New Stage ${idx}`} className="w-full h-full object-cover" />
+                  <div className="absolute top-1.5 left-1.5 bg-emerald-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full tracking-wider uppercase">Staged</div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNewGallery(idx)}
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                  >
+                    <div className="bg-red-500/90 p-2 rounded-xl hover:bg-red-600 transition-colors">
+                      <FiTrash2 size={16} />
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Trigger click slot to select files */}
+            <label htmlFor="gallery-inp" className="cursor-pointer block aspect-square">
+              <div className="w-full h-full rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-450 bg-slate-50/50 hover:bg-emerald-50/20 transition-all flex flex-col items-center justify-center gap-1.5 text-slate-400">
+                <FiPlus size={22} className="text-slate-400" />
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-405">Add Images</p>
+              </div>
+            </label>
+            <input id="gallery-inp" type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryChange} />
+          </div>
+        </Card>
+
         {/* Basic Details card */}
         <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
           <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Basic Information</h2>
@@ -259,6 +362,50 @@ const RestaurantProfile = ({ url }) => {
               placeholder="e.g. manager@restaurant.com"
             />
           </div>
+          <Input
+            label="Website URL"
+            type="url"
+            leftIcon={<FiGlobe size={14} />}
+            value={form.website}
+            onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+            placeholder="e.g. https://yourrestaurant.com"
+          />
+        </Card>
+
+        {/* Amenities card */}
+        <Card variant="default" radius="2xl" padding="lg" className="border border-slate-100 shadow-sm space-y-4">
+          <div>
+            <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Amenities</h2>
+            <p className="text-xs text-slate-400 mt-2">Select features available at your restaurant. These appear on your public storefront.</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {AMENITY_OPTIONS.map(({ label, icon: Icon }) => {
+              const selected = (form.selectedTags || []).includes(label);
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() =>
+                    setForm(f => ({
+                      ...f,
+                      selectedTags: selected
+                        ? f.selectedTags.filter(t => t !== label)
+                        : [...(f.selectedTags || []), label],
+                    }))
+                  }
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                    selected
+                      ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  <Icon size={13} />
+                  {label}
+                  {selected && <span className="ml-auto text-emerald-600"><FiCheck size={11} /></span>}
+                </button>
+              );
+            })}
+          </div>
         </Card>
 
         {/* Delivery Rates card */}
@@ -266,19 +413,19 @@ const RestaurantProfile = ({ url }) => {
           <h2 className="font-poppins font-bold text-slate-850 text-sm uppercase tracking-wider pb-2 border-b border-slate-50">Delivery Configuration</h2>
           <div className="grid grid-cols-3 gap-3.5">
             <Input
-              label="Delivery Fee ($)"
+              label="Delivery Fee (₹)"
               type="number"
               min="0"
               step="0.5"
-              leftIcon={<FiDollarSign size={13} />}
+              leftIcon={<span className="text-zinc-400 font-bold font-mono text-sm">₹</span>}
               value={form.deliveryFee}
               onChange={e => setForm(f => ({ ...f, deliveryFee: Number(e.target.value) }))}
             />
             <Input
-              label="Min Order ($)"
+              label="Min Order (₹)"
               type="number"
               min="0"
-              leftIcon={<FiDollarSign size={13} />}
+              leftIcon={<span className="text-zinc-400 font-bold font-mono text-sm">₹</span>}
               value={form.minOrder}
               onChange={e => setForm(f => ({ ...f, minOrder: Number(e.target.value) }))}
             />

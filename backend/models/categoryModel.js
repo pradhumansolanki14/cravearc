@@ -5,6 +5,7 @@ const categorySchema = new mongoose.Schema({
   image:       { type: String, default: "" },
   description: { type: String, default: "" },
   isActive:    { type: Boolean, default: true },
+  featured:    { type: Boolean, default: false },
 }, { timestamps: true });
 
 const categoryModel = mongoose.models.category || mongoose.model("category", categorySchema);

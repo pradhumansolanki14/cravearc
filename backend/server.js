@@ -87,6 +87,62 @@ app.get("/", (req, res) => res.send("API Working"));
 
 try {
   await connectDB();
+  
+  // Mismatch auto-fix: update any old "Rolls" category foods to "Samosa"
+  try {
+    const foodModel = (await import("./models/foodModel.js")).default;
+    const res = await foodModel.updateMany({ category: { $regex: /^rolls$/i } }, { category: "Samosa" });
+    if (res.modifiedCount > 0) {
+      console.log(`[DB Migration] Auto-updated ${res.modifiedCount} foods from category Rolls to Samosa`);
+    }
+  } catch (err) {
+    console.error("Failed to run category auto-migration:", err);
+  }
+
+  // Currency auto-fix: update USD setting values to INR
+  try {
+    const settingsModel = (await import("./models/settingsModel.js")).default;
+    await settingsModel.updateMany({ currency: "USD" }, { currency: "INR" });
+  } catch (err) {
+    console.error("Failed to run settings currency auto-migration:", err);
+  }
+
+    // Restaurant slugs auto-fix: generate slugs for any legacy restaurants
+    try {
+      const restaurantModel = (await import("./models/restaurantModel.js")).default;
+      const { generateUniqueSlug } = await import("./models/restaurantModel.js");
+      const restaurantsWithoutSlug = await restaurantModel.find({
+        $or: [{ slug: { $exists: false } }, { slug: "" }, { slug: null }]
+      });
+      for (const r of restaurantsWithoutSlug) {
+        r.slug = await generateUniqueSlug(r.name, r._id);
+        await r.save();
+        console.log(`[DB Migration] Generated slug for restaurant "${r.name}": "${r.slug}"`);
+      }
+    } catch (err) {
+      console.error("Failed to run restaurant slugs auto-migration:", err);
+    }
+
+    // Restaurant ratings & review counts auto-sync check on boot
+    try {
+      const restaurantModel = (await import("./models/restaurantModel.js")).default;
+      const restaurantReviewModel = (await import("./models/restaurantReviewModel.js")).default;
+      const allRestaurants = await restaurantModel.find({});
+      for (const r of allRestaurants) {
+        const reviews = await restaurantReviewModel.find({ restaurantId: r._id });
+        const count = reviews.length;
+        const avg = count ? (reviews.reduce((sum, rev) => sum + rev.rating, 0) / count) : 0;
+        if (r.rating !== avg || r.totalReviews !== count) {
+          r.rating = avg;
+          r.totalReviews = count;
+          await r.save();
+          console.log(`[DB Migration] Synchronized ratings for "${r.name}": Rating=${avg.toFixed(1)}, Reviews=${count}`);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to run ratings auto-synchronization:", err);
+    }
+
   app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
 } catch (error) {
   console.error("[FATAL] MongoDB connection failed:", error.message);

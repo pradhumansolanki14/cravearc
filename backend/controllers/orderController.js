@@ -141,7 +141,20 @@ const verifyOrder = async (req, res) => {
         return res.json({ success: false, message: "Payment not confirmed" });
       }
       await orderModel.findByIdAndUpdate(session.metadata.orderId, { payment: true, status: "Food Processing" });
-      await userModel.findByIdAndUpdate(session.metadata.userId, { cartData: {} });
+      
+      const user = await userModel.findById(session.metadata.userId);
+      if (user) {
+        const order = await orderModel.findById(session.metadata.orderId);
+        if (order && Array.isArray(order.items)) {
+          const cartData = user.cartData || {};
+          order.items.forEach(item => {
+            delete cartData[item._id || item.id];
+          });
+          await userModel.findByIdAndUpdate(session.metadata.userId, { cartData });
+        } else {
+          await userModel.findByIdAndUpdate(session.metadata.userId, { cartData: {} });
+        }
+      }
       return res.json({ success: true, message: "Order confirmed" });
     }
     return res.json({ success: false, message: "Payment failed" });

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { FiArrowLeft, FiMapPin, FiTruck, FiCreditCard, FiLock, FiInfo, FiCheck, FiFileText } from "react-icons/fi";
+import { FiArrowLeft, FiMapPin, FiTruck, FiCreditCard, FiLock, FiInfo, FiCheck, FiFileText, FiTag, FiX } from "react-icons/fi";
 import { StoreContext } from "../../context/StoreContext";
 import { Container, Button, Card, Input, Badge } from "../../components/ui";
 import useToast from "../../hooks/useToast";
@@ -13,7 +13,7 @@ const steps = [
 ];
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount, token, food_list, cartItems, url } = useContext(StoreContext);
+  const { getTotalCartAmount, token, food_list, cartItems, url, formatPrice } = useContext(StoreContext);
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
@@ -89,26 +89,89 @@ const PlaceOrder = () => {
     }));
   };
 
+  const query = new URLSearchParams(location.search);
+  const checkoutRestaurantId = query.get("restaurantId");
+
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState(null);   // { discount, code, message }
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [deliveryMethod, setDeliveryMethod] = useState("express"); // "priority" or "express"
+
+  const cartFoods = food_list.filter(item => {
+    const itemRestaurantId = item.restaurantId?._id || item.restaurantId;
+    return cartItems[item._id] > 0 && (!checkoutRestaurantId || itemRestaurantId === checkoutRestaurantId);
+  });
+
+  const subtotal = cartFoods.reduce((sum, item) => sum + (item.price * cartItems[item._id]), 0);
+  const firstItem = cartFoods[0];
+  const restaurantDetail = firstItem?.restaurantId && typeof firstItem.restaurantId === 'object' ? firstItem.restaurantId : null;
+  const vendorDeliveryFee = restaurantDetail?.deliveryFee !== undefined ? Number(restaurantDetail.deliveryFee) : 2;
+  const delivery = deliveryMethod === "priority" ? vendorDeliveryFee : 0;
+  
+  const discount = coupon ? coupon.discount : 0;
+  const total = Math.max(0, subtotal + delivery - discount);
+
+  useEffect(() => {
+    if (token) {
+      fetchAvailableCoupons();
+    }
+  }, [token, checkoutRestaurantId]);
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const res = await axios.get(`${url}/api/coupons/active` + (checkoutRestaurantId ? `?restaurantId=${checkoutRestaurantId}` : ''), { headers: { token } });
+      if (res.data.success) {
+        setAvailableCoupons(res.data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching available coupons:", err);
+    }
+  };
+
+  const applyCoupon = async (codeToApply) => {
+    const targetCode = codeToApply || couponCode;
+    if (!targetCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    setCoupon(null);
+    try {
+      const res = await axios.post(`${url}/api/coupons/validate`, { code: targetCode, cartAmount: subtotal }, { headers: { token } });
+      if (res.data.success) {
+        setCoupon(res.data);
+        setCouponCode(res.data.code);
+      } else {
+        setCouponError(res.data.message);
+      }
+    } catch { 
+      setCouponError("Failed to validate code"); 
+    }
+    setCouponLoading(false);
+  };
+
+  const removeCoupon = () => { 
+    setCoupon(null); 
+    setCouponCode(""); 
+    setCouponError(""); 
+  };
+
   const placeOrder = async (event) => {
     event.preventDefault();
     setLoading(true);
     const orderItems = [];
-    food_list.forEach((item) => {
-      if (cartItems[item._id] > 0) {
-        let itemInfo = { ...item };
-        itemInfo["quantity"] = cartItems[item._id];
-        orderItems.push(itemInfo);
-      }
+    cartFoods.forEach((item) => {
+      let itemInfo = { ...item };
+      itemInfo["quantity"] = cartItems[item._id];
+      orderItems.push(itemInfo);
     });
-
-    const couponCode = location.state?.couponCode || "";
-    const discount = location.state?.discount || 0;
 
     const orderData = {
       address: data,
       items: orderItems,
-      amount: Math.max(0, getTotalCartAmount() + 2 - discount),
-      couponCode: couponCode || undefined,
+      amount: total,
+      restaurantId: checkoutRestaurantId || undefined,
+      couponCode: coupon?.code || undefined,
     };
 
     try {
@@ -125,12 +188,6 @@ const PlaceOrder = () => {
       setLoading(false);
     }
   };
-
-  const cartFoods = food_list.filter(item => cartItems[item._id] > 0);
-  const subtotal = getTotalCartAmount();
-  const discount = location.state?.discount || 0;
-  const couponCode = location.state?.couponCode || "";
-  const total = Math.max(0, subtotal + 2 - discount);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -345,47 +402,146 @@ const PlaceOrder = () => {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {[
-                  { title: "Express Courier", time: "20–30 mins speed", price: "$2.00", checked: true },
-                  { title: "Standard Delivery", time: "45–60 mins speed", price: "Free", checked: false },
-                ].map((opt, i) => (
-                  <div 
-                    key={i} 
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 ${
-                      opt.checked 
-                        ? 'border-emerald-500 bg-emerald-50/15' 
-                        : 'border-slate-100 bg-slate-50/50'
-                    }`}
-                  >
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-slate-750">{opt.title}</p>
-                      <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{opt.time}</p>
+                  { 
+                    title: "Lightning Fast", 
+                    time: "Deliver in 10 mins (Priority)", 
+                    price: formatPrice(vendorDeliveryFee), 
+                    value: "priority" 
+                  },
+                  { 
+                    title: "Express Courier", 
+                    time: "Average 20–30 mins speed", 
+                    price: "Free", 
+                    value: "express" 
+                  },
+                ].map((opt, i) => {
+                  const isSelected = deliveryMethod === opt.value;
+                  return (
+                    <div 
+                      key={i} 
+                      onClick={() => setDeliveryMethod(opt.value)}
+                      className={`flex items-center justify-between gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+                        isSelected 
+                          ? 'border-emerald-500 bg-emerald-50/15' 
+                          : 'border-slate-100 bg-slate-50/50 hover:border-slate-200'
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-750">{opt.title}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{opt.time}</p>
+                      </div>
+                      <span className="text-xs font-extrabold text-emerald-650 flex-shrink-0">
+                        {opt.price}
+                      </span>
                     </div>
-                    <span className="text-xs font-extrabold text-emerald-600">
-                      {opt.price}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
           </div>
 
           {/* Right Column — Summary & Checkout actions */}
-          <div className="w-full lg:w-[400px] flex-shrink-0 lg:sticky lg:top-24 space-y-4">
+          <div className="w-full lg:w-[400px] flex-shrink-0 lg:sticky lg:top-24 space-y-4 animate-fadeUp">
             {/* Delivery Speed banner */}
             <Card variant="default" radius="2xl" padding="sm" className="border border-emerald-100 bg-emerald-50/20 text-emerald-800 shadow-xs flex items-center gap-2.5">
               <span className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
                 <FiTruck size={15} />
               </span>
               <div>
-                <p className="text-xs font-black uppercase tracking-wide leading-none">⚡ Lightning Express</p>
-                <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">Estimated delivery time: 20-30 minutes</p>
+                <p className="text-xs font-black uppercase tracking-wide leading-none">
+                  {deliveryMethod === "priority" ? "Priority Delivery" : "Lightning Express"}
+                </p>
+                <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">
+                  Estimated delivery time: {deliveryMethod === "priority" ? "under 10 minutes" : "20-30 minutes"}
+                </p>
               </div>
+            </Card>
+
+            {/* Promo Code & Available Coupons applying card */}
+            <Card variant="default" radius="2xl" padding="md" className="border border-slate-100 shadow-sm bg-white">
+              <p className="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <FiTag size={14} className="text-emerald-500" /> 
+                <span>Offers & Coupons</span>
+              </p>
+              
+              {coupon ? (
+                <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl animate-scaleIn">
+                  <div>
+                    <p className="text-xs font-bold text-emerald-800">{coupon.message}</p>
+                    <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">Code: <span className="font-mono font-bold bg-emerald-100/85 px-1.5 py-0.5 rounded">{coupon.code}</span></p>
+                  </div>
+                  <button 
+                    onClick={removeCoupon} 
+                    className="text-emerald-600 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-all"
+                    aria-label="Remove coupon"
+                  >
+                    <FiX size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                      onKeyDown={e => e.key === 'Enter' && applyCoupon()}
+                      placeholder="ENTER PROMO CODE"
+                      className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 border-2 border-slate-100 focus:border-emerald-450 focus:bg-white rounded-2xl text-xs text-slate-905 font-mono font-bold placeholder-slate-400 outline-none transition-all duration-300"
+                    />
+                    <Button 
+                      onClick={() => applyCoupon()} 
+                      disabled={couponLoading || !couponCode.trim()}
+                      variant="primary"
+                      size="sm"
+                      className="font-bold border border-emerald-650 whitespace-nowrap px-4 rounded-xl text-2xs uppercase tracking-wider"
+                    >
+                      {couponLoading ? '...' : 'Apply'}
+                    </Button>
+                  </div>
+                  {couponError && <p className="text-xs text-rose-505 font-bold flex items-center gap-1">Error: {couponError}</p>}
+                  
+                  {/* Active Coupons List */}
+                  {availableCoupons.length > 0 && (
+                    <div className="pt-3 border-t border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Available Coupons</p>
+                      <div className="space-y-2.5 max-h-40 overflow-y-auto scrollbar-hide pr-1">
+                        {availableCoupons.map((c) => (
+                          <div key={c._id} className="p-2.5 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/50 transition-colors flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="inline-block px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-mono font-black text-[10px] rounded-lg tracking-wider mb-1">
+                                {c.code}
+                              </span>
+                              <p className="text-[10px] text-slate-700 font-bold leading-tight">{c.description || `${c.discount}% discount`}</p>
+                              {c.minOrder > 0 && (
+                                <p className="text-[8px] text-slate-400 font-bold uppercase mt-0.5">Min Order: ₹{c.minOrder}</p>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => applyCoupon(c.code)}
+                              disabled={subtotal < c.minOrder}
+                              className={`px-3 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-widest transition-all ${
+                                subtotal < c.minOrder 
+                                  ? 'bg-slate-105 text-slate-300 cursor-not-allowed border border-slate-200'
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-300'
+                              }`}
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
 
             <Card variant="default" radius="3xl" padding="none" className="border border-slate-100 shadow-card overflow-hidden bg-white">
               <div className="px-6 pt-6 pb-4 border-b border-slate-50">
                 <h3 className="font-poppins font-extrabold text-xs uppercase tracking-widest text-slate-900">Summary</h3>
-                <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider mt-1">{cartFoods.length} selected items</p>
+                <p className="text-[10px] text-slate-455 font-bold uppercase tracking-wider mt-1">{cartFoods.length} selected items</p>
               </div>
 
               {/* Items overview scroll */}
@@ -402,7 +558,7 @@ const PlaceOrder = () => {
                       <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Qty: {cartItems[item._id]}</p>
                     </div>
                     <span className="text-xs font-bold text-slate-800 flex-shrink-0">
-                      ${(item.price * cartItems[item._id]).toFixed(2)}
+                      {formatPrice(item.price * cartItems[item._id])}
                     </span>
                   </div>
                 ))}
@@ -412,16 +568,16 @@ const PlaceOrder = () => {
               <div className="px-6 py-4 space-y-3.5 border-t border-slate-50 text-xs">
                 <div className="flex justify-between font-bold text-slate-450 uppercase tracking-wider">
                   <span>Subtotal</span>
-                  <span className="text-slate-800">${subtotal.toFixed(2)}</span>
+                  <span className="text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-slate-455 uppercase tracking-wider">
                   <span>Delivery fee</span>
-                  <span className="text-slate-850">$2.00</span>
+                  <span className="text-slate-850">{formatPrice(delivery)}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between font-bold uppercase tracking-wider text-emerald-600">
                     <span>Promo Discount ({couponCode})</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>-{formatPrice(discount)}</span>
                   </div>
                 )}
               </div>
@@ -430,7 +586,7 @@ const PlaceOrder = () => {
               <div className="px-6 py-5 bg-slate-50">
                 <div className="flex justify-between items-center mb-5">
                   <span className="font-poppins font-extrabold text-xs text-slate-450 uppercase tracking-widest">Checkout Total</span>
-                  <span className="font-poppins font-extrabold text-2xl text-emerald-650">${total.toFixed(2)}</span>
+                  <span className="font-poppins font-extrabold text-2xl text-emerald-650">{formatPrice(total)}</span>
                 </div>
 
                 <Button
@@ -445,7 +601,7 @@ const PlaceOrder = () => {
                   ) : (
                     <>
                       <FiLock size={15} strokeWidth={2.5} />
-                      Pay ${total.toFixed(2)}
+                      Pay {formatPrice(total)}
                     </>
                   )}
                 </Button>

@@ -8,7 +8,6 @@ import Footer from './components/Footer/Footer'
 
 // ── Modals / Overlays ─────────────────────────────────────────
 import LoginPopup from './components/LoginPopup/LoginPopup'
-import CartConflictModal from './components/CartConflictModal/CartConflictModal'
 
 // ── Pages ─────────────────────────────────────────────────────
 import Home from './Pages/Home/Home'
@@ -20,9 +19,9 @@ import Profile from './Pages/Profile/Profile'
 import NotFound from './Pages/NotFound/NotFound'
 import SearchPage from './Pages/Search/SearchPage'
 import OrderSuccess from './Pages/OrderSuccess/OrderSuccess'
-import FoodDetail from './Pages/FoodDetail/FoodDetail'
 import Favorites from './Pages/Favorites/Favorites'
 import MenuPage from './Pages/MenuPage/MenuPage'
+import CategoriesPage from './Pages/Categories/CategoriesPage'
 import AppPage from './Pages/AppPage/AppPage'
 import ContactPage from './Pages/ContactPage/ContactPage'
 import OrderDetail from './Pages/OrderDetail/OrderDetail'
@@ -88,8 +87,7 @@ const App = () => {
       {/* ── Auth Modal ────────────────────────────────────────── */}
       {showLogin && <LoginPopup setShowLogin={setShowLogin} initialState={showLogin} />}
 
-      {/* ── Cart Conflict Guard ───────────────────────────────── */}
-      <CartConflictModal />
+
 
       {/* ── Navigation ───────────────────────────────────────── */}
       <Navbar setShowLogin={setShowLogin} />
@@ -108,11 +106,11 @@ const App = () => {
         <Route path='/search' element={<SearchPage />} />
 
         {/* Detail pages */}
-        <Route path='/food/:id' element={<FoodDetail />} />
         <Route path='/order/:id' element={<OrderDetail />} />
 
         {/* Independent nav pages */}
         <Route path='/menu' element={<MenuPage />} />
+        <Route path='/categories' element={<CategoriesPage />} />
         <Route path='/app' element={<AppPage />} />
         <Route path='/contact' element={<ContactPage />} />
 

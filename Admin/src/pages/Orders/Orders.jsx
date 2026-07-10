@@ -35,7 +35,7 @@ const Orders = ({ url }) => {
   const [filter, setFilter] = useState("All")
   const [selectedOrder, setSelectedOrder] = useState(null)
   
-  const { adminRole } = useAdmin()
+  const { adminRole, formatPrice } = useAdmin()
   const adminToken = localStorage.getItem("adminToken")
 
   const fetchAllOrders = async () => {
@@ -144,7 +144,7 @@ const Orders = ({ url }) => {
       {/* ── Metric Grid ── */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: "Gross Value", value: `$${stats.revenue.toFixed(2)}`, icon: <FiDollarSign size={14} />, color: "bg-emerald-50 text-emerald-650" },
+          { label: "Gross Value", value: formatPrice(stats.revenue), icon: <FiTag size={14} />, color: "bg-emerald-50 text-emerald-655" },
           { label: "All Orders", value: stats.total, icon: <FiShoppingBag size={14} />, color: "bg-zinc-50 text-zinc-500" },
           { label: "In Kitchen", value: stats.processing, icon: <FiClock size={14} />, color: "bg-amber-50 text-amber-600" },
           { label: "In Transit", value: stats.delivery, icon: <FiTruck size={14} />, color: "bg-blue-50 text-blue-600" },
@@ -216,7 +216,7 @@ const Orders = ({ url }) => {
                       </p>
                       <p className="text-[9px] font-mono text-zinc-400 mt-1 uppercase">Order #{order._id?.slice(-6)}</p>
                     </div>
-                    <span className="text-xs font-mono font-bold text-zinc-900">${order.amount.toFixed(2)}</span>
+                    <span className="text-xs font-mono font-bold text-zinc-900">{formatPrice(order.amount)}</span>
                   </div>
 
                   <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-zinc-100">
@@ -245,7 +245,7 @@ const Orders = ({ url }) => {
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] font-mono font-bold text-zinc-400 uppercase tracking-widest">Total Price</span>
-                  <p className="text-lg font-mono font-bold text-zinc-900 mt-0.5">${selectedOrder.amount.toFixed(2)}</p>
+                  <p className="text-lg font-mono font-bold text-zinc-900 mt-0.5">{formatPrice(selectedOrder.amount)}</p>
                 </div>
               </div>
 
@@ -259,7 +259,7 @@ const Orders = ({ url }) => {
                         <span className="text-emerald-600 bg-emerald-50 border border-emerald-100 px-1 py-0.5 rounded mr-2 text-[10px] font-bold">×{item.quantity}</span>
                         {item.name}
                       </span>
-                      <span className="font-mono text-zinc-500">${(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-mono text-zinc-500">{formatPrice(item.price * item.quantity)}</span>
                     </div>
                   ))}
                 </div>

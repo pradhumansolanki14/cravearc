@@ -7,36 +7,30 @@ import { Container, Button, Card, Badge } from "../../components/ui";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Cart = () => {
-  const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, url, token } = useContext(StoreContext);
+  const { cartItems, food_list, addToCart, removeFromCart, getTotalCartAmount, url, token, formatPrice } = useContext(StoreContext);
   const navigate = useNavigate();
   const cartFoods = food_list.filter(item => cartItems[item._id] > 0);
+
+  const groupedCart = {};
+  cartFoods.forEach((item) => {
+    const rId = item.restaurantId?._id || item.restaurantId || "other";
+    const rName = item.restaurantId?.name || "Gourmet Partner";
+    const rLogo = item.restaurantId?.logo || "";
+    if (!groupedCart[rId]) {
+      groupedCart[rId] = {
+        id: rId,
+        name: rName,
+        logo: rLogo,
+        items: []
+      };
+    }
+    groupedCart[rId].items.push(item);
+  });
+  const groups = Object.values(groupedCart);
+  const hasMultipleRestaurants = groups.length > 1;
+
   const subtotal = getTotalCartAmount();
-  const delivery = subtotal === 0 ? 0 : 2;
-
-  // ─── Coupon state ────────────────────────────────────────────
-  const [couponCode, setCouponCode] = useState("");
-  const [coupon, setCoupon] = useState(null);   // { discount, code, message }
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [couponError, setCouponError] = useState("");
-
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    if (!token) { setCouponError("Sign in to apply a promo code"); return; }
-    setCouponLoading(true);
-    setCouponError("");
-    setCoupon(null);
-    try {
-      const res = await axios.post(`${url}/api/coupons/validate`, { code: couponCode, cartAmount: subtotal }, { headers: { token } });
-      if (res.data.success) {
-        setCoupon(res.data);
-      } else {
-        setCouponError(res.data.message);
-      }
-    } catch { setCouponError("Failed to validate code"); }
-    setCouponLoading(false);
-  };
-
-  const removeCoupon = () => { setCoupon(null); setCouponCode(""); setCouponError(""); };
+  const delivery = subtotal === 0 ? 0 : (hasMultipleRestaurants ? 0 : (groups[0]?.items[0]?.restaurantId?.deliveryFee ?? 2));
 
   const handleClearAllItem = async (itemId) => {
     const qty = cartItems[itemId] || 0;
@@ -46,8 +40,7 @@ const Cart = () => {
     }
   };
 
-  const discount = coupon ? coupon.discount : 0;
-  const total = subtotal + delivery - discount;
+  const total = subtotal + delivery;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -106,11 +99,11 @@ const Cart = () => {
             >
               
               {/* Cart Items List */}
-              <div className="flex-1 w-full space-y-4">
+              <div className="flex-1 w-full space-y-6">
                 <AnimatePresence>
-                  {cartFoods.map((item) => (
+                  {groups.map((group) => (
                     <motion.div
-                      key={item._id}
+                      key={group.id}
                       initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
@@ -120,110 +113,96 @@ const Cart = () => {
                         variant="default"
                         padding="none"
                         radius="2xl"
-                        className="border border-slate-100 shadow-xs p-4 group bg-white hover:border-emerald-100/50 hover:shadow-sm transition-all duration-300"
+                        className="border border-slate-100 shadow-xs p-5 bg-white space-y-4"
                       >
-                        <div className="flex items-center gap-4">
-                          {/* Item Image */}
-                          <div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-50 border border-slate-100">
-                            <img src={`${url}/images/${item.image}`} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        {/* Restaurant Section Header */}
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-50">
+                          <div className="flex items-center gap-3">
+                            {group.logo ? (
+                              <img 
+                                src={`${url}/images/${group.logo}`} 
+                                alt="logo" 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-xs flex-shrink-0" 
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                <FiShoppingBag size={16} />
+                              </div>
+                            )}
+                            <div>
+                              <h2 className="font-poppins font-extrabold text-sm text-slate-800 uppercase tracking-widest">{group.name}</h2>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{group.items.length} items from this kitchen</p>
+                            </div>
                           </div>
+                          <Button
+                            onClick={() => navigate(`/order?restaurantId=${group.id}`)}
+                            variant="primary"
+                            size="sm"
+                            className="font-bold rounded-xl px-4 text-[10px] uppercase tracking-widest shadow-emerald h-8"
+                          >
+                            Checkout Section
+                          </Button>
+                        </div>
 
-                          {/* Item details */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-poppins font-bold text-slate-900 text-base truncate mb-0.5 group-hover:text-emerald-600 transition-colors duration-300">
-                              {item.name}
-                            </h3>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Gourmet Serving Portion</p>
-                            <span className="text-sm font-extrabold text-slate-900">${item.price}</span>
-                          </div>
+                        {/* Items in this group */}
+                        <div className="divide-y divide-slate-50">
+                          {group.items.map((item) => (
+                            <div key={item._id} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0 group">
+                              {/* Item Image */}
+                              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-50 border border-slate-100">
+                                <img src={`${url}/images/${item.image}`} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              </div>
 
-                          {/* Quantity control controller */}
-                          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-1 shadow-sm">
-                            <button
-                              onClick={() => removeFromCart(item._id)}
-                              className="w-7 h-7 rounded-lg bg-white hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center text-slate-500 hover:border-rose-100 border border-transparent transition-all font-bold"
-                              aria-label="Decrease quantity"
-                            >
-                              <FiMinus size={11} strokeWidth={2.5} />
-                            </button>
-                            <span className="w-5 text-center text-xs font-extrabold text-slate-800">
-                              {cartItems[item._id]}
-                            </span>
-                            <button
-                              onClick={() => addToCart(item._id)}
-                              className="w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors font-bold shadow-sm"
-                              aria-label="Increase quantity"
-                            >
-                              <FiPlus size={11} strokeWidth={2.5} />
-                            </button>
-                          </div>
+                              {/* Item details */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-poppins font-bold text-slate-900 text-sm sm:text-base truncate mb-0.5 group-hover:text-emerald-600 transition-colors duration-300">
+                                  {item.name}
+                                </h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Gourmet Serving Portion</p>
+                                <span className="text-sm font-extrabold text-slate-850">{formatPrice(item.price)}</span>
+                              </div>
 
-                          {/* Item totals / removal triggers */}
-                          <div className="flex flex-col items-end justify-between self-stretch pl-2">
-                            <span className="font-poppins font-extrabold text-base text-slate-900">
-                              ${(item.price * cartItems[item._id]).toFixed(2)}
-                            </span>
-                            <button 
-                              onClick={() => handleClearAllItem(item._id)} 
-                              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all duration-200 border border-transparent hover:border-rose-100/50"
-                              aria-label={`Remove all ${item.name} from cart`}
-                            >
-                              <FiTrash2 size={13} />
-                            </button>
-                          </div>
+                              {/* Quantity control */}
+                              <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-1 shadow-sm">
+                                <button
+                                  onClick={() => removeFromCart(item._id)}
+                                  className="w-7 h-7 rounded-lg bg-white hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center text-slate-500 hover:border-rose-100 border border-transparent transition-all font-bold"
+                                  aria-label="Decrease quantity"
+                                >
+                                  <FiMinus size={11} strokeWidth={2.5} />
+                                </button>
+                                <span className="w-5 text-center text-xs font-extrabold text-slate-800">
+                                  {cartItems[item._id]}
+                                </span>
+                                <button
+                                  onClick={() => addToCart(item._id)}
+                                  className="w-7 h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors font-bold shadow-sm"
+                                  aria-label="Increase quantity"
+                                >
+                                  <FiPlus size={11} strokeWidth={2.5} />
+                                </button>
+                              </div>
+
+                              {/* Item totals / removal */}
+                              <div className="flex flex-col items-end justify-between self-stretch pl-2">
+                                <span className="font-poppins font-extrabold text-sm sm:text-base text-slate-900">
+                                  {formatPrice(item.price * cartItems[item._id])}
+                                </span>
+                                <button 
+                                  onClick={() => handleClearAllItem(item._id)} 
+                                  className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all duration-200 border border-transparent hover:border-rose-100/50"
+                                  aria-label={`Remove all ${item.name} from cart`}
+                                >
+                                  <FiTrash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </Card>
                     </motion.div>
                   ))}
                 </AnimatePresence>
-
-                {/* Promo Code applying card */}
-                <Card variant="default" radius="2xl" padding="md" className="border border-slate-100 shadow-sm mt-6">
-                  <p className="text-xs font-extrabold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <FiTag size={14} className="text-emerald-500" /> 
-                    <span>Have a promo coupon?</span>
-                  </p>
-                  {coupon ? (
-                    <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl animate-scaleIn">
-                      <div>
-                        <p className="text-sm font-bold text-emerald-800">{coupon.message}</p>
-                        <p className="text-2xs text-emerald-600 font-semibold mt-0.5">Code: <span className="font-mono font-bold bg-emerald-100/80 px-1.5 py-0.5 rounded">{coupon.code}</span></p>
-                      </div>
-                      <button 
-                        onClick={removeCoupon} 
-                        className="text-emerald-555 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-all"
-                        aria-label="Remove coupon"
-                      >
-                        <FiX size={18} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            value={couponCode}
-                            onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
-                            onKeyDown={e => e.key === 'Enter' && applyCoupon()}
-                            placeholder="ENTER PROMO CODE"
-                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 focus:border-emerald-450 focus:bg-white rounded-2xl text-sm text-slate-900 font-mono font-bold placeholder-slate-400 outline-none transition-all duration-300"
-                          />
-                        </div>
-                        <Button 
-                          onClick={applyCoupon} 
-                          disabled={couponLoading || !couponCode.trim()}
-                          variant="primary"
-                          size="md"
-                          className="font-bold border border-emerald-600 whitespace-nowrap px-6 rounded-2xl"
-                        >
-                          {couponLoading ? '...' : 'Apply'}
-                        </Button>
-                      </div>
-                      {couponError && <p className="text-xs text-rose-500 mt-2.5 font-bold flex items-center gap-1">✕ {couponError}</p>}
-                    </div>
-                  )}
-                </Card>
               </div>
 
               {/* Summary details card */}
@@ -243,46 +222,47 @@ const Cart = () => {
                           </Badge>
                           <span className="text-slate-650 font-semibold truncate">{item.name}</span>
                         </div>
-                        <span className="font-bold text-slate-900 flex-shrink-0">${(item.price * cartItems[item._id]).toFixed(2)}</span>
+                        <span className="font-bold text-slate-900 flex-shrink-0">{formatPrice(item.price * cartItems[item._id])}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* Subtotal fee rows */}
                   <div className="px-6 py-4 space-y-3">
-                    <div className="flex justify-between text-xs font-bold text-slate-450 uppercase tracking-wider">
+                    <div className="flex justify-between text-xs font-bold text-slate-455 uppercase tracking-wider">
                       <span>Subtotal</span>
-                      <span className="text-slate-800">${subtotal.toFixed(2)}</span>
+                      <span className="text-slate-800">{formatPrice(subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-xs font-bold text-slate-450 uppercase tracking-wider">
+                    <div className="flex justify-between text-xs font-bold text-slate-455 uppercase tracking-wider">
                       <span>Delivery fee</span>
                       <span className={`text-slate-850 ${delivery === 0 ? 'text-emerald-500' : 'text-slate-800'}`}>
-                        {delivery === 0 ? 'FREE' : `$${delivery.toFixed(2)}`}
+                        {hasMultipleRestaurants ? "Sectional" : (delivery === 0 ? 'FREE' : formatPrice(delivery))}
                       </span>
                     </div>
-                    {coupon && (
-                      <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-emerald-650 animate-scaleIn">
-                        <span>Promo Discount ({coupon.code})</span>
-                        <span>-${discount.toFixed(2)}</span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Grand total & Checkout triggers */}
                   <div className="px-6 py-5 bg-slate-50 border-t border-slate-100">
                     <div className="flex justify-between items-center mb-5">
-                      <span className="font-poppins font-extrabold text-xs text-slate-450 uppercase tracking-widest">Grand Total</span>
-                      <span className="font-poppins font-black text-2xl text-emerald-600">${Math.max(0, total).toFixed(2)}</span>
+                      <span className="font-poppins font-extrabold text-xs text-slate-455 uppercase tracking-widest">Grand Total</span>
+                      <span className="font-poppins font-black text-2xl text-emerald-600">{formatPrice(Math.max(0, total))}</span>
                     </div>
-                    <Button 
-                      onClick={() => navigate("/order", { state: { couponCode: coupon?.code, discount: discount } })} 
-                      variant="primary"
-                      size="lg"
-                      rightIcon={<FiChevronRight strokeWidth={2.5} />}
-                      className="w-full font-bold shadow-emerald-lg h-12.5 rounded-2xl"
-                    >
-                      Proceed to Checkout
-                    </Button>
+                    {hasMultipleRestaurants ? (
+                      <div className="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 text-xs space-y-2">
+                        <p className="font-extrabold text-amber-800 uppercase tracking-wider">Mixed Kitchens Cart</p>
+                        <p className="text-slate-500 leading-relaxed font-semibold">Your cart contains items from multiple restaurants. Please checkout each restaurant section individually using the buttons in the list.</p>
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={() => navigate(`/order?restaurantId=${groups[0]?.id}`)} 
+                        variant="primary"
+                        size="lg"
+                        rightIcon={<FiChevronRight strokeWidth={2.5} />}
+                        className="w-full font-bold shadow-emerald-lg h-12.5 rounded-2xl"
+                      >
+                        Proceed to Checkout
+                      </Button>
+                    )}
                     <button 
                       onClick={() => navigate("/")} 
                       className="w-full mt-3.5 py-1 text-slate-400 hover:text-slate-600 font-bold uppercase tracking-wider text-[10px] transition-colors"

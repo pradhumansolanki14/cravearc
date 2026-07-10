@@ -20,7 +20,7 @@ const upload = multer({ storage });
 
 // ─── Vendor only (Restaurant Manager) ────────────────────────
 restaurantRouter.get("/profile",          adminAuthMiddleware, vendorOnly, getRestaurantProfile);
-restaurantRouter.put("/profile",          adminAuthMiddleware, vendorOnly, upload.fields([{ name: "logo" }, { name: "coverImage" }]), updateRestaurantProfile);
+restaurantRouter.put("/profile",          adminAuthMiddleware, vendorOnly, upload.fields([{ name: "logo" }, { name: "coverImage" }, { name: "gallery", maxCount: 10 }]), updateRestaurantProfile);
 
 // ─── Super Admin only (Platform Admin) ───────────────────────
 restaurantRouter.get("/",                 adminAuthMiddleware, superAdminOnly, listAllRestaurants);

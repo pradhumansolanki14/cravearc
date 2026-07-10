@@ -32,8 +32,15 @@ const AdminContextProvider = ({ children }) => {
     localStorage.removeItem("restaurantId");
   };
 
+  const formatPrice = (amount) => {
+    return "₹" + Number(amount).toLocaleString("en-IN", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+  };
+
   return (
-    <AdminContext.Provider value={{ adminToken, adminName, adminRole, restaurantId, adminLogin, adminLogout, url }}>
+    <AdminContext.Provider value={{ adminToken, adminName, adminRole, restaurantId, adminLogin, adminLogout, url, formatPrice }}>
       {children}
     </AdminContext.Provider>
   );

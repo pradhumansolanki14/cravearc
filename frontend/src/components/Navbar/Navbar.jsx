@@ -33,7 +33,7 @@ import { BrandLogo, BrandText } from "../ui";
 const NAV_ITEMS = [
   { label: "Discover",         path: "/",                  exact: true,  icon: <FiStar size={14} /> },
   { label: "Restaurants",      path: "/restaurants",       exact: false, icon: <FiGrid size={14} /> },
-  { label: "Offers",           path: "/menu",              exact: false, icon: <FiZap size={14} /> },
+  { label: "Explore Menu",     path: "/menu",              exact: false, icon: <FiZap size={14} /> },
 ];
 
 /* ────────────────────────────────────────────────────────────

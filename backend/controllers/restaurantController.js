@@ -1,4 +1,4 @@
-import restaurantModel from "../models/restaurantModel.js";
+import restaurantModel, { generateUniqueSlug } from "../models/restaurantModel.js";
 import fs from "fs";
 
 // ─── Vendor: get own restaurant profile ──────────────────────
@@ -26,9 +26,28 @@ const updateRestaurantProfile = async (req, res) => {
     // Allowed fields (silently ignores ownerId, isApproved, rating, totalReviews, featured)
     const allowedFields = [
       "name", "description", "cuisine", "cuisineIds",
-      "address", "phone", "email", "deliveryFee", "minOrder",
-      "openingHours", "isOpen", "preparationTime", "tags"
+      "address", "phone", "email", "website", "deliveryFee", "minOrder",
+      "openingHours", "isOpen", "preparationTime"
     ];
+
+    if (req.body.name && req.body.name !== restaurant.name) {
+      restaurant.slug = await generateUniqueSlug(req.body.name, restaurant._id);
+    }
+
+    // Parse tags (amenities) array safely
+    if (req.body.tags !== undefined) {
+      let tagsArray = [];
+      try {
+        tagsArray = JSON.parse(req.body.tags);
+      } catch (e) {
+        if (typeof req.body.tags === 'string') {
+          tagsArray = req.body.tags.split(',').map(t => t.trim()).filter(Boolean);
+        } else if (Array.isArray(req.body.tags)) {
+          tagsArray = req.body.tags;
+        }
+      }
+      restaurant.tags = tagsArray;
+    }
 
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
@@ -52,6 +71,34 @@ const updateRestaurantProfile = async (req, res) => {
         fs.unlink(`uploads/${restaurant.coverImage}`, () => {});
       }
       restaurant.coverImage = newFilename;
+    }
+
+    // Handle gallery deletions (remaining filenames passed in body)
+    if (req.body.gallery !== undefined) {
+      let remaining = [];
+      try {
+        remaining = JSON.parse(req.body.gallery);
+      } catch (e) {
+        if (typeof req.body.gallery === 'string') {
+          remaining = req.body.gallery.split(',').map(t => t.trim()).filter(Boolean);
+        } else if (Array.isArray(req.body.gallery)) {
+          remaining = req.body.gallery;
+        }
+      }
+      // Delete unselected gallery files from disk
+      if (restaurant.gallery && restaurant.gallery.length > 0) {
+        const toDelete = restaurant.gallery.filter(img => !remaining.includes(img));
+        toDelete.forEach(img => {
+          fs.unlink(`uploads/${img}`, () => {});
+        });
+      }
+      restaurant.gallery = remaining;
+    }
+
+    // Handle new gallery uploads (append to list)
+    if (req.files?.gallery && req.files.gallery.length > 0) {
+      const newImages = req.files.gallery.map(f => f.filename);
+      restaurant.gallery = [...(restaurant.gallery || []), ...newImages];
     }
 
     const updated = await restaurant.save();

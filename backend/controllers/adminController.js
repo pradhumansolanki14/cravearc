@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import adminModel from "../models/adminModel.js";
-import restaurantModel from "../models/restaurantModel.js";
+import restaurantModel, { generateUniqueSlug } from "../models/restaurantModel.js";
 import userModel from "../models/userModel.js";
 import orderModel from "../models/orderModel.js";
 import settingsModel from "../models/settingsModel.js";
@@ -94,9 +94,11 @@ const registerVendor = async (req, res) => {
     const vendor = vendorDocs[0];
 
     // Step 2: Create restaurant profile linked to vendor
+    const slug = await generateUniqueSlug(restaurantName);
     const restaurantDocs = await restaurantModel.create([{
       ownerId: vendor._id,
       name: restaurantName,
+      slug,
       description: restaurantDescription || "",
       cuisine: cuisine || "",
       address: address || "",

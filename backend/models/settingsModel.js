@@ -8,7 +8,7 @@ const settingsSchema = new mongoose.Schema({
   address:        { type: String, default: "123 Food Street, New York, NY 10001" },
   deliveryFee:    { type: Number, default: 2 },
   minOrder:       { type: Number, default: 0 },
-  currency:       { type: String, default: "USD" },
+  currency:       { type: String, default: "INR" },
   aboutUs:        { type: String, default: "Premium food delivery from your city's best restaurants." },
   vendorSignupOpen: { type: Boolean, default: true }, // allow new vendor registrations
   maintenanceMode:    { type: Boolean, default: false },

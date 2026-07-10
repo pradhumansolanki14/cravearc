@@ -18,6 +18,7 @@ const superAdminGroups = [
     title: 'Platform Catalog',
     items: [
       { to: '/categories', label: 'Categories', sub: 'Menu folders', icon: <FiFolder size={15} /> },
+      { to: '/category-requests', label: 'Category Requests', sub: 'Review workflow', icon: <FiList size={15} /> },
       { to: '/cuisines', label: 'Cuisines', sub: 'Global styles', icon: <FiGlobe size={15} /> },
       { to: '/banners', label: 'Banners', sub: 'Hero sliders', icon: <FiImage size={15} /> }
     ]
@@ -27,7 +28,9 @@ const superAdminGroups = [
     items: [
       { to: '/restaurants', label: 'Restaurants', sub: 'Vendors list', icon: <FiActivity size={15} /> },
       { to: '/users', label: 'Users', sub: 'Accounts', icon: <FiUsers size={15} /> },
-      { to: '/orders', label: 'All Orders', sub: 'Logistics', icon: <FiShoppingBag size={15} /> }
+      { to: '/coupons', label: 'Coupons', sub: 'Discounts', icon: <FiTag size={15} /> },
+      { to: '/orders', label: 'All Orders', sub: 'Logistics', icon: <FiShoppingBag size={15} /> },
+      { to: '/platform-reviews', label: 'Reviews', sub: 'Feedback', icon: <FiMessageSquare size={15} /> }
     ]
   },
   {
@@ -50,6 +53,7 @@ const vendorGroups = [
     items: [
       { to: '/list', label: 'Food Menu', sub: 'Dishes list', icon: <FiList size={15} /> },
       { to: '/add', label: 'Add Item', sub: 'Create dish', icon: <FiPlusCircle size={15} /> },
+      { to: '/category-requests', label: 'Category Requests', sub: 'My requests list', icon: <FiFolder size={15} /> },
       { to: '/coupons', label: 'Coupons', sub: 'Discounts', icon: <FiTag size={15} /> }
     ]
   },

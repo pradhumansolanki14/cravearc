@@ -60,7 +60,7 @@ const Dashboard = ({ url }) => {
   const [platformStats, setPlatformStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const { adminRole } = useAdmin()
+  const { adminRole, formatPrice } = useAdmin()
   const token = localStorage.getItem("adminToken")
 
   useEffect(() => {
@@ -137,11 +137,11 @@ const Dashboard = ({ url }) => {
             <StatMetric label="Restaurants" value={platformStats.restaurants} description="Approved accounts" sparkPoints={[2, 4, 3, 5, 8, platformStats.restaurants]} trend="+12%" />
             <StatMetric label="Total Customers" value={platformStats.totalUsers} description="Registered users" sparkPoints={[20, 45, 60, 52, 70, platformStats.totalUsers]} trend="+8%" />
             <StatMetric label="Platform Orders" value={platformStats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend="+15%" />
-            <StatMetric label="Total Revenue" value={`$${(platformStats.totalRevenue || 0).toFixed(2)}`} description="Gross sales" sparkPoints={revenuePoints} trend="+22%" />
+            <StatMetric label="Total Revenue" value={formatPrice(platformStats.totalRevenue || 0)} description="Gross sales" sparkPoints={revenuePoints} trend="+22%" />
           </>
         ) : (
           <>
-            <StatMetric label="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`} description="Gross item sales" sparkPoints={revenuePoints} trend="+18%" />
+            <StatMetric label="Total Revenue" value={formatPrice(stats.totalRevenue)} description="Gross item sales" sparkPoints={revenuePoints} trend="+18%" />
             <StatMetric label="Total Orders" value={stats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend="+10%" />
             <StatMetric label="Active Kitchen" value={stats.processing} description="Preparing state" sparkPoints={[1, 3, 2, 4, stats.processing]} trend="Active" />
             <StatMetric label="Completed Delivery" value={stats.delivered} description="Delivered logs" sparkPoints={[5, 10, 8, 12, stats.delivered]} trend="+98%" />

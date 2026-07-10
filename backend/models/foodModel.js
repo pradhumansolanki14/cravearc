@@ -12,6 +12,7 @@ const foodSchema = new mongoose.Schema({
   isVeg:            { type: Boolean, default: false },
   tags:             { type: [String], default: [] },
   calories:         { type: Number, default: null },
+  discount:         { type: Number, default: 0 }, // Percentage discount e.g. 10 for 10%
 }, { timestamps: true });
 
 const foodModel = mongoose.models.food || mongoose.model("food", foodSchema);

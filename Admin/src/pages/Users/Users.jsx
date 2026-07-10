@@ -3,8 +3,10 @@ import axios from "axios"
 import { toast } from "react-hot-toast"
 import { FiUsers, FiShoppingBag, FiDollarSign, FiX, FiChevronRight, FiUser, FiPhone, FiMail, FiCalendar, FiSearch, FiAlertCircle } from "react-icons/fi"
 import { Card, Badge, ConfirmationModal } from "../../components/ui"
+import { useAdmin } from "../../context/AdminContext"
 
 const Users = ({ url }) => {
+  const { formatPrice } = useAdmin()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -119,7 +121,7 @@ const Users = ({ url }) => {
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: "Orders Count", value: selected.orderCount || 0, icon: <FiShoppingBag size={12} className="text-zinc-400" /> },
-                  { label: "Net Spent", value: `$${(selected.totalSpent || 0).toFixed(2)}`, icon: <FiDollarSign size={12} className="text-emerald-500" /> },
+                  { label: "Net Spent", value: formatPrice(selected.totalSpent || 0), icon: <FiTag size={12} className="text-emerald-500" /> },
                   { label: "Contact Phone", value: selected.phone || "None", icon: <FiPhone size={12} className="text-zinc-400" /> },
                 ].map((s, i) => (
                   <div key={i} className="p-3 bg-zinc-50 border border-zinc-150 rounded-xl text-center space-y-1">
@@ -196,7 +198,7 @@ const Users = ({ url }) => {
         {[
           { label: "Net Registered", value: stats.total, icon: <FiUsers size={14} /> },
           { label: "Gross Receipts", value: stats.totalOrders, icon: <FiShoppingBag size={14} /> },
-          { label: "Gross Spend value", value: `$${stats.totalRevenue.toFixed(2)}`, icon: <FiDollarSign size={14} /> },
+          { label: "Gross Spend value", value: formatPrice(stats.totalRevenue), icon: <FiTag size={14} /> },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-xl border border-zinc-200/60 p-4 shadow-premium flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-505">{s.icon}</div>
@@ -257,7 +259,7 @@ const Users = ({ url }) => {
                 </span>
 
                 {/* Spend value */}
-                <p className="hidden sm:block font-mono font-bold text-zinc-900 text-xs">${(user.totalSpent || 0).toFixed(2)}</p>
+                <p className="hidden sm:block font-mono font-bold text-zinc-900 text-xs">{formatPrice(user.totalSpent || 0)}</p>
 
                 {/* State badge */}
                 <div onClick={e => e.stopPropagation()} className="hidden sm:block">

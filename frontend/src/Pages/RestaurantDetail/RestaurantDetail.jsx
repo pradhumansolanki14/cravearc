@@ -1,22 +1,318 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiArrowLeft, FiClock, FiTruck, FiDollarSign, FiInfo, FiStar, FiChevronRight, FiSearch, FiX } from 'react-icons/fi';
-import { StoreContext } from '../../context/StoreContext';
-import { Container, Button, Card, Badge, Skeleton } from '../../components/ui';
+import React, { useState, useEffect, useContext, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiArrowLeft, FiClock, FiTruck, FiStar, FiSearch, FiX,
+  FiPhone, FiMail, FiMapPin, FiGlobe, FiHeart, FiShare2,
+  FiShoppingCart, FiPlus, FiMinus, FiInfo, FiNavigation,
+  FiCalendar, FiTag, FiWifi, FiAward, FiZap, FiCheck,
+  FiMenu, FiMessageSquare, FiUser,
+} from "react-icons/fi";
+import { MdOutlineLocalParking, MdOutlineFoodBank, MdOutlineTableRestaurant } from "react-icons/md";
+import { StoreContext } from "../../context/StoreContext";
+import ReviewsWidget from "../../components/Reviews/ReviewsWidget";
 
-const StarRating = ({ rating }) => {
-  const roundedRating = Math.round(rating || 0);
+const axiosInstance = axios;
+
+const Stars = ({ rating, size = 14 }) => {
+  const r = Math.round(Number(rating) || 0);
   return (
-    <div className="flex items-center gap-0.5" aria-label={`Rating: ${rating} out of 5 stars`}>
-      {[1, 2, 3, 4, 5].map((s) => (
-        <FiStar 
-          key={s} 
-          size={12} 
-          className={s <= roundedRating ? 'text-amber-400 fill-amber-400' : 'text-slate-200'} 
-        />
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map(s => (
+        <FiStar key={s} size={size}
+          className={s <= r ? "text-amber-400 fill-amber-400" : "text-slate-200 fill-slate-200"} />
       ))}
+    </div>
+  );
+};
+
+const amenityIcon = (tag) => {
+  const t = tag.toLowerCase();
+  if (t.includes("wifi") || t.includes("wi-fi")) return <FiWifi size={13} />;
+  if (t.includes("park"))                         return <MdOutlineLocalParking size={13} />;
+  if (t.includes("veg"))                          return <MdOutlineFoodBank size={13} />;
+  if (t.includes("dine") || t.includes("seat"))  return <MdOutlineTableRestaurant size={13} />;
+  if (t.includes("ac") || t.includes("air"))     return <FiZap size={13} />;
+  if (t.includes("fast") || t.includes("expr"))  return <FiTruck size={13} />;
+  if (t.includes("award") || t.includes("cert")) return <FiAward size={13} />;
+  return <FiCheck size={13} />;
+};
+
+const StorefrontSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 animate-pulse">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
+      <div className="relative rounded-3xl bg-slate-200 h-44 sm:h-60" />
+      <div className="flex items-end gap-5 mt-4">
+        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-slate-300 border-4 border-white shadow-lg flex-shrink-0" style={{ marginTop: "-48px" }} />
+        <div className="mb-4 space-y-2">
+          <div className="h-6 w-48 bg-slate-300 rounded-xl" />
+          <div className="h-4 w-32 bg-slate-300 rounded-lg" />
+        </div>
+      </div>
+    </div>
+    <div className="h-14 bg-white border-b border-slate-100 mt-6 flex items-center gap-8 px-6">
+      {[1,2,3,4].map(i => <div key={i} className="h-4 w-16 bg-slate-100 rounded-lg" />)}
+    </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 pb-20 space-y-5">
+      {[1,2,3].map(i => <div key={i} className="h-32 bg-slate-100 rounded-2xl" />)}
+    </div>
+  </div>
+);
+
+const FoodCard = ({ item, url, cartItems, addToCart, removeFromCart, formatPrice, isClosed }) => {
+  const count = cartItems[item._id] || 0;
+  const discounted = item.discount > 0 ? item.price * (1 - item.discount / 100) : item.price;
+  const unavailable = !item.isAvailable || isClosed;
+  return (
+    <div className={`bg-white rounded-2xl border flex gap-0 overflow-hidden transition-all hover:shadow-md ${unavailable ? "opacity-55" : "border-slate-100 hover:border-emerald-100"}`}>
+      <div className="relative flex-shrink-0 w-32 sm:w-36 self-stretch bg-slate-100 min-h-[110px]">
+        {item.image ? (
+          <img src={`${url}/images/${item.image}`} alt={item.name} className="w-full h-full object-cover absolute inset-0" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-200">
+            <FiTag size={28} />
+          </div>
+        )}
+        {item.discount > 0 && (
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full z-10">
+            -{item.discount}%
+          </span>
+        )}
+        {item.isVeg && (
+          <span className="absolute top-2 right-2 w-4 h-4 rounded border-2 border-green-600 bg-white flex items-center justify-center z-10">
+            <span className="w-2 h-2 rounded-full bg-green-600" />
+          </span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
+        <div>
+          <h4 className="font-semibold text-slate-900 text-sm leading-snug">{item.name}</h4>
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">{item.description}</p>
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {item.preparationTime != null && (
+              <span className="flex items-center gap-1 text-[10px] text-slate-400">
+                <FiClock size={9} /> {item.preparationTime} min
+              </span>
+            )}
+            {item.calories && (
+              <span className="flex items-center gap-1 text-[10px] text-slate-400">
+                <FiZap size={9} /> {item.calories} cal
+              </span>
+            )}
+            {item.rating > 0 && (
+              <span className="flex items-center gap-1 text-[10px] text-amber-500 font-semibold">
+                <FiStar size={9} className="fill-amber-400" /> {Number(item.rating).toFixed(1)}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between mt-3 gap-2">
+          <div className="flex-1 min-w-0">
+            <span className="font-bold text-slate-900">{formatPrice(discounted)}</span>
+            {item.discount > 0 && (
+              <span className="text-xs text-slate-400 line-through ml-1.5">{formatPrice(item.price)}</span>
+            )}
+          </div>
+          {unavailable ? (
+            <span className="text-[10px] text-slate-400 font-semibold border border-slate-200 px-2 py-1 rounded-lg flex-shrink-0">
+              {isClosed ? "Closed" : "Unavailable"}
+            </span>
+          ) : count === 0 ? (
+            <button onClick={() => addToCart(item._id, item.restaurantId)}
+              className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all active:scale-95 flex-shrink-0">
+              <FiPlus size={12} /> Add
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-2 py-1 flex-shrink-0">
+              <button onClick={() => removeFromCart(item._id)}
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all">
+                <FiMinus size={10} />
+              </button>
+              <span className="font-bold text-emerald-700 text-sm w-4 text-center">{count}</span>
+              <button onClick={() => addToCart(item._id, item.restaurantId)}
+                className="w-6 h-6 flex items-center justify-center rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all">
+                <FiPlus size={10} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const OverviewCard = ({ restaurant, formatPrice, isFav, toggleFav, handleShare, isMobile }) => {
+  const isClosed = !restaurant.isOpen;
+  if (isMobile) {
+    return (
+      <div className="bg-white border border-slate-150 rounded-2xl p-4 shadow-sm space-y-3.5 mt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md">
+              <FiStar size={12} className="text-amber-500 fill-amber-500" />
+              <span className="font-extrabold text-xs text-amber-700">
+                {restaurant.rating > 0 ? Number(restaurant.rating).toFixed(1) : "New"}
+              </span>
+            </div>
+            {restaurant.totalReviews > 0 && (
+              <span className="text-[10px] font-bold text-slate-400">{restaurant.totalReviews} reviews</span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button onClick={toggleFav} className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-150 hover:bg-slate-100 transition-colors">
+              <FiHeart size={13} className={isFav ? "fill-red-500 text-red-500 border-none" : "text-slate-400"} />
+            </button>
+            <button onClick={handleShare} className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 border border-slate-150 hover:bg-slate-100 transition-colors">
+              <FiShare2 size={13} className="text-slate-500" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Delivery</p>
+            <p className="text-xs font-bold text-slate-800 mt-0.5">
+              {Number(restaurant.deliveryFee) === 0 ? "Free" : "₹" + restaurant.deliveryFee}
+            </p>
+          </div>
+          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Prep Time</p>
+            <p className="text-xs font-bold text-slate-800 mt-0.5">{restaurant.preparationTime ?? 30}m</p>
+          </div>
+          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100">
+            <p className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Min Order</p>
+            <p className="text-xs font-bold text-slate-800 mt-0.5">₹{restaurant.minOrder}</p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          {restaurant.phone && (
+            <a href={"tel:" + restaurant.phone}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl text-center shadow-sm">
+              <FiPhone size={12} /> Call
+            </a>
+          )}
+          {restaurant.address && (
+            <button
+              onClick={() => window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(restaurant.address), "_blank")}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl border border-slate-205">
+              <FiNavigation size={12} /> Directions
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-72 bg-white rounded-3xl p-4.5 shadow-xl border border-slate-100 text-slate-800"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+            <FiStar size={13} className="text-amber-550 fill-amber-500" />
+            <span className="font-extrabold text-xs text-amber-700">
+              {restaurant.rating > 0 ? Number(restaurant.rating).toFixed(1) : "New"}
+            </span>
+          </div>
+          {restaurant.totalReviews > 0 && (
+            <span className="text-[10px] font-bold text-slate-400">{restaurant.totalReviews} reviews</span>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button onClick={toggleFav}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-150 hover:bg-slate-100 hover:text-red-500 transition-all text-slate-400">
+            <FiHeart size={14} className={isFav ? "fill-red-500 text-red-500 border-none" : ""} />
+          </button>
+          <button onClick={handleShare}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-150 hover:bg-slate-100 hover:text-emerald-500 transition-all text-slate-400">
+            <FiShare2 size={13} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Delivery</p>
+          <p className="text-xs font-bold text-slate-800">
+            {Number(restaurant.deliveryFee) === 0 ? "Free" : "₹" + restaurant.deliveryFee}
+          </p>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Prep Time</p>
+          <p className="text-xs font-bold text-slate-800">{restaurant.preparationTime ?? 30} mins</p>
+        </div>
+        <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+          <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Min Order</p>
+          <p className="text-xs font-bold text-slate-800">₹{restaurant.minOrder}</p>
+        </div>
+        {restaurant.openingHours && (
+          <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+            <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5">Hours</p>
+            <p className="text-xs font-bold text-slate-800 truncate">{restaurant.openingHours}</p>
+          </div>
+        )}
+      </div>
+
+      {restaurant.address && (
+        <div className="flex items-start gap-1.5 mb-3.5">
+          <FiMapPin size={11} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+          <p className="text-[10px] text-slate-500 font-semibold leading-relaxed line-clamp-2">{restaurant.address}</p>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        {restaurant.phone && (
+          <a href={"tel:" + restaurant.phone}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-emerald-50 text-center">
+            <FiPhone size={12} /> Call
+          </a>
+        )}
+        {restaurant.address && (
+          <button
+            onClick={() => window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(restaurant.address), "_blank")}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl transition-all border border-slate-200">
+            <FiNavigation size={12} /> Directions
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+const SECTIONS = [
+  { key: "menu",    label: "Menu" },
+  { key: "about",   label: "About & Gallery" },
+  { key: "reviews", label: "Reviews" },
+  { key: "contact", label: "Contact" },
+];
+
+const SectionNav = ({ activeSection, setActiveSection }) => {
+  return (
+    <div className="bg-white border-b border-slate-100 sticky top-0 z-40 shadow-xs">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center gap-1">
+          {SECTIONS.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveSection(key)}
+              className={`px-5 py-4 text-xs uppercase tracking-wider font-extrabold border-b-2 transition-all ${
+                activeSection === key
+                  ? "border-emerald-500 text-emerald-600"
+                  : "border-transparent text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -24,14 +320,40 @@ const StarRating = ({ rating }) => {
 const RestaurantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { url, cartItems, addToCart, removeFromCart } = useContext(StoreContext);
+  const { url, cartItems, addToCart, removeFromCart, formatPrice, token, toggleFavorite, isFavorite } = useContext(StoreContext);
 
-  const [restaurant, setRestaurant] = useState(null);
-  const [menu, setMenu] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isVeg, setIsVeg] = useState(false);
-  const [menuSearch, setMenuSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('');
+  const [restaurant, setRestaurant]         = useState(null);
+  const [menu, setMenu]                     = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [isVeg, setIsVeg]                   = useState(false);
+  const [menuSearch, setMenuSearch]         = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
+  const [activeSection, setActiveSection]   = useState("menu");
+  const [relatedRestaurants, setRelated]    = useState([]);
+  const [actualRestaurantId, setActualId]   = useState("");
+  const categoryNavRef                      = useRef(null);
+
+  const isFav = isFavorite(actualRestaurantId, "restaurant");
+
+  const toggleFav = async () => {
+    if (!token) {
+      toast.error("Please login to save favorites");
+      return;
+    }
+    const result = await toggleFavorite({ restaurantId: actualRestaurantId });
+    if (result !== null) {
+      toast.success(result ? "Added to favourites" : "Removed from favourites");
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: restaurant?.name, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard");
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -41,427 +363,441 @@ const RestaurantDetail = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const rRes = await axios.get(`${url}/api/food/restaurants/${id}`);
-      if (!rRes.data.success) { navigate('/restaurants'); return; }
-      setRestaurant(rRes.data.data.restaurant);
-
-      const mRes = await axios.get(`${url}/api/food/list?restaurantId=${id}`);
+      const rRes = await axiosInstance.get(url + "/api/food/restaurants/" + id);
+      if (!rRes.data.success) { navigate("/restaurants"); return; }
+      const r = rRes.data.data.restaurant;
+      setRestaurant(r);
+      setActualId(r._id);
+      const mRes = await axiosInstance.get(url + "/api/food/list?restaurantId=" + r._id);
       if (mRes.data.success) setMenu(mRes.data.data);
+      const relRes = await axiosInstance.get(url + "/api/food/restaurants");
+      if (relRes.data.success) {
+        setRelated(relRes.data.data.filter(x => x._id !== r._id).slice(0, 3));
+      }
     } catch {
-      navigate('/restaurants');
+      navigate("/restaurants");
     }
     setLoading(false);
   };
 
   const fetchMenu = async (vegFilter) => {
     try {
-      const params = `?restaurantId=${id}${vegFilter ? '&isVeg=true' : ''}`;
-      const res = await axios.get(`${url}/api/food/list${params}`);
+      const params = "?restaurantId=" + (actualRestaurantId || id) + (vegFilter ? "&isVeg=true" : "");
+      const res = await axiosInstance.get(url + "/api/food/list" + params);
       if (res.data.success) setMenu(res.data.data);
     } catch {}
   };
 
   const handleVegToggle = () => {
-    const newVal = !isVeg;
-    setIsVeg(newVal);
-    fetchMenu(newVal);
+    const next = !isVeg;
+    setIsVeg(next);
+    fetchMenu(next);
   };
 
-  // Client-side menu search
   const filteredMenu = menu.filter(item => {
     if (!menuSearch) return true;
     const q = menuSearch.toLowerCase();
     return item.name?.toLowerCase().includes(q) || item.description?.toLowerCase().includes(q);
   });
 
-  // Group filtered menu by category
   const grouped = filteredMenu.reduce((acc, item) => {
-    const cat = item.category || 'Other';
+    const cat = item.category || "Other";
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(item);
     return acc;
   }, {});
+  const categories = Object.keys(grouped);
 
-  const isClosed = restaurant && !restaurant.isOpen;
-
-  // Track dynamic category scrolling to update active pill
   useEffect(() => {
     const handleScroll = () => {
-      const categories = Object.keys(grouped);
+      if (activeSection !== "menu") return;
       for (const cat of categories) {
-        const el = document.getElementById(`cat-${cat.replace(/\s+/g, '-')}`);
+        const el = document.getElementById("cat-" + cat.replace(/\s+/g, "-"));
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top >= 0 && rect.top <= 250) {
+          if (rect.top >= 0 && rect.top <= 300) {
             setActiveCategory(cat);
+            const pill = document.getElementById("pill-" + cat.replace(/\s+/g, "-"));
+            if (pill && categoryNavRef.current) {
+              categoryNavRef.current.scrollTo({ left: pill.offsetLeft - 16, behavior: "smooth" });
+            }
             break;
           }
         }
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [grouped]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [grouped, activeSection]);
 
   const scrollToCategory = (catName) => {
     setActiveCategory(catName);
-    const el = document.getElementById(`cat-${catName.replace(/\s+/g, '-')}`);
+    const el = document.getElementById("cat-" + catName.replace(/\s+/g, "-"));
     if (el) {
-      const topOffset = el.getBoundingClientRect().top + window.scrollY - 150;
-      window.scrollTo({ top: topOffset, behavior: 'smooth' });
+      const topOffset = el.getBoundingClientRect().top + window.scrollY - 170;
+      window.scrollTo({ top: topOffset, behavior: "smooth" });
     }
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="h-64 sm:h-80 bg-slate-100 animate-pulse" />
-      <Container className="pb-16 -mt-10">
-        <div className="bg-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm border border-slate-100">
-          <Skeleton variant="title" className="w-1/3" />
-          <Skeleton variant="text" className="w-1/2" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-16 rounded-2xl" />)}
-          </div>
-        </div>
-        <div className="mt-8 space-y-4">
-          <Skeleton variant="title" className="w-1/4" />
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}
-          </div>
-        </div>
-      </Container>
-    </div>
-  );
-
+  if (loading) return <StorefrontSkeleton />;
   if (!restaurant) return null;
 
+  const isClosed = !restaurant.isOpen;
+  const cuisines = restaurant.cuisine
+    ? restaurant.cuisine.split(",").map(c => c.trim()).filter(Boolean)
+    : [];
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      
-      {/* ── Hero Image & Floating Controls ── */}
-      <div className="relative h-64 sm:h-80 bg-slate-100 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 pb-24">
+      {/* COVER BANNER (FULL BLEED) */}
+      <div className="relative bg-slate-900 text-white w-full overflow-visible">
+        {/* Background Cover Image */}
         {restaurant.coverImage ? (
           <img
-            src={`${url}/images/${restaurant.coverImage}`}
+            src={url + "/images/" + restaurant.coverImage}
             alt={restaurant.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
-            <span className="text-6xl">🏪</span>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-800 to-teal-900" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/20 to-transparent" />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-black/30" />
 
-        {/* Back navigation */}
-        <button
-          onClick={() => navigate('/restaurants')}
-          className="absolute top-6 left-6 w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-slate-700 hover:bg-white hover:scale-105 transition-all"
-          aria-label="Back to restaurants"
-        >
-          <FiArrowLeft size={20} />
-        </button>
+        {/* Content container */}
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-8 z-10">
+          {/* Back button */}
+          <button onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-xl bg-black/45 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/60 transition-all shadow-sm mb-6"
+            aria-label="Go back">
+            <FiArrowLeft size={16} />
+          </button>
 
-        {/* Floating status tag */}
-        <div className="absolute top-6 right-6">
-          <Badge variant={restaurant.isOpen ? 'success' : 'neutral'} className="backdrop-blur-md bg-white/95 px-4 py-2 text-sm shadow-md font-bold rounded-2xl">
-            {restaurant.isOpen ? '● Open Now' : '✕ Closed'}
-          </Badge>
-        </div>
-
-        {/* Logo overlay */}
-        {restaurant.logo && (
-          <div className="absolute bottom-6 left-6 w-20 h-20 rounded-3xl bg-white border-2 border-white shadow-lg overflow-hidden hidden sm:block">
-            <img src={`${url}/images/${restaurant.logo}`} alt="Logo" className="w-full h-full object-cover" />
-          </div>
-        )}
-      </div>
-
-      {/* ── Main Details Layout ── */}
-      <Container className="pb-16 -mt-10 relative z-10">
-        
-        {/* Info card box */}
-        <Card variant="default" radius="3xl" padding="lg" className="border border-slate-100/80 shadow-card mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-            <div className="flex-1">
-              <h1 className="font-poppins font-extrabold text-2xl sm:text-3xl text-slate-900 mb-2">
-                {restaurant.name}
-              </h1>
-
-              {/* Cuisine list */}
-              {restaurant.cuisine && (
-                <div className="flex flex-wrap gap-1.5 mb-3.5">
-                  {restaurant.cuisine.split(',').map((c, i) => (
-                    <Badge key={i} variant="primary" size="sm" rounded="md" className="bg-emerald-50 text-emerald-700 font-bold border-0">
-                      {c.trim()}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Rating metrics */}
-              <div className="flex items-center gap-2 mb-4 bg-slate-50 border border-slate-100 p-2 rounded-xl w-fit">
-                <StarRating rating={restaurant.rating || 0} />
-                <span className="text-xs font-bold text-slate-900">{restaurant.rating?.toFixed(1) || '0.0'}</span>
-                {restaurant.totalReviews > 0 && (
-                  <span className="text-[10px] text-slate-400 font-semibold">({restaurant.totalReviews} customer reviews)</span>
+          {/* Grid layout for Title & Overview Card */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            {/* Left: Logo & Identity */}
+            <div className="flex items-center sm:items-end gap-5 flex-wrap sm:flex-nowrap">
+              {/* Logo */}
+              <div className="flex-shrink-0">
+                {restaurant.logo ? (
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white border-2 border-white/90 shadow-lg overflow-hidden">
+                    <img src={url + "/images/" + restaurant.logo} alt="Logo" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-emerald-450 to-teal-500 border-2 border-white/90 shadow-lg flex items-center justify-center">
+                    <span className="text-white font-black text-4xl">{restaurant.name?.charAt(0)}</span>
+                  </div>
                 )}
               </div>
 
-              {/* Description */}
-              {restaurant.description && (
-                <p className="text-slate-550 text-xs leading-relaxed max-w-xl">
-                  {restaurant.description}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Metrics Details Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-slate-100">
-            {[
-              { icon: <FiDollarSign size={18} className="text-emerald-600" />, label: 'Delivery fee', value: `$${restaurant.deliveryFee ?? 2}` },
-              { icon: <FiClock size={18} className="text-emerald-600" />, label: 'Prep time', value: `${restaurant.preparationTime ?? 30} mins` },
-              { icon: <FiClock size={18} className="text-emerald-600" />, label: 'Hours', value: restaurant.openingHours || '—' },
-              { icon: <FiInfo size={18} className="text-emerald-600" />, label: 'Min order', value: restaurant.minOrder > 0 ? `$${restaurant.minOrder}` : 'None' },
-            ].map((info, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-slate-50/75 border border-slate-100/50 rounded-2xl">
-                <div className="w-9 h-9 rounded-xl bg-white border border-slate-100/40 flex items-center justify-center shadow-sm">
-                  {info.icon}
+              {/* Meta */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={"inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md shadow-2xs " +
+                    (isClosed ? "bg-red-500 text-white" : "bg-emerald-500 text-white")}>
+                    {isClosed ? "Closed" : "Open"}
+                  </span>
+                  {restaurant.featured && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md bg-amber-400 text-amber-955 shadow-2xs">
+                      Featured
+                    </span>
+                  )}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{info.label}</p>
-                  <p className="text-xs font-bold text-slate-800 truncate">{info.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Closed banner alert block */}
-          {isClosed && (
-            <div className="mt-5 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3 text-amber-800">
-              <FiInfo size={22} className="flex-shrink-0" />
-              <div>
-                <p className="font-bold text-sm">Restaurant is closed</p>
-                <p className="text-xs text-amber-600/90">Menus are browse-only. Ordering is disabled until the kitchen opens.</p>
+                <h1 className="text-white font-black text-2xl sm:text-3xl md:text-4xl tracking-tight leading-tight drop-shadow-sm">
+                  {restaurant.name}
+                </h1>
+                {cuisines.length > 0 && (
+                  <p className="text-white/85 text-xs sm:text-sm font-semibold">{cuisines.join(" · ")}</p>
+                )}
               </div>
             </div>
-          )}
-        </Card>
 
-        {/* ── Sticky Category quick navigator bar ── */}
-        {Object.keys(grouped).length > 0 && (
-          <div className="sticky top-20 bg-white/90 backdrop-blur-md z-30 border border-slate-100/80 rounded-2xl p-2.5 shadow-sm flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6">
-            {Object.keys(grouped).map((catName) => {
-              const active = activeCategory === catName;
-              return (
-                <button
-                  key={catName}
-                  onClick={() => scrollToCategory(catName)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 uppercase tracking-wider ${
-                    active
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  {catName}
-                </button>
-              );
-            })}
+            {/* Right: Overview Card (floating white card overlaying the background image) */}
+            <div className="w-full md:w-auto flex-shrink-0">
+              {/* Desktop OverviewCard */}
+              <div className="hidden md:block">
+                <OverviewCard restaurant={restaurant} formatPrice={formatPrice}
+                  isFav={isFav} toggleFav={toggleFav} handleShare={handleShare} />
+              </div>
+              {/* Mobile OverviewCard */}
+              <div className="md:hidden">
+                <OverviewCard restaurant={restaurant} formatPrice={formatPrice}
+                  isFav={isFav} toggleFav={toggleFav} handleShare={handleShare} isMobile={true} />
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* ── Menu Section & Items List ── */}
-        <Card variant="default" radius="3xl" padding="lg" className="border border-slate-100/80 shadow-card">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <h2 className="font-poppins font-extrabold text-xl text-slate-900">Menu Catalog</h2>
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Veg switch filter */}
-              <button
-                onClick={handleVegToggle}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-300 border ${
-                  isVeg
-                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-emerald'
-                    : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
-                }`}
-              >
-                <span className="w-3.5 h-3.5 rounded border border-current flex items-center justify-center">
-                  <span className="w-1.5 h-1.5 bg-current rounded-full" />
+      {/* STICKY SECTION NAV */}
+      <SectionNav activeSection={activeSection} setActiveSection={setActiveSection} />
+
+      {/* Spacer */}
+      <div className="h-6" />
+
+      {/* ACTIVE SECTION / TAB BODY */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
+        {/* MENU SECTION / TAB */}
+        {activeSection === "menu" && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }} className="space-y-6">
+            
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-slate-800 tracking-tight">Menu Highlights</h2>
+              <span className="text-xs text-slate-400 font-bold bg-slate-100 px-2.5 py-0.5 rounded-lg">
+                {menu.length} items
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <FiSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-450" />
+                <input type="text" value={menuSearch} onChange={e => setMenuSearch(e.target.value)}
+                  placeholder="Search dishes..."
+                  className="w-full pl-10 pr-9 py-3 text-sm bg-white border border-slate-200 rounded-2xl focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all shadow-xs" />
+                {menuSearch && (
+                  <button onClick={() => setMenuSearch("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <FiX size={14} />
+                  </button>
+                )}
+              </div>
+              <button onClick={handleVegToggle}
+                className={"flex items-center gap-2 px-4 py-3 rounded-2xl border text-xs font-bold transition-all flex-shrink-0 shadow-xs " +
+                  (isVeg ? "bg-green-50 border-green-400 text-green-700" : "bg-white border-slate-200 text-slate-500 hover:border-slate-350")}>
+                <span className="w-4 h-4 rounded border-2 border-current flex items-center justify-center">
+                  <span className={"w-2 h-2 rounded-full " + (isVeg ? "bg-green-600" : "bg-transparent")} />
                 </span>
                 Veg Only
               </button>
+            </div>
 
-              {/* Input search query block */}
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  placeholder="Search menu catalog..."
-                  value={menuSearch}
-                  onChange={e => setMenuSearch(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-semibold placeholder-slate-400 outline-none w-44 focus:border-emerald-350 focus:bg-white transition-all duration-300 pr-8"
-                />
-                {menuSearch ? (
-                  <button 
-                    onClick={() => setMenuSearch('')} 
-                    className="absolute right-2.5 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear menu search"
-                  >
-                    <FiX size={14} />
+            {categories.length > 1 && (
+              <div ref={categoryNavRef}
+                className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mb-3">
+                {categories.map(cat => (
+                  <button key={cat} id={"pill-" + cat.replace(/\s+/g, "-")}
+                    onClick={() => scrollToCategory(cat)}
+                    className={"flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all " +
+                      (activeCategory === cat
+                        ? "bg-emerald-500 text-white shadow-sm"
+                        : "bg-white text-slate-605 border border-slate-200 hover:border-emerald-300")}>
+                    {cat}
                   </button>
-                ) : (
-                  <FiSearch className="absolute right-3 text-slate-400" size={14} />
-                )}
+                ))}
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Render Categories and Food Rows */}
-          {Object.keys(grouped).length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-4">
-                <FiInfo size={24} />
+            {categories.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center shadow-xs">
+                <FiInfo size={36} className="mx-auto text-slate-300 mb-3" />
+                <p className="text-sm font-bold text-slate-600">No items matched your search</p>
+                <p className="text-xs text-slate-400 mt-1">Try resetting the veg filter or search term</p>
               </div>
-              <h3 className="font-poppins font-bold text-slate-800 text-base mb-1">No Dishes Match</h3>
-              <p className="text-slate-400 text-xs leading-relaxed mb-4">Try clearing filters or search parameters to browse all dishes.</p>
-              {(isVeg || menuSearch) && (
-                <Button
-                  onClick={() => { setIsVeg(false); setMenuSearch(''); fetchMenu(false); }}
-                  variant="secondary"
-                  size="sm"
-                  className="font-bold"
-                >
-                  Reset Filters
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-12">
-              {Object.entries(grouped).map(([category, items]) => (
-                <div 
-                  key={category} 
-                  id={`cat-${category.replace(/\s+/g, '-')}`}
-                  className="scroll-mt-36"
-                >
-                  {/* Category Section Header bar */}
-                  <h3 className="font-poppins font-extrabold text-sm uppercase tracking-widest text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="flex-shrink-0">{category}</span>
-                    <span className="flex-1 h-px bg-slate-100" />
-                    <span className="text-[10px] text-slate-400 font-bold tracking-normal uppercase bg-slate-50 border border-slate-100/80 px-2 py-0.5 rounded-md">
-                      {items.length} choice{items.length !== 1 ? 's' : ''}
-                    </span>
-                  </h3>
+            ) : (
+              <div className="space-y-10">
+                {categories.map(cat => (
+                  <div key={cat} id={"cat-" + cat.replace(/\s+/g, "-")} className="scroll-mt-36">
+                    <div className="flex items-center gap-3 mb-4">
+                      <h3 className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">{cat}</h3>
+                      <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-lg">
+                        {grouped[cat].length}
+                      </span>
+                      <div className="flex-1 h-px bg-slate-100" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {grouped[cat].map(item => (
+                        <FoodCard key={item._id} item={item} url={url}
+                          cartItems={cartItems} addToCart={addToCart}
+                          removeFromCart={removeFromCart} formatPrice={formatPrice} isClosed={isClosed} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+        {/* ABOUT & GALLERY TAB */}
+        {activeSection === "about" && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }} className="space-y-6">
+            
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 space-y-6">
+              <div>
+                <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Our Story</h3>
+                <p className="text-sm text-slate-655 leading-relaxed font-medium">
+                  {restaurant.description || "Welcome to our kitchen! We serve delicious dishes crafted with premium ingredients and passion."}
+                </p>
+              </div>
 
-                  {/* Menu Dishes Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {items.map(item => {
-                      const qty = cartItems[item._id] || 0;
-                      return (
-                        <div 
-                          key={item._id}
-                          className="flex gap-4 p-4 bg-slate-50 border border-slate-100/50 rounded-2xl hover:bg-emerald-50/15 hover:border-emerald-100/50 transition-all duration-300 group"
-                        >
-                          {/* Dish visual container */}
-                          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-150 flex-shrink-0 shadow-sm border border-slate-100/20 relative">
-                            <img
-                              src={`${url}/images/${item.image}`}
-                              alt={item.name}
-                              className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
-                              onError={e => { e.target.style.display = 'none'; }}
-                            />
-                            {/* Available state flag */}
-                            {!item.isAvailable && (
-                              <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-center">
-                                <span className="text-[10px] text-white font-bold uppercase tracking-wider">Out of Stock</span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Dish Description metrics */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-between">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-poppins font-bold text-slate-900 text-sm truncate">{item.name}</p>
-                                
-                                {/* Indian Veg indicator square box */}
-                                {item.isVeg && (
-                                  <span className="flex-shrink-0 w-4 h-4 rounded border-2 border-emerald-500 flex items-center justify-center" aria-label="Vegetarian">
-                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                  </span>
-                                )}
-                              </div>
-                              {item.description && (
-                                <p className="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-2">
-                                  {item.description}
-                                </p>
-                              )}
-                              
-                              {/* Extra item tags - Calories / Prep times */}
-                              <div className="flex flex-wrap gap-1.5 items-center">
-                                {item.calories && (
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-450 bg-slate-100 px-1.5 py-0.5 rounded">
-                                    🔥 {item.calories} kcal
-                                  </span>
-                                )}
-                                {item.preparationTime && (
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-450 bg-slate-100 px-1.5 py-0.5 rounded">
-                                    ⏱ {item.preparationTime} mins
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Price and Cart control row */}
-                            <div className="flex items-center justify-between border-t border-slate-100/50 pt-2.5 mt-2">
-                              <span className="font-poppins font-extrabold text-sm text-slate-805">${item.price}</span>
-                              
-                              <div className="flex-shrink-0">
-                                {isClosed ? (
-                                  <Badge variant="neutral" size="sm" rounded="md" className="font-bold">Closed</Badge>
-                                ) : !item.isAvailable ? (
-                                  <Badge variant="neutral" size="sm" rounded="md" className="font-bold">Unavailable</Badge>
-                                ) : qty === 0 ? (
-                                  <Button
-                                    onClick={() => addToCart(item._id, id)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 font-bold border-slate-200 hover:border-emerald-300 hover:text-emerald-600 rounded-xl"
-                                  >
-                                    Add to Cart
-                                  </Button>
-                                ) : (
-                                  <div className="flex items-center gap-2.5 bg-white border border-slate-100 rounded-xl p-1 shadow-sm">
-                                    <button
-                                      onClick={() => removeFromCart(item._id)}
-                                      className="w-6.5 h-6.5 rounded-lg bg-slate-50 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center text-slate-500 transition-colors"
-                                      aria-label="Decrease quantity"
-                                    >
-                                      <FiX size={12} />
-                                    </button>
-                                    <span className="font-poppins font-bold text-slate-900 text-xs w-4 text-center">{qty}</span>
-                                    <button
-                                      onClick={() => addToCart(item._id, id)}
-                                      className="w-6.5 h-6.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center text-white transition-colors"
-                                      aria-label="Increase quantity"
-                                    >
-                                      <FiChevronRight size={12} className="rotate-90" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                          </div>
-                        </div>
-                      );
-                    })}
+              {cuisines.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Cuisines</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {cuisines.map(c => (
+                      <span key={c} className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-100">{c}</span>
+                    ))}
                   </div>
                 </div>
+              )}
+
+              {restaurant.tags?.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">Amenities</h3>
+                  <div className="flex flex-wrap gap-2.5">
+                    {restaurant.tags.map(tag => (
+                      <span key={tag} className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-xl border border-slate-100">
+                        {amenityIcon(tag)} {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Gallery Section */}
+            {restaurant.gallery && restaurant.gallery.length > 0 && (
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 space-y-4">
+                <div>
+                  <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-1">Hotel Gallery</h3>
+                  <p className="text-xs text-slate-450 font-medium">Photos of hotel ambiance, luxury dining, customers, and menu highlights.</p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {restaurant.gallery.map((img, idx) => (
+                    <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-100 shadow-xs">
+                      <img src={url + "/images/" + img} alt={`Gallery ${idx}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* REVIEWS TAB */}
+        {activeSection === "reviews" && actualRestaurantId && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8">
+            <ReviewsWidget title="" domain="restaurant" entityId={actualRestaurantId} />
+          </motion.div>
+        )}
+
+        {/* CONTACT TAB */}
+        {activeSection === "contact" && (
+          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }} className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {restaurant.phone && (
+                <a href={"tel:" + restaurant.phone}
+                  className="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:border-emerald-250 hover:bg-emerald-50/20 transition-all group">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-105 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-all flex-shrink-0">
+                    <FiPhone size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Phone</p>
+                    <p className="text-sm font-semibold text-slate-805 truncate">{restaurant.phone}</p>
+                  </div>
+                </a>
+              )}
+              {restaurant.email && (
+                <a href={"mailto:" + restaurant.email}
+                  className="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:border-emerald-250 hover:bg-emerald-50/20 transition-all group">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-105 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-all flex-shrink-0">
+                    <FiMail size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Email</p>
+                    <p className="text-sm font-semibold text-slate-805 truncate">{restaurant.email}</p>
+                  </div>
+                </a>
+              )}
+              {restaurant.website && (
+                <a href={restaurant.website.startsWith("http") ? restaurant.website : "https://" + restaurant.website}
+                  target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:border-emerald-250 hover:bg-emerald-50/20 transition-all group">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-105 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-200 transition-all flex-shrink-0">
+                    <FiGlobe size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Website</p>
+                    <p className="text-sm font-semibold text-slate-805 truncate">{restaurant.website}</p>
+                  </div>
+                </a>
+              )}
+              {restaurant.openingHours && (
+                <div className="flex items-center gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-105 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <FiCalendar size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Hours</p>
+                    <p className="text-sm font-semibold text-slate-805 truncate">{restaurant.openingHours}</p>
+                  </div>
+                </div>
+              )}
+              {restaurant.address && (
+                <div className="flex items-start gap-4 bg-white p-5 rounded-3xl border border-slate-100 shadow-sm sm:col-span-2">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-105 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <FiMapPin size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-0.5">Address</p>
+                    <p className="text-sm font-semibold text-slate-800 leading-relaxed">{restaurant.address}</p>
+                    <button
+                      onClick={() => window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(restaurant.address), "_blank")}
+                      className="mt-3.5 inline-flex items-center gap-1.5 text-xs text-emerald-600 font-bold hover:text-emerald-700 transition-colors">
+                      <FiNavigation size={12} /> Get Directions
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* RELATED RESTAURANTS (EXPLORE MORE) */}
+        {relatedRestaurants.length > 0 && (
+          <div className="mt-12 pt-8 border-t border-slate-100">
+            <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-5">Explore More Restaurants</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {relatedRestaurants.map(r => (
+                <Link key={r._id} to={"/restaurant/" + (r.slug || r._id)}
+                  className="bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md hover:border-emerald-200 transition-all group">
+                  <div className="h-32 bg-slate-100 relative overflow-hidden">
+                    {r.coverImage ? (
+                      <img src={url + "/images/" + r.coverImage} alt={r.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
+                        <span className="text-5xl font-black text-emerald-200">{r.name?.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <span className={"absolute top-2.5 right-2.5 text-[9px] font-extrabold px-2 py-0.5 rounded-full " +
+                      (r.isOpen ? "bg-emerald-500 text-white" : "bg-slate-500 text-white")}>
+                      {r.isOpen ? "Open" : "Closed"}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <p className="font-bold text-sm text-slate-900 truncate">{r.name}</p>
+                    <p className="text-xs text-slate-400 truncate mt-0.5">{r.cuisine || "Restaurant"}</p>
+                    <div className="flex items-center justify-between mt-2.5">
+                      {r.rating > 0 ? (
+                        <div className="flex items-center gap-1">
+                          <FiStar size={11} className="text-amber-400 fill-amber-400" />
+                          <span className="text-xs font-semibold text-slate-700">{Number(r.rating).toFixed(1)}</span>
+                        </div>
+                      ) : <span />}
+                      <span className="text-[10px] text-slate-400">{formatPrice(r.deliveryFee || 0)} delivery</span>
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
-          )}
-        </Card>
-
-      </Container>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

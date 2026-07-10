@@ -264,3 +264,7 @@
 .delay-600  { animation-delay: 0.6s; }
 .delay-700  { animation-delay: 0.7s; }
 .delay-800  { animation-delay: 0.8s; }
+
+/* ─── Scrollbar Utilities ─────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

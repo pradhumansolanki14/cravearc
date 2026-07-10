@@ -16,6 +16,8 @@ import Banners from './pages/Banners/Banners'
 import Restaurants from './pages/Restaurants/Restaurants'
 import RestaurantProfile from './pages/RestaurantProfile/RestaurantProfile'
 import Reviews from './pages/Reviews/Reviews'
+import PlatformReviews from './pages/PlatformReviews/PlatformReviews'
+import CategoryRequests from './pages/CategoryRequests/CategoryRequests'
 import { Toaster } from 'react-hot-toast'
 import { useAdmin } from './context/AdminContext'
 
@@ -125,6 +127,14 @@ const App = () => {
               <RouteGuard allowedRoles={['superadmin']}>
                 <Settings url={url} />
               </RouteGuard>
+            } />
+            <Route path='/platform-reviews' element={
+              <RouteGuard allowedRoles={['superadmin']}>
+                <PlatformReviews url={url} />
+              </RouteGuard>
+            } />
+            <Route path='/category-requests' element={
+              <CategoryRequests url={url} />
             } />
 
 

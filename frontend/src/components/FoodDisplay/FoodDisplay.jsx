@@ -56,6 +56,14 @@ const FoodDisplay = ({ category }) => {
                 price={item.price}
                 image={item.image}
                 category={item.category}
+                preparationTime={item.preparationTime}
+                isVeg={item.isVeg}
+                calories={item.calories}
+                restaurantId={item.restaurantId}
+                isAvailable={item.isAvailable}
+                averageRating={item.averageRating}
+                reviewCount={item.reviewCount}
+                discount={item.discount}
               />
             ))}
           </div>

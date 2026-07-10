@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const cuisineSchema = new mongoose.Schema({
   name:     { type: String, required: true, unique: true },
-  icon:     { type: String, default: "" },
+  image:    { type: String, default: "" },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 

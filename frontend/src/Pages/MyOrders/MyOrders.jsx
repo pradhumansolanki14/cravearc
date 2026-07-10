@@ -24,7 +24,7 @@ const statusConfig = {
 };
 
 const MyOrders = () => {
-  const { url, token, SetCartItems } = useContext(StoreContext);
+  const { url, token, SetCartItems, formatPrice } = useContext(StoreContext);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -159,7 +159,7 @@ const MyOrders = () => {
                             </p>
                           </div>
                           <p className="font-poppins font-extrabold text-xl text-slate-900 flex-shrink-0">
-                            ${order.amount}.00
+                            {formatPrice(order.amount)}
                           </p>
                         </div>
 

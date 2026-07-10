@@ -17,7 +17,9 @@ const Stars = ({ rating }) => (
 );
 
 const Reviews = ({ url }) => {
-  const [reviews, setReviews] = useState([]);
+  const [foodReviews, setFoodReviews] = useState([]);
+  const [restaurantReviews, setRestaurantReviews] = useState([]);
+  const [activeTab, setActiveTab] = useState("food"); // "food" | "restaurant"
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterFood, setFilterFood] = useState("All");
@@ -30,24 +32,39 @@ const Reviews = ({ url }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const foodRes = await axios.get(`${url}/api/food/my/items`, { headers: { token } });
-      if (!foodRes.data.success) { 
-        setLoading(false); 
-        return; 
-      }
-      const items = foodRes.data.data;
-      setFoodItems(items);
-
-      const allReviews = [];
-      for (const food of items) {
-        try {
-          const revRes = await axios.get(`${url}/api/reviews/${food._id}`);
-          if (revRes.data.success) {
-            revRes.data.data.forEach(r => allReviews.push({ ...r, foodName: food.name }));
+      // 1. Fetch restaurant profile to get restaurantId and then its reviews
+      let rReviews = [];
+      try {
+        const profileRes = await axios.get(`${url}/api/admin/restaurant/profile`, { headers: { token } });
+        if (profileRes.data.success && profileRes.data.data) {
+          const restaurantId = profileRes.data.data._id;
+          const restRes = await axios.get(`${url}/api/reviews/restaurant/${restaurantId}`);
+          if (restRes.data.success) {
+            rReviews = restRes.data.data;
           }
-        } catch {}
+        }
+      } catch (err) {
+        console.error("Failed to fetch restaurant reviews:", err);
       }
-      setReviews(allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      setRestaurantReviews(rReviews);
+
+      // 2. Fetch food items for food reviews
+      const foodRes = await axios.get(`${url}/api/food/my/items`, { headers: { token } });
+      if (foodRes.data.success) {
+        const items = foodRes.data.data;
+        setFoodItems(items);
+
+        const allReviews = [];
+        for (const food of items) {
+          try {
+            const revRes = await axios.get(`${url}/api/reviews/food/${food._id}`);
+            if (revRes.data.success) {
+              revRes.data.data.forEach(r => allReviews.push({ ...r, foodName: food.name }));
+            }
+          } catch {}
+        }
+        setFoodReviews(allReviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+      }
     } catch { 
       toast.error("Failed to load reviews"); 
     }
@@ -66,10 +83,17 @@ const Reviews = ({ url }) => {
     }
     setSavingReply(review._id);
     try {
-      const res = await axios.put(`${url}/api/admin/reviews/${review._id}/reply`, { reply }, { headers: { token } });
+      const endpoint = activeTab === "food"
+        ? `${url}/api/reviews/food/vendor/${review._id}`
+        : `${url}/api/reviews/restaurant/vendor/${review._id}`;
+      const res = await axios.post(endpoint, { reply }, { headers: { token } });
       if (res.data.success) {
         toast.success("Vendor reply successfully posted.");
-        setReviews(prev => prev.map(r => r._id === review._id ? { ...r, vendorReply: reply, vendorRepliedAt: new Date() } : r));
+        if (activeTab === "food") {
+          setFoodReviews(prev => prev.map(r => r._id === review._id ? { ...r, vendorReply: reply, vendorRepliedAt: new Date() } : r));
+        } else {
+          setRestaurantReviews(prev => prev.map(r => r._id === review._id ? { ...r, vendorReply: reply, vendorRepliedAt: new Date() } : r));
+        }
         setReplyText(prev => ({ ...prev, [review._id]: "" }));
         setEditingReply(prev => ({ ...prev, [review._id]: false }));
       } else {
@@ -81,13 +105,21 @@ const Reviews = ({ url }) => {
     setSavingReply("");
   };
 
-  const filtered = reviews.filter(r => {
+  const filteredFood = foodReviews.filter(r => {
     const matchFood = filterFood === "All" || r.foodName === filterFood;
     const matchRating = filterRating === 0 || r.rating === filterRating;
     return matchFood && matchRating;
   });
 
-  const uniqueFoodNames = [...new Set(reviews.map(r => r.foodName))];
+  const filteredRestaurant = restaurantReviews.filter(r => {
+    const matchRating = filterRating === 0 || r.rating === filterRating;
+    return matchRating;
+  });
+
+  const activeReviews = activeTab === "food" ? filteredFood : filteredRestaurant;
+  const totalReviewsCount = foodReviews.length + restaurantReviews.length;
+
+  const uniqueFoodNames = [...new Set(foodReviews.map(r => r.foodName))];
 
   return (
     <div className="max-w-4xl animate-fadeUp space-y-6">
@@ -100,7 +132,7 @@ const Reviews = ({ url }) => {
           </div>
           <div>
             <h1 className="font-poppins font-extrabold text-2xl text-slate-900 tracking-tight">Reviews</h1>
-            <p className="text-slate-405 text-xs font-semibold">{reviews.length} customer reviews cataloged</p>
+            <p className="text-slate-405 text-xs font-semibold">{totalReviewsCount} customer reviews cataloged</p>
           </div>
         </div>
         <Button 
@@ -114,16 +146,42 @@ const Reviews = ({ url }) => {
         </Button>
       </div>
 
+      {/* ── Tabs Selector ── */}
+      <div className="flex gap-6 border-b border-slate-100 pb-px">
+        <button
+          onClick={() => { setActiveTab("food"); setFilterFood("All"); setFilterRating(0); }}
+          className={`pb-3 text-sm font-bold uppercase tracking-wider relative transition-all ${
+            activeTab === "food"
+              ? "text-emerald-600 border-b-2 border-emerald-500 font-extrabold"
+              : "text-slate-405 hover:text-slate-600"
+          }`}
+        >
+          Food Reviews ({foodReviews.length})
+        </button>
+        <button
+          onClick={() => { setActiveTab("restaurant"); setFilterFood("All"); setFilterRating(0); }}
+          className={`pb-3 text-sm font-bold uppercase tracking-wider relative transition-all ${
+            activeTab === "restaurant"
+              ? "text-emerald-600 border-b-2 border-emerald-500 font-extrabold"
+              : "text-slate-405 hover:text-slate-600"
+          }`}
+        >
+          Restaurant Reviews ({restaurantReviews.length})
+        </button>
+      </div>
+
       {/* ── Filtering selections ── */}
       <div className="flex flex-wrap items-center gap-3 bg-white border border-slate-100 shadow-2xs p-3.5 rounded-2xl">
-        <select 
-          value={filterFood} 
-          onChange={e => setFilterFood(e.target.value)}
-          className="px-3.5 py-2 bg-slate-50 border border-slate-150 focus:border-emerald-450 focus:bg-white rounded-xl text-2xs font-bold uppercase tracking-wider text-slate-600 outline-none cursor-pointer"
-        >
-          <option value="All">All Food Items</option>
-          {uniqueFoodNames.map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
+        {activeTab === "food" && (
+          <select 
+            value={filterFood} 
+            onChange={e => setFilterFood(e.target.value)}
+            className="px-3.5 py-2 bg-slate-50 border border-slate-150 focus:border-emerald-450 focus:bg-white rounded-xl text-2xs font-bold uppercase tracking-wider text-slate-600 outline-none cursor-pointer"
+          >
+            <option value="All">All Food Items</option>
+            {uniqueFoodNames.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        )}
 
         <select 
           value={filterRating} 
@@ -134,7 +192,7 @@ const Reviews = ({ url }) => {
           {[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Star{r !== 1 ? "s" : ""}</option>)}
         </select>
 
-        {(filterFood !== "All" || filterRating !== 0) && (
+        {((activeTab === "food" && filterFood !== "All") || filterRating !== 0) && (
           <button 
             onClick={() => { setFilterFood("All"); setFilterRating(0); }} 
             className="text-2xs font-extrabold uppercase tracking-widest text-slate-400 hover:text-emerald-600 transition-colors p-1"
@@ -143,7 +201,7 @@ const Reviews = ({ url }) => {
           </button>
         )}
         <span className="ml-auto text-2xs font-bold uppercase tracking-widest text-slate-400">
-          Showing {filtered.length} review{filtered.length !== 1 ? "s" : ""}
+          Showing {activeReviews.length} review{activeReviews.length !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -152,7 +210,7 @@ const Reviews = ({ url }) => {
         <div className="space-y-4">
           {[1,2].map(i => <div key={i} className="h-36 bg-white rounded-3xl border border-slate-100 animate-pulse" />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : activeReviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 text-center p-8">
           <FiMessageSquare size={28} className="text-slate-350 mb-3" />
           <p className="font-bold text-slate-705 text-sm">No reviews found</p>
@@ -160,7 +218,7 @@ const Reviews = ({ url }) => {
         </div>
       ) : (
         <div className="space-y-4 max-w-3xl">
-          {filtered.map(review => {
+          {activeReviews.map(review => {
             const isEditing = editingReply[review._id];
             const isSaving = savingReply === review._id;
             return (
@@ -180,7 +238,11 @@ const Reviews = ({ url }) => {
                     </div>
                     <div>
                       <p className="font-bold text-slate-900 text-sm leading-none">{review.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{review.foodName}</p>
+                      {activeTab === "food" ? (
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{review.foodName}</p>
+                      ) : (
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1.5">Restaurant Review</p>
+                      )}
                     </div>
                   </div>
                   

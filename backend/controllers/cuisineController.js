@@ -1,25 +1,40 @@
 import cuisineModel from "../models/cuisineModel.js";
 import restaurantModel from "../models/restaurantModel.js";
+import fs from "fs";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 // ─── Create cuisine (super admin only) ───────────────────────
 const createCuisine = async (req, res) => {
   try {
-    const { name, icon } = req.body;
+    const { name } = req.body;
     if (!name) return res.json({ success: false, message: "Name required" });
+
+    // MIME type check
+    if (req.file && !ALLOWED_TYPES.includes(req.file.mimetype)) {
+      fs.unlink(`uploads/${req.file.filename}`, () => {});
+      return res.status(400).json({ success: false, message: "Only JPEG, PNG, and WebP images are allowed" });
+    }
 
     // Check if name already exists
     const exists = await cuisineModel.findOne({ name });
-    if (exists) return res.json({ success: false, message: "Cuisine name already exists" });
+    if (exists) {
+      if (req.file) fs.unlink(`uploads/${req.file.filename}`, () => {});
+      return res.json({ success: false, message: "Cuisine name already exists" });
+    }
+
+    const image_filename = req.file ? req.file.filename : "";
 
     const cuisine = await cuisineModel.create({
       name,
-      icon: icon || "",
+      image: image_filename,
       isActive: true,
     });
 
     res.json({ success: true, message: "Cuisine created", data: cuisine });
   } catch (error) {
     console.log(error);
+    if (req.file) fs.unlink(`uploads/${req.file.filename}`, () => {});
     res.json({ success: false, message: "Error creating cuisine" });
   }
 };
@@ -30,17 +45,30 @@ const updateCuisine = async (req, res) => {
     const cuisine = await cuisineModel.findById(req.params.id);
     if (!cuisine) return res.json({ success: false, message: "Cuisine not found" });
 
-    const { name, icon, isActive } = req.body;
+    // MIME type check for new image
+    if (req.file) {
+      if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+        fs.unlink(`uploads/${req.file.filename}`, () => {});
+        return res.status(400).json({ success: false, message: "Only JPEG, PNG, and WebP images are allowed" });
+      }
+      // Delete old image file
+      if (cuisine.image) {
+        fs.unlink(`uploads/${cuisine.image}`, () => {});
+      }
+    }
+
+    const { name, isActive } = req.body;
     
     const updates = {};
     if (name !== undefined) updates.name = name;
-    if (icon !== undefined) updates.icon = icon;
     if (isActive !== undefined) updates.isActive = isActive;
+    if (req.file) updates.image = req.file.filename;
 
     const updated = await cuisineModel.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ success: true, message: "Cuisine updated", data: updated });
   } catch (error) {
     console.log(error);
+    if (req.file) fs.unlink(`uploads/${req.file.filename}`, () => {});
     res.json({ success: false, message: "Error updating cuisine" });
   }
 };
@@ -58,6 +86,10 @@ const deleteCuisine = async (req, res) => {
         success: false, 
         message: "Cuisine is referenced by existing restaurants" 
       });
+    }
+
+    if (cuisine.image) {
+      fs.unlink(`uploads/${cuisine.image}`, () => {});
     }
 
     await cuisineModel.findByIdAndDelete(req.params.id);

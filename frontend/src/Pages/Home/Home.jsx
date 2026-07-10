@@ -8,12 +8,12 @@ import {
   FiZap, FiPackage, FiMessageSquare, FiUser, FiActivity 
 } from 'react-icons/fi';
 import { StoreContext } from '../../context/StoreContext';
-import { menu_list } from '../../assets/assets';
 import FoodItem from '../../components/FoodItem/FoodItem';
 import RestaurantCard from '../../components/RestaurantCard/RestaurantCard';
 import BannerCarousel from '../../components/BannerCarousel/BannerCarousel';
 import { Button, Container, Card, Skeleton } from '../../components/ui';
 import { BRAND } from '../../constants/brand';
+import ReviewsWidget from '../../components/Reviews/ReviewsWidget';
 
 // ─── Shared Dynamic Location Selector for Search Centerpiece ───
 const HomeLocationSelector = ({ url, token }) => {
@@ -342,50 +342,100 @@ const PopularCategories = () => {
 // ─── Categories Section ────────────────────────────────────
 const CategoriesSection = () => {
   const navigate = useNavigate();
+  const { url } = useContext(StoreContext);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${url}/api/categories`);
+        if (res.data.success) setCategories(res.data.data);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategories();
+  }, [url]);
+
+  const featuredCategories = categories.filter(c => c.featured === true).slice(0, 10);
+
   return (
     <section className="py-24 bg-white">
       <Container>
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Categories</span>
+              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Explore Categories</span>
             </div>
             <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
               Explore your <span className="text-gradient-emerald">cravings</span>
             </h2>
           </div>
           <Button
-            onClick={() => navigate('/menu')}
+            onClick={() => navigate('/categories')}
             variant="outline"
             size="sm"
             rightIcon={<FiChevronRight />}
             className="font-bold text-slate-600 hover:border-emerald-300"
           >
-            View Full Menu
+            Explore All Categories
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-          {menu_list.map((item, index) => (
-            <motion.button
-              key={index}
-              whileHover={{ y: -5, scale: 1.02 }}
-              onClick={() => navigate(`/menu?category=${item.menu_name}`)}
-              className="group flex flex-col items-center gap-3.5 p-4 rounded-3xl border border-slate-100/60 bg-slate-50 hover:bg-white hover:border-emerald-250 hover:shadow-[0_15px_30px_rgba(16,185,129,0.05)] transition-all duration-300"
-            >
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-sm bg-white">
-                <img
-                  src={item.menu_image}
-                  alt={item.menu_name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+        {/* Loading skeletons */}
+        {loading && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            {[1,2,3,4,5,6,7,8].map(i => (
+              <div key={i} className="flex flex-col items-center gap-3.5 p-4 rounded-3xl border border-slate-100 bg-slate-50 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-slate-200" />
+                <div className="h-3 w-14 rounded bg-slate-200" />
               </div>
-              <span className="text-xs font-bold text-slate-700 group-hover:text-emerald-600 tracking-tight text-center">
-                {item.menu_name}
-              </span>
-            </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && featuredCategories.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 bg-slate-50 border border-slate-100 rounded-3xl text-center p-8 max-w-xl mx-auto">
+            <FiPackage size={32} className="text-slate-350 mb-3.5" />
+            <h3 className="font-bold text-slate-705 text-sm">No featured categories</h3>
+            <p className="text-xs text-slate-400 mt-1">Please explore our menu catalog directly or check back later.</p>
+          </div>
+        )}
+
+        {/* Dynamic category grid */}
+        {!loading && featuredCategories.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            {featuredCategories.map((item) => (
+              <motion.button
+                key={item._id}
+                whileHover={{ y: -5, scale: 1.02 }}
+                onClick={() => navigate(`/menu?category=${item.name}`)}
+                className="group flex flex-col items-center gap-3.5 p-4 rounded-3xl border border-slate-100/60 bg-slate-50 hover:bg-white hover:border-emerald-250 hover:shadow-[0_15px_30px_rgba(16,185,129,0.05)] transition-all duration-300"
+              >
+                <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden shadow-sm bg-white">
+                  {item.image ? (
+                    <img
+                      src={`${url}/images/${item.image}`}
+                      alt={item.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300">
+                      <FiPackage size={22} />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-bold text-slate-700 group-hover:text-emerald-600 tracking-tight text-center">
+                  {item.name}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        )}
       </Container>
     </section>
   );
@@ -469,32 +519,75 @@ const FeaturedRestaurants = () => {
 const FeaturedFoods = () => {
   const { food_list } = useContext(StoreContext);
   const navigate = useNavigate();
-  const featured = food_list.slice(0, 8); // Slice top 8 items
+  const [activeTab, setActiveTab] = useState("popular"); // "popular" | "rated" | "new" | "offers"
+
+  // Process food discovery lists
+  const getDiscoveryItems = () => {
+    let items = [...food_list];
+    if (activeTab === "popular") {
+      // Sort by deterministic rating count descending
+      items.sort((a, b) => {
+        const aCount = a.reviewCount || 0;
+        const bCount = b.reviewCount || 0;
+        return bCount - aCount;
+      });
+    } else if (activeTab === "rated") {
+      // Sort by average rating descending
+      items.sort((a, b) => {
+        const aRating = a.averageRating || 0;
+        const bRating = b.averageRating || 0;
+        return bRating - aRating;
+      });
+    } else if (activeTab === "new") {
+      // Sort by newest addition
+      items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (activeTab === "offers") {
+      // Filter items with positive discounts
+      items = items.filter(item => item.discount > 0);
+    }
+    return items.slice(0, 8); // Display top 8 items
+  };
+
+  const discoveryItems = getDiscoveryItems();
 
   return (
     <section className="py-24 bg-white">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+        {/* Header Block */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Popular</span>
+              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Discovery</span>
             </div>
             <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
-              Trending <span className="text-gradient-emerald">dishes</span> this week
+              Explore our <span className="text-gradient-emerald font-black">signature dishes</span>
             </h2>
           </div>
-          <Button
-            onClick={() => navigate('/menu')}
-            variant="outline"
-            size="sm"
-            rightIcon={<FiChevronRight />}
-            className="font-bold text-slate-600 hover:border-emerald-300"
-          >
-            Browse Full Menu
-          </Button>
+          
+          {/* Discovery Selector Tabs */}
+          <div className="flex flex-wrap gap-2 bg-slate-50 border border-slate-100 p-1.5 rounded-2xl md:self-end">
+            {[
+              { id: "popular", label: "Popular" },
+              { id: "rated", label: "Highest Rated" },
+              { id: "new", label: "Recently Added" },
+              { id: "offers", label: "Special Offers" }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  activeTab === tab.id 
+                    ? "bg-slate-900 text-white shadow-sm" 
+                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {featured.length === 0 ? (
+        {food_list.length === 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(idx => (
               <div key={idx} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
@@ -504,9 +597,15 @@ const FeaturedFoods = () => {
               </div>
             ))}
           </div>
+        ) : discoveryItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-slate-50/50 border border-dashed border-slate-200 rounded-3xl p-6">
+            <span className="text-2xl mb-2">🍽️</span>
+            <h3 className="font-poppins font-bold text-slate-800 text-sm mb-1">No items found</h3>
+            <p className="text-slate-400 text-xs max-w-xs">There are currently no items under this showcase. Explore other categories or check back later!</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {featured.map(item => (
+            {discoveryItems.map(item => (
               <FoodItem 
                 key={item._id} 
                 id={item._id} 
@@ -515,6 +614,14 @@ const FeaturedFoods = () => {
                 price={item.price} 
                 image={item.image} 
                 category={item.category}
+                preparationTime={item.preparationTime}
+                isVeg={item.isVeg}
+                calories={item.calories}
+                restaurantId={item.restaurantId}
+                isAvailable={item.isAvailable}
+                averageRating={item.averageRating}
+                reviewCount={item.reviewCount}
+                discount={item.discount}
               />
             ))}
           </div>
@@ -530,7 +637,7 @@ const SpecialOffers = () => {
   const offers = [
     {
       title: "First Order Special",
-      desc: "Get free delivery plus 20% discount on orders above $15.",
+      desc: "Get free delivery plus 20% discount on orders above ₹199.",
       code: "WELCOME20",
       gradient: "from-emerald-500 to-teal-600",
       badge: "Save 20%",
@@ -729,78 +836,13 @@ const HowItWorks = () => {
   );
 };
 
-// ─── Customer Testimonials Section (Demo Content) ────────────
+// ─── Platform Reviews Section ────────────
 const Testimonials = () => {
-  const reviews = [
-    {
-      initials: "JS",
-      name: "Jessica Smith",
-      role: "Product Manager",
-      text: "The delivery tracking is incredibly responsive. CraveArc has elevated our team lunches.",
-      rating: 5,
-    },
-    {
-      initials: "DR",
-      name: "David Ross",
-      role: "Full Stack Engineer",
-      text: "Premium aesthetic layout and very fast checkouts. The best meal delivery app in the city.",
-      rating: 5,
-    },
-    {
-      initials: "MA",
-      name: "Marcus Aurelius",
-      role: "Creative Director",
-      text: "Visual quality matches the chef quality. Simply unmatched service consistency.",
-      rating: 5,
-    },
-  ];
-
   return (
     <section className="py-24 bg-white border-b border-slate-100">
       <Container>
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-4">
-            <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Reviews</span>
-          </div>
-          <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
-            Loved by food enthusiasts
-          </h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-3.5">
-            🔒 Testimonials Preview (Demo Content)
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {reviews.map((r, idx) => (
-            <Card
-              key={idx}
-              variant="default"
-              radius="2xl"
-              padding="lg"
-              className="border border-slate-100 hover:shadow-card transition-all duration-300 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(r.rating)].map((_, i) => (
-                    <FiStar key={i} size={13} className="text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500 italic leading-relaxed font-semibold mb-6">
-                  &ldquo;{r.text}&rdquo;
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-450 to-teal-500 flex items-center justify-center text-white font-poppins font-extrabold text-xs">
-                  {r.initials}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 leading-none mb-1">{r.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">{r.role}</p>
-                </div>
-              </div>
-            </Card>
-          ))}
+        <div className="max-w-4xl mx-auto">
+          <ReviewsWidget title="Platform Reviews" domain="platform" />
         </div>
       </Container>
     </section>
