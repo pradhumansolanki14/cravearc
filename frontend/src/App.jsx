@@ -29,6 +29,9 @@ import RestaurantsPage from './Pages/Restaurants/RestaurantsPage'
 import RestaurantDetail from './Pages/RestaurantDetail/RestaurantDetail'
 import BecomePartnerPage from './Pages/BecomePartner/BecomePartnerPage'
 import PartnerLandingPage from './Pages/PartnerLanding/PartnerLandingPage'
+import VerifyEmailPage from './Pages/VerifyEmail/VerifyEmailPage'
+import ForgotPasswordPage from './Pages/ForgotPassword/ForgotPasswordPage'
+import ResetPasswordPage from './Pages/ResetPassword/ResetPasswordPage'
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false)
@@ -121,6 +124,11 @@ const App = () => {
         {/* Partner landing page → registration funnel */}
         <Route path='/become-a-partner' element={<PartnerLandingPage />} />
         <Route path='/vendor-register'  element={<BecomePartnerPage />} />
+
+        {/* Production Authentication (P3-R2) */}
+        <Route path='/verify-email' element={<VerifyEmailPage />} />
+        <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+        <Route path='/reset-password' element={<ResetPasswordPage />} />
 
         {/* 404 */}
         <Route path='*' element={<NotFound />} />

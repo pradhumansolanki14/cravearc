@@ -8,6 +8,8 @@ import settingsModel from "../models/settingsModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import validator from "validator";
+import crypto from "crypto";
+import { sendForgotPasswordEmail, sendPasswordChangedEmail } from "../services/emailService.js";
 
 const createAdminToken = (id) => jwt.sign({ id, isAdmin: true }, process.env.JWT_SECRET);
 
@@ -298,9 +300,84 @@ const toggleUserActive = async (req, res) => {
   }
 };
 
+// ─── Forgot Password ───────────────────────────────────────────
+const forgotAdminPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) return res.json({ success: false, message: "Email is required" });
+
+    const admin = await adminModel.findOne({ email: email.toLowerCase() });
+    if (!admin) {
+      // Return success for security, not disclosing account existence
+      return res.json({ success: true, message: "If that email is registered, we have sent a reset password link" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    admin.resetPasswordToken = resetToken;
+    admin.resetPasswordExpiry = Date.now() + 60 * 60 * 1000; // 1 hour
+    await admin.save();
+
+    await sendForgotPasswordEmail(admin.email, admin.name, resetToken, admin.role);
+
+    res.json({ success: true, message: "If that email is registered, we have sent a reset password link" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error sending reset email" });
+  }
+};
+
+// ─── Reset Password ────────────────────────────────────────────
+const resetAdminPassword = async (req, res) => {
+  const { token, password, confirmPassword } = req.body;
+  try {
+    if (!token || !password || !confirmPassword) {
+      return res.json({ success: false, message: "All fields are required" });
+    }
+
+    if (password !== confirmPassword) {
+      return res.json({ success: false, message: "Passwords do not match" });
+    }
+
+    if (password.length < 8) {
+      return res.json({ success: false, message: "Password must be at least 8 characters long" });
+    }
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    if (!hasLetter || !hasNumber) {
+      return res.json({ success: false, message: "Password must contain both letters and numbers" });
+    }
+
+    const admin = await adminModel.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpiry: { $gt: Date.now() }
+    });
+
+    if (!admin) {
+      return res.json({ success: false, message: "Invalid or expired password reset link" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    admin.password = await bcrypt.hash(password, salt);
+    admin.resetPasswordToken = null;
+    admin.resetPasswordExpiry = null;
+    await admin.save();
+
+    try {
+      await sendPasswordChangedEmail(admin.email, admin.name);
+    } catch (err) {
+      console.error("Password reset confirmation email failed to send:", err);
+    }
+
+    res.json({ success: true, message: "Your password has been reset successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error resetting password" });
+  }
+};
+
 export {
   loginAdmin, registerSuperAdmin, registerVendor,
   getAdminProfile, listVendors, approveVendor,
   listUsers, getUserDetail, platformStats,
-  toggleUserActive,
+  toggleUserActive, forgotAdminPassword, resetAdminPassword,
 };

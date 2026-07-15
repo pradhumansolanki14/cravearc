@@ -4,7 +4,7 @@ import {
   loginAdmin, registerSuperAdmin, registerVendor,
   getAdminProfile, listVendors, approveVendor,
   listUsers, getUserDetail, platformStats,
-  toggleUserActive,
+  toggleUserActive, forgotAdminPassword, resetAdminPassword,
 } from "../controllers/adminController.js";
 import { adminDeleteReview, replyToReview } from "../controllers/reviewController.js";
 import vendorOnly from "../middlewares/vendorOnly.js";
@@ -15,6 +15,8 @@ const adminRouter = express.Router();
 adminRouter.post("/login",              loginAdmin);
 adminRouter.post("/register",           registerSuperAdmin);   // secret key guarded
 adminRouter.post("/vendor/register",    registerVendor);       // public vendor signup
+adminRouter.post("/forgot-password",    forgotAdminPassword);
+adminRouter.post("/reset-password",     resetAdminPassword);
 
 // ─── Protected (any admin) ────────────────────────────────────
 adminRouter.get("/profile",             adminAuthMiddleware, getAdminProfile);

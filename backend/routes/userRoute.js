@@ -1,5 +1,18 @@
 import express from 'express'
-import { loginUser, registerUser, getProfile, updateProfile, changePassword, getAddresses, addAddress, deleteAddress } from "../controllers/userController.js"
+import { 
+  loginUser, 
+  registerUser, 
+  getProfile, 
+  updateProfile, 
+  changePassword, 
+  getAddresses, 
+  addAddress, 
+  deleteAddress,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword
+} from "../controllers/userController.js"
 import authMiddleware from "../middlewares/auth.js"
 
 const userRouter = express.Router()
@@ -12,5 +25,11 @@ userRouter.post("/change-password", authMiddleware, changePassword)
 userRouter.get("/addresses", authMiddleware, getAddresses)
 userRouter.post("/addresses", authMiddleware, addAddress)
 userRouter.delete("/addresses/:addressId", authMiddleware, deleteAddress)
+
+// Production Authentication (P3-R2)
+userRouter.post("/verify-email", verifyEmail)
+userRouter.post("/resend-verification", resendVerification)
+userRouter.post("/forgot-password", forgotPassword)
+userRouter.post("/reset-password", resetPassword)
 
 export default userRouter

@@ -1,9 +1,10 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   FiX, FiUser, FiMail, FiLock, FiArrowRight,
   FiCheck, FiEye, FiEyeOff, FiLoader,
-  FiZap, FiShield, FiStar,
+  FiZap, FiShield, FiStar, FiPhone, FiInfo
 } from 'react-icons/fi';
 import axios from 'axios';
 import { StoreContext } from '../../context/StoreContext';
@@ -53,21 +54,42 @@ const Field = ({ icon, name, type = 'text', placeholder, value, onChange, requir
 
 /* ════════════════════════════════════════════════════════════
    LOGIN POPUP
-════════════════════════════════════════════════════════════ */
+   ════════════════════════════════════════════════════════════ */
 const LoginPopup = ({ setShowLogin, initialState }) => {
   const { url, setToken } = useContext(StoreContext);
+  const navigate = useNavigate();
   const defaultTab = initialState === 'Sign Up' ? 'Sign Up' : 'Login';
   const [currState, setCurrState] = useState(defaultTab);
-  const [data, setData]           = useState({ name: '', email: '', password: '' });
-  const [agree, setAgree]         = useState(false);
-  const [loading, setLoading]     = useState(false);
+  
+  // Registration and login states
+  const [data, setData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: ''
+  });
+  
+  const [agree, setAgree]               = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const [resending, setResending]       = useState(false);
   const toast = useToast();
   const cardRef = useRef(null);
 
   /* Reset fields on tab switch */
   useEffect(() => {
-    setData({ name: '', email: '', password: '' });
+    setData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: ''
+    });
     setAgree(false);
+    setUnverifiedEmail(null);
   }, [currState]);
 
   /* Trap focus inside modal */
@@ -89,22 +111,79 @@ const LoginPopup = ({ setShowLogin, initialState }) => {
     setData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    try {
+      const res = await axios.post(`${url}/api/user/resend-verification`, { email: unverifiedEmail });
+      if (res.data.success) {
+        toast.success('Verification email sent successfully!');
+        setUnverifiedEmail(null);
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (err) {
+      toast.error('Failed to resend verification email.');
+    } finally {
+      setResending(false);
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (currState === 'Sign Up' && !agree) {
-      toast.error('Please agree to the Terms of Use & Privacy Policy.');
-      return;
+    if (currState === 'Sign Up') {
+      if (!agree) {
+        toast.error('Please agree to the Terms of Use & Privacy Policy.');
+        return;
+      }
+      if (data.password !== data.confirmPassword) {
+        toast.error('Passwords do not match.');
+        return;
+      }
+      if (data.password.length < 8) {
+        toast.error('Password must be at least 8 characters long.');
+        return;
+      }
+      const hasLetter = /[a-zA-Z]/.test(data.password);
+      const hasNumber = /[0-9]/.test(data.password);
+      if (!hasLetter || !hasNumber) {
+        toast.error('Password must contain both letters and numbers.');
+        return;
+      }
     }
+
     setLoading(true);
+    setUnverifiedEmail(null);
     const endpoint = currState === 'Login' ? '/api/user/login' : '/api/user/register';
+    
+    // Format request body based on active tab
+    const reqBody = currState === 'Login' 
+      ? { email: data.email, password: data.password }
+      : { 
+          firstName: data.firstName, 
+          lastName: data.lastName, 
+          email: data.email, 
+          phone: data.phone, 
+          password: data.password, 
+          confirmPassword: data.confirmPassword 
+        };
+
     try {
-      const res = await axios.post(`${url}${endpoint}`, data);
+      const res = await axios.post(`${url}${endpoint}`, reqBody);
       if (res.data.success) {
-        setToken(res.data.token);
-        localStorage.setItem('token', res.data.token);
-        toast.success(currState === 'Login' ? 'Logged in successfully!' : 'Account created successfully!');
-        setShowLogin(false);
+        if (currState === 'Login') {
+          setToken(res.data.token);
+          localStorage.setItem('token', res.data.token);
+          toast.success('Logged in successfully!');
+          setShowLogin(false);
+        } else {
+          toast.success(res.data.message || 'Verification link sent to your email!');
+          setCurrState('Login'); // Go to login to await verification
+        }
       } else {
+        if (res.data.requiresVerification) {
+          setUnverifiedEmail(res.data.email);
+        }
         toast.error(res.data.message);
       }
     } catch (err) {
@@ -264,36 +343,67 @@ const LoginPopup = ({ setShowLogin, initialState }) => {
                     transition={{ duration: 0.15 }}
                     className="space-y-3"
                   >
-                    {/* Name — Sign Up only */}
+                    {/* First Name & Last Name — Sign Up only */}
                     {isSignUp && (
-                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Full Name</label>
-                        <Field
-                          icon={<FiUser size={13} />}
-                          name="name"
-                          placeholder="John Doe"
-                          value={data.name}
-                          onChange={onChangeHandler}
-                          required
-                          autoFocus={isSignUp}
-                        />
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">First Name</label>
+                          <Field
+                            icon={<FiUser size={13} />}
+                            name="firstName"
+                            placeholder="John"
+                            value={data.firstName}
+                            onChange={onChangeHandler}
+                            required
+                            autoFocus={isSignUp}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Last Name</label>
+                          <Field
+                            icon={<FiUser size={13} />}
+                            name="lastName"
+                            placeholder="Doe"
+                            value={data.lastName}
+                            onChange={onChangeHandler}
+                            required
+                          />
+                        </div>
                       </div>
                     )}
 
-                    {/* Email */}
+                    {/* Email / Identifier */}
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Email Address</label>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
+                        {isSignUp ? 'Email Address' : 'Email or Phone Number'}
+                      </label>
                       <Field
                         icon={<FiMail size={13} />}
                         name="email"
-                        type="email"
-                        placeholder="you@example.com"
+                        type={isSignUp ? 'email' : 'text'}
+                        placeholder={isSignUp ? 'you@example.com' : 'you@example.com or +15550000000'}
                         value={data.email}
                         onChange={onChangeHandler}
                         required
                         autoFocus={!isSignUp}
                       />
                     </div>
+
+                    {/* Phone — Sign Up only */}
+                    {isSignUp && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Phone Number</label>
+                        <Field
+                          icon={<FiPhone size={13} />}
+                          name="phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          value={data.phone}
+                          onChange={onChangeHandler}
+                          required
+                        />
+                      </div>
+                    )}
 
                     {/* Password */}
                     <div>
@@ -308,8 +418,58 @@ const LoginPopup = ({ setShowLogin, initialState }) => {
                         required
                       />
                     </div>
+
+                    {/* Confirm Password — Sign Up only */}
+                    {isSignUp && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Confirm Password</label>
+                        <Field
+                          icon={<FiLock size={13} />}
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="••••••••"
+                          value={data.confirmPassword}
+                          onChange={onChangeHandler}
+                          required
+                        />
+                      </div>
+                    )}
+
+                    {/* Forgot Password — Login only */}
+                    {!isSignUp && (
+                      <div className="flex justify-end pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogin(false);
+                            navigate('/forgot-password');
+                          }}
+                          className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer focus:outline-none"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 </AnimatePresence>
+
+                {/* Unverified email resend button */}
+                {unverifiedEmail && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-amber-800 text-[11px] font-semibold animate-fadeUp">
+                    <FiInfo size={14} className="mt-0.5 text-amber-500 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p>Your email is not verified yet.</p>
+                      <button
+                        type="button"
+                        disabled={resending}
+                        onClick={handleResendVerification}
+                        className="text-emerald-700 font-bold hover:underline mt-1 focus:outline-none disabled:opacity-50"
+                      >
+                        {resending ? 'Sending link...' : 'Resend Verification Email'}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Terms checkbox — Sign Up only */}
                 {isSignUp && (
