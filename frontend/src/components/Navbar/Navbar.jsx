@@ -26,6 +26,7 @@ import {
 import axios from "axios";
 import { StoreContext } from "../../context/StoreContext";
 import { BrandLogo, BrandText } from "../ui";
+import NotificationCenter from "../NotificationCenter/NotificationCenter";
 
 /* ────────────────────────────────────────────────────────────
    NAV LINKS  — marketplace-grade, not tutorial-grade
@@ -668,6 +669,11 @@ const Navbar = ({ setShowLogin }) => {
                   </span>
                 )}
               </Link>
+
+              {/* Notification Center */}
+              {token && (
+                <NotificationCenter isHome={isHome} scrolled={scrolled} />
+              )}
 
               {/* Auth — logged out */}
               {!token && (

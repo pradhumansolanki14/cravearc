@@ -4,7 +4,7 @@ import { useAdmin } from '../../context/AdminContext'
 import { 
   FiGrid, FiList, FiPlusCircle, FiFolder, FiGlobe, 
   FiImage, FiTag, FiShoppingBag, FiUsers, FiMessageSquare, 
-  FiSettings, FiUser, FiActivity, FiArrowLeft, FiArrowRight, FiX, FiCheckCircle
+  FiSettings, FiUser, FiActivity, FiArrowLeft, FiArrowRight, FiX, FiCheckCircle, FiSend
 } from 'react-icons/fi'
 
 const superAdminGroups = [
@@ -30,7 +30,8 @@ const superAdminGroups = [
       { to: '/users', label: 'Users', sub: 'Accounts', icon: <FiUsers size={15} /> },
       { to: '/coupons', label: 'Coupons', sub: 'Discounts', icon: <FiTag size={15} /> },
       { to: '/orders', label: 'All Orders', sub: 'Logistics', icon: <FiShoppingBag size={15} /> },
-      { to: '/platform-reviews', label: 'Reviews', sub: 'Feedback', icon: <FiMessageSquare size={15} /> }
+      { to: '/platform-reviews', label: 'Reviews', sub: 'Feedback', icon: <FiMessageSquare size={15} /> },
+      { to: '/announcements', label: 'Announcements', sub: 'Broadcasts', icon: <FiSend size={15} /> }
     ]
   },
   {

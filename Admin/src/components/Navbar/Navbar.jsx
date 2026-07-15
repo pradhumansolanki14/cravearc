@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAdmin } from '../../context/AdminContext'
 import { BrandLogo } from '../ui'
+import NotificationCenter from '../NotificationCenter/NotificationCenter'
 import { 
   FiMenu, FiSearch, FiBell, FiLogOut, FiActivity, 
   FiChevronRight, FiCommand, FiSettings, FiChevronsRight 
@@ -84,13 +85,7 @@ const Navbar = ({ mobileOpen, setMobileOpen }) => {
         <div className="h-5 w-px bg-zinc-200/60 hidden sm:block" />
 
         {/* Notifications Icon with active pill */}
-        <button 
-          className="relative w-8 h-8 rounded-lg hover:bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-500 hover:text-zinc-800 transition-colors"
-          aria-label="View notifications"
-        >
-          <FiBell size={14} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-        </button>
+        <NotificationCenter />
 
         {/* Profile Avatar & logout trigger */}
         <div className="flex items-center gap-3">

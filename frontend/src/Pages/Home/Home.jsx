@@ -14,6 +14,7 @@ import BannerCarousel from '../../components/BannerCarousel/BannerCarousel';
 import { Button, Container, Card, Skeleton } from '../../components/ui';
 import { BRAND } from '../../constants/brand';
 import ReviewsWidget from '../../components/Reviews/ReviewsWidget';
+import AnnouncementsFeed from '../../components/AnnouncementsFeed/AnnouncementsFeed';
 import { toast } from 'react-hot-toast';
 
 // ─── Shared Dynamic Location Selector for Search Centerpiece ───
@@ -985,6 +986,9 @@ const Home = ({ setShowLogin }) => {
 
       {/* Quick Search Categories */}
       <PopularCategories />
+
+      {/* Live System Announcements Broadcast */}
+      <AnnouncementsFeed />
 
       {/* Dynamic Banner Carousel wrapper */}
       <div className="py-8 bg-white border-b border-slate-50">

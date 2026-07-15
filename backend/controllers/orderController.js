@@ -1,9 +1,12 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import adminModel from "../models/adminModel.js";
 import Stripe from "stripe";
 import couponModel from "../models/couponModel.js";
 import settingsModel from "../models/settingsModel.js";
 import restaurantModel from "../models/restaurantModel.js";
+import { createNotification } from "../helpers/notificationHelper.js";
+import { sendOrderConfirmationEmail, sendOrderCancelledEmail } from "../services/emailService.js";
 
 // Lazily initialized so dotenv is loaded first
 let stripe;
@@ -140,21 +143,51 @@ const verifyOrder = async (req, res) => {
       if (session.payment_status !== "paid") {
         return res.json({ success: false, message: "Payment not confirmed" });
       }
-      await orderModel.findByIdAndUpdate(session.metadata.orderId, { payment: true, status: "Food Processing" });
       
+      const order = await orderModel.findByIdAndUpdate(session.metadata.orderId, { payment: true, status: "Food Processing" }, { new: true });
       const user = await userModel.findById(session.metadata.userId);
-      if (user) {
-        const order = await orderModel.findById(session.metadata.orderId);
-        if (order && Array.isArray(order.items)) {
-          const cartData = user.cartData || {};
+      
+      if (order && user) {
+        // 1. Notify Customer
+        await createNotification({
+          userId: user._id,
+          title: "Order Confirmed",
+          message: `Your order #${order._id.toString().slice(-6)} has been confirmed!`,
+          type: "order",
+          link: "/myorders",
+          role: "customer"
+        });
+
+        // 2. Notify Vendor
+        const restaurant = await restaurantModel.findById(order.restaurantId);
+        if (restaurant) {
+          await createNotification({
+            userId: restaurant.ownerId,
+            title: "New Order Received",
+            message: `New order #${order._id.toString().slice(-6)} from ${user.name}!`,
+            type: "order",
+            link: "/orders",
+            role: "vendor"
+          });
+        }
+
+        // 3. Send confirmation email
+        try {
+          await sendOrderConfirmationEmail(user.email, user.name, order._id.toString(), order.amount, order.items || []);
+        } catch (err) {
+          console.error("Failed to send order confirmation email:", err);
+        }
+
+        // Clear user cart
+        const cartData = user.cartData || {};
+        if (Array.isArray(order.items)) {
           order.items.forEach(item => {
             delete cartData[item._id || item.id];
           });
-          await userModel.findByIdAndUpdate(session.metadata.userId, { cartData });
-        } else {
-          await userModel.findByIdAndUpdate(session.metadata.userId, { cartData: {} });
         }
+        await userModel.findByIdAndUpdate(session.metadata.userId, { cartData });
       }
+      
       return res.json({ success: true, message: "Order confirmed" });
     }
     return res.json({ success: false, message: "Payment failed" });
@@ -192,7 +225,88 @@ const listOrders = async (req, res) => {
 // ─── Update Status (Admin) ────────────────────────────────────
 const updateStatus = async (req, res) => {
   try {
-    await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
+    const { orderId, status } = req.body;
+    const order = await orderModel.findByIdAndUpdate(orderId, { status }, { new: true });
+    if (!order) return res.json({ success: false, message: "Order not found" });
+
+    // Fetch user and restaurant details
+    const user = await userModel.findById(order.userId);
+    const restaurant = await restaurantModel.findById(order.restaurantId);
+
+    if (user) {
+      // 1. Create In-App Notification for Customer
+      let notifTitle = "";
+      let notifMessage = "";
+      if (status === "Food Processing") {
+        notifTitle = "Preparing Your Meal";
+        notifMessage = `Your order #${orderId.toString().slice(-6)} is now being prepared.`;
+      } else if (status === "Out for Delivery") {
+        notifTitle = "Out for Delivery";
+        notifMessage = `Your order #${orderId.toString().slice(-6)} is out for delivery!`;
+      } else if (status === "Delivered") {
+        notifTitle = "Order Delivered";
+        notifMessage = `Your order #${orderId.toString().slice(-6)} has been delivered. Enjoy!`;
+      } else if (status === "Cancelled") {
+        notifTitle = "Order Cancelled";
+        notifMessage = `Your order #${orderId.toString().slice(-6)} has been cancelled.`;
+      }
+
+      if (notifTitle) {
+        await createNotification({
+          userId: user._id,
+          title: notifTitle,
+          message: notifMessage,
+          type: "order",
+          link: "/myorders",
+          role: "customer"
+        });
+      }
+
+      // 2. Extra triggers on delivery or cancel
+      if (status === "Delivered") {
+        // Review reminder notification only (no email mandatory)
+        await createNotification({
+          userId: user._id,
+          title: "Review Your Order",
+          message: `Please share your feedback for order #${orderId.toString().slice(-6)}.`,
+          type: "review",
+          link: "/myorders",
+          role: "customer"
+        });
+      }
+
+      if (status === "Cancelled") {
+        // Notify Vendor
+        if (restaurant) {
+          await createNotification({
+            userId: restaurant.ownerId,
+            title: "Order Cancelled",
+            message: `Order #${orderId.toString().slice(-6)} has been cancelled.`,
+            type: "order",
+            link: "/orders",
+            role: "vendor"
+          });
+
+          // Send cancel email to Vendor
+          const vendor = await adminModel.findById(restaurant.ownerId);
+          if (vendor && vendor.email) {
+            try {
+              await sendOrderCancelledEmail(vendor.email, vendor.name, orderId.toString());
+            } catch (err) {
+              console.error("Failed to send vendor order cancelled email:", err);
+            }
+          }
+        }
+
+        // Send cancel email to Customer
+        try {
+          await sendOrderCancelledEmail(user.email, user.name, orderId.toString());
+        } catch (err) {
+          console.error("Failed to send customer order cancelled email:", err);
+        }
+      }
+    }
+
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
     console.log(error);

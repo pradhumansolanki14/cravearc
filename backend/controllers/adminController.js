@@ -9,7 +9,14 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import validator from "validator";
 import crypto from "crypto";
-import { sendForgotPasswordEmail, sendPasswordChangedEmail } from "../services/emailService.js";
+import { 
+  sendForgotPasswordEmail, 
+  sendPasswordChangedEmail,
+  sendVendorReceivedEmail,
+  sendVendorApprovedEmail,
+  sendVendorRejectedEmail
+} from "../services/emailService.js";
+import { createNotification } from "../helpers/notificationHelper.js";
 
 const createAdminToken = (id) => jwt.sign({ id, isAdmin: true }, process.env.JWT_SECRET);
 
@@ -136,6 +143,23 @@ const registerVendor = async (req, res) => {
     // Step 4: Commit — both documents are now persisted
     await session.commitTransaction();
 
+    // Notify SuperAdmins of new vendor application
+    await createNotification({
+      userId: null,
+      title: "New Vendor Application",
+      message: `New vendor "${restaurantName}" is pending approval.`,
+      type: "vendor",
+      link: "/restaurants",
+      role: "superadmin"
+    });
+
+    // Send transactional emails
+    try {
+      await sendVendorReceivedEmail(email, name, restaurantName);
+    } catch (err) {
+      console.error("Failed to send vendor received emails:", err);
+    }
+
     res.json({
       success: true,
       message: "Registration successful! Your account is pending approval by the platform admin. You will be notified once approved.",
@@ -184,9 +208,33 @@ const approveVendor = async (req, res) => {
     vendor.isApproved = approved;
     await vendor.save();
 
-    // Sync restaurant approval status
+    let restaurantName = "your restaurant";
     if (vendor.restaurantId) {
-      await restaurantModel.findByIdAndUpdate(vendor.restaurantId, { isApproved: approved });
+      const rest = await restaurantModel.findByIdAndUpdate(vendor.restaurantId, { isApproved: approved }, { new: true });
+      if (rest) restaurantName = rest.name;
+    }
+
+    // 1. Create In-App Notification for the Vendor
+    await createNotification({
+      userId: vendor._id,
+      title: approved ? "Application Approved" : "Application Status Update",
+      message: approved 
+        ? `Congratulations! Your partner account for "${restaurantName}" has been approved.`
+        : `Your application for "${restaurantName}" was not approved.`,
+      type: "vendor",
+      link: "/dashboard",
+      role: "vendor"
+    });
+
+    // 2. Send transactional email
+    try {
+      if (approved) {
+        await sendVendorApprovedEmail(vendor.email, vendor.name, restaurantName);
+      } else {
+        await sendVendorRejectedEmail(vendor.email, vendor.name, restaurantName);
+      }
+    } catch (err) {
+      console.error("Failed to send vendor approval/rejection email:", err);
     }
 
     res.json({ success: true, message: `Vendor ${approved ? "approved" : "rejected"}` });

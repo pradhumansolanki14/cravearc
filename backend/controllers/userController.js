@@ -7,8 +7,10 @@ import {
   sendVerificationEmail, 
   sendForgotPasswordEmail, 
   sendPasswordChangedEmail, 
-  sendWelcomeEmail 
+  sendWelcomeEmail,
+  sendContactFormEmails
 } from "../services/emailService.js";
+import { createNotification } from "../helpers/notificationHelper.js";
 
 // ─── Token helper ────────────────────────────────────────────
 const createToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET)
@@ -358,6 +360,34 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+// ─── Contact Form ─────────────────────────────────────────────
+const submitContactForm = async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  try {
+    if (!name || !email || !subject || !message) {
+      return res.json({ success: false, message: "All fields are required" });
+    }
+
+    // 1. Create a platform notification for Platform Admins (role: superadmin)
+    await createNotification({
+      userId: null, // broadcast to all superadmins
+      title: `Support: ${subject}`,
+      message: `Support message from ${name} (${email}): ${message.slice(0, 60)}${message.length > 60 ? '...' : ''}`,
+      type: "platform",
+      link: "/settings", 
+      role: "superadmin"
+    });
+
+    // 2. Dispatch transactional emails (Customer auto-reply & Admin alert)
+    await sendContactFormEmails(name, email, subject, message);
+
+    res.json({ success: true, message: "Your message has been sent successfully!" });
+  } catch (error) {
+    console.error("Error submitting contact form:", error);
+    res.json({ success: false, message: "Error submitting contact form" });
+  }
+};
+
 export { 
   loginUser, 
   registerUser, 
@@ -370,5 +400,6 @@ export {
   verifyEmail,
   resendVerification,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  submitContactForm
 }

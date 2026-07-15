@@ -11,7 +11,8 @@ import {
   verifyEmail,
   resendVerification,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  submitContactForm
 } from "../controllers/userController.js"
 import authMiddleware from "../middlewares/auth.js"
 
@@ -31,5 +32,8 @@ userRouter.post("/verify-email", verifyEmail)
 userRouter.post("/resend-verification", resendVerification)
 userRouter.post("/forgot-password", forgotPassword)
 userRouter.post("/reset-password", resetPassword)
+
+// Production Notification & Contact (P3-R3)
+userRouter.post("/contact", submitContactForm)
 
 export default userRouter

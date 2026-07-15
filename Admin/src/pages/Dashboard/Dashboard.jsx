@@ -58,6 +58,7 @@ const StatMetric = ({ label, value, description, sparkPoints, trend }) => (
 const Dashboard = ({ url }) => {
   const [stats, setStats] = useState(null)
   const [platformStats, setPlatformStats] = useState(null)
+  const [announcements, setAnnouncements] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { adminRole, formatPrice } = useAdmin()
@@ -65,7 +66,20 @@ const Dashboard = ({ url }) => {
 
   useEffect(() => {
     fetchStats()
+    fetchAnnouncements()
   }, [adminRole])
+
+  const fetchAnnouncements = async () => {
+    try {
+      const role = adminRole === 'superadmin' ? 'superadmin' : 'vendor'
+      const res = await axios.get(url + `/api/announcements?role=${role}`)
+      if (res.data.success) {
+        setAnnouncements(res.data.data || [])
+      }
+    } catch (e) {
+      console.error("Failed to load announcements feed", e)
+    }
+  }
 
   const fetchStats = async () => {
     setLoading(true)
@@ -129,6 +143,24 @@ const Dashboard = ({ url }) => {
           <span>Sync logs</span>
         </button>
       </div>
+
+      {/* Platform Announcements Feed */}
+      {announcements.length > 0 && (
+        <div className="space-y-2">
+          {announcements.map((ann) => (
+            <div key={ann._id} className="bg-emerald-50/45 border border-emerald-200/60 rounded-xl p-4 flex items-start gap-3 shadow-3xs">
+              <span className="w-8 h-8 rounded-lg bg-emerald-100/60 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                <FiAlertCircle size={15} />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-zinc-900">{ann.title}</p>
+                <p className="text-[10px] text-zinc-500 font-semibold mt-0.5 leading-relaxed">{ann.message}</p>
+                <p className="text-[8px] text-zinc-400 font-mono mt-1">{new Date(ann.publishedAt || ann.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ── Key Metrics Grids ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

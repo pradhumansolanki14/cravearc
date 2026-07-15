@@ -3,6 +3,12 @@ import { verifyEmailTemplate } from '../templates/verifyEmail.js';
 import { forgotPasswordTemplate } from '../templates/forgotPassword.js';
 import { passwordChangedTemplate } from '../templates/passwordChanged.js';
 import { welcomeTemplate } from '../templates/welcome.js';
+import { orderConfirmTemplate } from '../templates/orderConfirm.js';
+import { orderCancelledTemplate } from '../templates/orderCancelled.js';
+import { vendorReceivedTemplate, vendorAdminAlertTemplate } from '../templates/vendorReceived.js';
+import { vendorApprovedTemplate } from '../templates/vendorApproved.js';
+import { vendorRejectedTemplate } from '../templates/vendorRejected.js';
+import { contactAutoReplyTemplate, contactAdminAlertTemplate } from '../templates/contactAutoReply.js';
 
 const FROM_EMAIL = 'onboarding@resend.dev'; // Resend default test domain sender
 
@@ -92,5 +98,125 @@ export const sendWelcomeEmail = async (email, name) => {
   } catch (error) {
     console.error('Failed to send welcome email:', error);
     throw error;
+  }
+};
+
+/**
+ * Sends order confirmation receipt to customer
+ */
+export const sendOrderConfirmationEmail = async (email, name, orderId, amount, items) => {
+  try {
+    const response = await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [email],
+      subject: 'Order Confirmed - CraveArc',
+      html: orderConfirmTemplate(name, orderId, amount, items),
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to send order confirmation email:', error);
+  }
+};
+
+/**
+ * Sends order cancelled alert
+ */
+export const sendOrderCancelledEmail = async (email, name, orderId) => {
+  try {
+    const response = await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [email],
+      subject: 'Order Cancelled - CraveArc',
+      html: orderCancelledTemplate(name, orderId),
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to send order cancellation email:', error);
+  }
+};
+
+/**
+ * Sends application received receipt to vendor and admin alert
+ */
+export const sendVendorReceivedEmail = async (email, name, restaurantName) => {
+  try {
+    // 1. Receipt to merchant applicant
+    await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [email],
+      subject: 'Partner Application Received - CraveArc',
+      html: vendorReceivedTemplate(name, restaurantName),
+    });
+    
+    // 2. Alert to Platform Admins (send to default test sender)
+    const adminEmail = process.env.PLATFORM_ADMIN_EMAIL || 'admin@fooddelplatform.com';
+    await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [adminEmail],
+      subject: 'Alert: New Vendor Registration - CraveArc',
+      html: vendorAdminAlertTemplate(name, email, restaurantName),
+    });
+  } catch (error) {
+    console.error('Failed to send vendor receipt/alert emails:', error);
+  }
+};
+
+/**
+ * Sends vendor approval activation notification
+ */
+export const sendVendorApprovedEmail = async (email, name, restaurantName) => {
+  try {
+    const response = await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [email],
+      subject: 'Merchant Application Approved! - CraveArc',
+      html: vendorApprovedTemplate(name, restaurantName),
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to send vendor approval email:', error);
+  }
+};
+
+/**
+ * Sends vendor rejection notice
+ */
+export const sendVendorRejectedEmail = async (email, name, restaurantName) => {
+  try {
+    const response = await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [email],
+      subject: 'Merchant Application Status - CraveArc',
+      html: vendorRejectedTemplate(name, restaurantName),
+    });
+    return response;
+  } catch (error) {
+    console.error('Failed to send vendor rejection email:', error);
+  }
+};
+
+/**
+ * Sends contact auto-reply to customer and inquiry alert to superadmin
+ */
+export const sendContactFormEmails = async (customerName, customerEmail, subject, message) => {
+  try {
+    // 1. Receipt to customer
+    await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [customerEmail],
+      subject: 'Support Ticket Received - CraveArc',
+      html: contactAutoReplyTemplate(customerName),
+    });
+
+    // 2. Alert to platform admin
+    const adminEmail = process.env.PLATFORM_ADMIN_EMAIL || 'admin@fooddelplatform.com';
+    await resend.emails.send({
+      from: `CraveArc <${FROM_EMAIL}>`,
+      to: [adminEmail],
+      subject: `Support Inquiry: ${subject} - CraveArc`,
+      html: contactAdminAlertTemplate(customerName, customerEmail, subject, message),
+    });
+  } catch (error) {
+    console.error('Failed to send support form emails:', error);
   }
 };

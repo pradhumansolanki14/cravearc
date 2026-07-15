@@ -1,5 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
+import axios from 'axios'
+import { StoreContext } from '../../context/StoreContext'
 import { BRAND } from '../../constants/brand'
+import { toast } from 'react-hot-toast'
 
 const faqs = [
   { q: "How long does delivery take?", a: "Most orders arrive within 25–45 minutes depending on your location and restaurant prep time. You can track your order live in the app." },
@@ -13,12 +16,27 @@ const ContactPage = () => {
   const [openFaq, setOpenFaq] = useState(null)
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { url } = useContext(StoreContext)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
-    setForm({ name: '', email: '', subject: '', message: '' })
-    setTimeout(() => setSent(false), 5000)
+    setLoading(true)
+    try {
+      const res = await axios.post(`${url}/api/user/contact`, form)
+      if (res.data.success) {
+        setSent(true)
+        setForm({ name: '', email: '', subject: '', message: '' })
+        toast.success(res.data.message || "Message sent successfully!")
+        setTimeout(() => setSent(false), 5000)
+      } else {
+        toast.error(res.data.message || "Something went wrong.")
+      }
+    } catch (err) {
+      toast.error("Failed to send message. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const inputCls = "w-full px-4 py-3.5 rounded-2xl border-2 border-slate-100 bg-slate-50 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:bg-white transition-all duration-200"
@@ -115,11 +133,21 @@ const ContactPage = () => {
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Message *</label>
                 <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} required rows={5} placeholder="Describe your issue or question..." className={`${inputCls} resize-none`} />
               </div>
-              <button type="submit" className="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-emerald-sm hover:shadow-emerald transition-all duration-200 text-sm flex items-center justify-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Send Message
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 text-white font-bold rounded-2xl shadow-emerald-sm hover:shadow-emerald transition-all duration-200 text-sm flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <span>Sending message...</span>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Send Message
+                  </>
+                )}
               </button>
             </form>
           </div>

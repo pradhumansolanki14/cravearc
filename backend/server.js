@@ -17,6 +17,8 @@ import bannerRouter from "./routes/bannerRoute.js";
 import restaurantRouter from "./routes/restaurantRoute.js";
 import searchRouter from "./routes/searchRoute.js";
 import settingsModel from "./models/settingsModel.js";
+import notificationRouter from "./routes/notificationRoute.js";
+import announcementRouter from "./routes/announcementRoute.js";
 
 // Validate required environment variables before anything else
 const REQUIRED_ENV = [
@@ -84,6 +86,8 @@ app.use("/api/cuisines", cuisineRouter);
 app.use("/api/banners", bannerRouter);
 app.use("/api/admin/restaurant", restaurantRouter);
 app.use("/api/search",   searchRouter);
+app.use("/api/notifications", notificationRouter);
+app.use("/api/announcements", announcementRouter);
 
 app.get("/", (req, res) => res.send("API Working"));
 
