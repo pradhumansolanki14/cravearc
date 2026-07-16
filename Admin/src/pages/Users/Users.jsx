@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
 import { toast } from "react-hot-toast"
-import { FiUsers, FiShoppingBag, FiDollarSign, FiX, FiChevronRight, FiUser, FiPhone, FiMail, FiCalendar, FiSearch, FiAlertCircle } from "react-icons/fi"
+import { FiUsers, FiShoppingBag, FiDollarSign, FiX, FiChevronRight, FiUser, FiPhone, FiMail, FiCalendar, FiSearch, FiAlertCircle, FiTag } from "react-icons/fi"
 import { Card, Badge, ConfirmationModal } from "../../components/ui"
 import { useAdmin } from "../../context/AdminContext"
 
@@ -37,7 +37,7 @@ const Users = ({ url }) => {
       if (res.data.success) {
         setUserDetail(res.data.data)
       }
-    } catch {}
+    } catch { }
     setDetailLoading(false)
   }
 
@@ -70,8 +70,8 @@ const Users = ({ url }) => {
     })
   }
 
-  useEffect(() => { 
-    fetchUsers() 
+  useEffect(() => {
+    fetchUsers()
   }, [])
 
   const filtered = users.filter(u =>
@@ -87,16 +87,16 @@ const Users = ({ url }) => {
 
   return (
     <div className="max-w-5xl space-y-6 animate-fadeUp">
-      
+
       {/* Rebuilt Customer Profile Drawer Detail view */}
       {selected && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs animate-fadeIn" 
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/40 backdrop-blur-xs animate-fadeIn"
           onClick={e => e.target === e.currentTarget && setSelected(null)}
         >
           <Card variant="default" radius="2xl" padding="none" className="bg-white shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn max-h-[80vh] flex flex-col">
             <div className="h-1 w-full bg-gradient-to-r from-emerald-500 to-emerald-600" />
-            
+
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
@@ -109,8 +109,8 @@ const Users = ({ url }) => {
                     <p className="text-[10px] text-zinc-400 font-semibold mt-1">{selected.email}</p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => setSelected(null)} 
+                <button
+                  onClick={() => setSelected(null)}
                   className="text-zinc-400 hover:text-zinc-800 text-xs font-bold"
                 >
                   Close
@@ -137,7 +137,7 @@ const Users = ({ url }) => {
                 <h3 className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest flex items-center gap-1.5">
                   <FiShoppingBag /> Order History Logs
                 </h3>
-                
+
                 {detailLoading ? (
                   <div className="space-y-2">
                     {[1, 2].map(i => <div key={i} className="h-10 bg-zinc-50 rounded-xl animate-pulse" />)}
@@ -183,12 +183,12 @@ const Users = ({ url }) => {
         {/* Search */}
         <div className="flex items-center gap-2.5 bg-white border border-zinc-200 rounded-xl px-3 py-2 w-full sm:w-72 focus-within:border-zinc-950 transition-colors shadow-premium">
           <FiSearch className="text-zinc-400 flex-shrink-0" size={14} />
-          <input 
-            type="text" 
-            placeholder="Search accounts directory..." 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
-            className="flex-1 bg-transparent text-xs text-zinc-800 placeholder-zinc-405 outline-none font-medium" 
+          <input
+            type="text"
+            placeholder="Search accounts directory..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 bg-transparent text-xs text-zinc-800 placeholder-zinc-405 outline-none font-medium"
           />
         </div>
       </div>
@@ -234,9 +234,9 @@ const Users = ({ url }) => {
         ) : (
           <div className="divide-y divide-zinc-100">
             {filtered.map((user) => (
-              <div 
-                key={user._id} 
-                className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[2fr_2.5fr_0.8fr_0.8fr_1fr_auto] gap-4 items-center px-6 py-4 hover:bg-zinc-50/20 transition-all duration-200 cursor-pointer group" 
+              <div
+                key={user._id}
+                className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[2fr_2.5fr_0.8fr_0.8fr_1fr_auto] gap-4 items-center px-6 py-4 hover:bg-zinc-50/20 transition-all duration-200 cursor-pointer group"
                 onClick={() => openUser(user)}
               >
                 {/* User name info */}
@@ -263,11 +263,10 @@ const Users = ({ url }) => {
 
                 {/* State badge */}
                 <div onClick={e => e.stopPropagation()} className="hidden sm:block">
-                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
-                    user.isActive !== false 
-                      ? 'bg-emerald-50 border-emerald-250/30 text-emerald-700' 
+                  <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${user.isActive !== false
+                      ? 'bg-emerald-50 border-emerald-250/30 text-emerald-700'
                       : 'bg-rose-50 border-rose-250/30 text-rose-600'
-                  }`}>
+                    }`}>
                     {user.isActive !== false ? "Active" : "Suspended"}
                   </span>
                 </div>
@@ -276,15 +275,14 @@ const Users = ({ url }) => {
                 <div onClick={e => e.stopPropagation()} className="flex items-center gap-2 justify-end">
                   <button
                     onClick={() => handleToggleUserActive(user)}
-                    className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider border transition-colors ${
-                      user.isActive !== false
+                    className={`px-2 py-1 rounded text-[9px] font-bold uppercase tracking-wider border transition-colors ${user.isActive !== false
                         ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
                         : "bg-emerald-50 border-emerald-200 text-emerald-705 hover:bg-emerald-100"
-                    }`}
+                      }`}
                   >
                     {user.isActive !== false ? "Suspend" : "Activate"}
                   </button>
-                  <div 
+                  <div
                     onClick={() => openUser(user)}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-800 transition-colors ml-auto sm:ml-0"
                   >
@@ -297,7 +295,7 @@ const Users = ({ url }) => {
         )}
       </div>
 
-      <ConfirmationModal 
+      <ConfirmationModal
         isOpen={confirmDialog.isOpen}
         title={confirmDialog.title}
         message={confirmDialog.message}

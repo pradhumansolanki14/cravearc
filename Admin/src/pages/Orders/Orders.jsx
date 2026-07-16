@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
 import axios from "axios"
-import { 
-  FiShoppingBag, FiClock, FiTruck, FiCheckCircle, 
-  FiRefreshCw, FiDollarSign, FiUser, FiMapPin, FiPhone, FiAlertCircle 
+import {
+  FiShoppingBag, FiClock, FiTruck, FiCheckCircle,
+  FiRefreshCw, FiDollarSign, FiUser, FiMapPin, FiPhone, FiAlertCircle,
+  FiTag
 } from "react-icons/fi"
 import { useAdmin } from "../../context/AdminContext"
 import { Card, Badge } from "../../components/ui"
@@ -34,7 +35,7 @@ const Orders = ({ url }) => {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("All")
   const [selectedOrder, setSelectedOrder] = useState(null)
-  
+
   const { adminRole, formatPrice } = useAdmin()
   const adminToken = localStorage.getItem("adminToken")
 
@@ -68,7 +69,7 @@ const Orders = ({ url }) => {
         })
         setRestaurantMap(mapping)
       }
-    } catch {}
+    } catch { }
   }
 
   const statusHandler = async (newStatus, orderId) => {
@@ -76,7 +77,7 @@ const Orders = ({ url }) => {
       const response = await axios.post(url + "/api/order/status", { orderId, status: newStatus }, { headers: { token: adminToken } })
       if (response.data.success) {
         toast.success("Order status updated!")
-        
+
         // Update local list & selected state
         setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o))
         setSelectedOrder(prev => prev && prev._id === orderId ? { ...prev, status: newStatus } : prev)
@@ -88,8 +89,8 @@ const Orders = ({ url }) => {
     }
   }
 
-  useEffect(() => { 
-    fetchAllOrders() 
+  useEffect(() => {
+    fetchAllOrders()
     if (adminRole === 'superadmin') {
       fetchRestaurants()
     }
@@ -111,7 +112,7 @@ const Orders = ({ url }) => {
 
   return (
     <div className="max-w-6xl space-y-6 animate-fadeUp">
-      
+
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-zinc-200/50 pb-5">
         <div>
@@ -131,7 +132,7 @@ const Orders = ({ url }) => {
               ))}
             </select>
           )}
-          <button 
+          <button
             onClick={fetchAllOrders}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-zinc-200 hover:bg-zinc-50 text-zinc-650 text-xs font-bold transition-all bg-white"
           >
@@ -167,14 +168,13 @@ const Orders = ({ url }) => {
         {["All", "Food Processing", "Out for Delivery", "Delivered"].map((f) => {
           const qty = f === "All" ? stats.total : f === "Food Processing" ? stats.processing : f === "Out for Delivery" ? stats.delivery : stats.delivered
           return (
-            <button 
-              key={f} 
+            <button
+              key={f}
               onClick={() => setFilter(f)}
-              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-200 ${
-                filter === f
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-200 ${filter === f
                   ? 'bg-zinc-950 text-white border-zinc-955 shadow-sm'
                   : 'bg-white border border-zinc-200 text-zinc-500 hover:border-zinc-450 hover:text-zinc-700'
-              }`}
+                }`}
             >
               <span>{f}</span>
               <span className="text-[9px] font-mono ml-1.5 opacity-60 font-bold">({qty})</span>
@@ -185,7 +185,7 @@ const Orders = ({ url }) => {
 
       {/* ── Master Detail View split columns ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+
         {/* Left Column: Master Orders List (5 cols) */}
         <div className="lg:col-span-5 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {loading ? (
@@ -203,11 +203,10 @@ const Orders = ({ url }) => {
                 <div
                   key={order._id}
                   onClick={() => setSelectedOrder(order)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                    isSelected 
-                      ? 'border-zinc-950 bg-zinc-50/50 shadow-sm' 
+                  className={`p-4 rounded-xl border cursor-pointer transition-all ${isSelected
+                      ? 'border-zinc-950 bg-zinc-50/50 shadow-sm'
                       : 'border-zinc-200 bg-white hover:border-zinc-300'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -293,11 +292,10 @@ const Orders = ({ url }) => {
                       <button
                         key={st}
                         onClick={() => statusHandler(st, selectedOrder._id)}
-                        className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-colors ${
-                          isCurrent
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-colors ${isCurrent
                             ? 'bg-zinc-950 border-zinc-950 text-white shadow-sm'
                             : 'bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400 hover:text-zinc-800'
-                        }`}
+                          }`}
                       >
                         {st === "Food Processing" ? "Prepare" : st === "Out for Delivery" ? "Transit" : "Complete"}
                       </button>

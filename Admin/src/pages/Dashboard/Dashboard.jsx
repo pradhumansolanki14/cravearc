@@ -122,9 +122,14 @@ const Dashboard = ({ url }) => {
     </div>
   )
 
-  // Sparkline point sets
-  const revenuePoints = stats.dailyRevenue?.map(d => d.revenue) || [10, 15, 8, 22, 18, 25, 30]
-  const ordersPoints = [5, 12, 18, 14, 25, 20, stats.totalOrders || 30]
+  // Dynamic Sparkline & Chart point sets (P3-R4.1)
+  const activeStats = adminRole === 'superadmin' ? platformStats : stats;
+  const revenuePoints = activeStats?.dailyRevenue?.map(d => d.revenue) || [10, 15, 8, 22, 18, 25, 30];
+  const ordersPoints = activeStats?.dailyOrders?.map(d => d.count) || [5, 12, 18, 14, 25, 20, 30];
+  const chartData = activeStats?.dailyRevenue || [];
+  
+  const superadminTrends = platformStats?.trends || { restaurants: "+0%", users: "+0%", orders: "+0%", revenue: "+0%" };
+  const vendorTrends = stats?.trends || { revenue: "+0%", orders: "+0%", processing: "Active", delivered: "+0%" };
 
   return (
     <div className="max-w-6xl space-y-8 animate-fadeUp">
@@ -166,17 +171,17 @@ const Dashboard = ({ url }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {adminRole === 'superadmin' && platformStats ? (
           <>
-            <StatMetric label="Restaurants" value={platformStats.restaurants} description="Approved accounts" sparkPoints={[2, 4, 3, 5, 8, platformStats.restaurants]} trend="+12%" />
-            <StatMetric label="Total Customers" value={platformStats.totalUsers} description="Registered users" sparkPoints={[20, 45, 60, 52, 70, platformStats.totalUsers]} trend="+8%" />
-            <StatMetric label="Platform Orders" value={platformStats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend="+15%" />
-            <StatMetric label="Total Revenue" value={formatPrice(platformStats.totalRevenue || 0)} description="Gross sales" sparkPoints={revenuePoints} trend="+22%" />
+            <StatMetric label="Restaurants" value={platformStats.restaurants} description="Approved accounts" sparkPoints={[1, 2, 2, 3, 3, platformStats.restaurants]} trend={superadminTrends.restaurants} />
+            <StatMetric label="Total Customers" value={platformStats.totalUsers} description="Registered users" sparkPoints={[10, 12, 15, 18, 22, platformStats.totalUsers]} trend={superadminTrends.users} />
+            <StatMetric label="Platform Orders" value={platformStats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend={superadminTrends.orders} />
+            <StatMetric label="Total Revenue" value={formatPrice(platformStats.totalRevenue || 0)} description="Gross sales" sparkPoints={revenuePoints} trend={superadminTrends.revenue} />
           </>
         ) : (
           <>
-            <StatMetric label="Total Revenue" value={formatPrice(stats.totalRevenue)} description="Gross item sales" sparkPoints={revenuePoints} trend="+18%" />
-            <StatMetric label="Total Orders" value={stats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend="+10%" />
-            <StatMetric label="Active Kitchen" value={stats.processing} description="Preparing state" sparkPoints={[1, 3, 2, 4, stats.processing]} trend="Active" />
-            <StatMetric label="Completed Delivery" value={stats.delivered} description="Delivered logs" sparkPoints={[5, 10, 8, 12, stats.delivered]} trend="+98%" />
+            <StatMetric label="Total Revenue" value={formatPrice(stats.totalRevenue)} description="Gross item sales" sparkPoints={revenuePoints} trend={vendorTrends.revenue} />
+            <StatMetric label="Total Orders" value={stats.totalOrders} description="Placed logs" sparkPoints={ordersPoints} trend={vendorTrends.orders} />
+            <StatMetric label="Active Kitchen" value={stats.processing} description="Preparing state" sparkPoints={[1, 3, 2, 4, stats.processing]} trend={vendorTrends.processing} />
+            <StatMetric label="Completed Delivery" value={stats.delivered} description="Delivered logs" sparkPoints={[5, 10, 8, 12, stats.delivered]} trend={vendorTrends.delivered} />
           </>
         )}
       </div>
@@ -197,18 +202,18 @@ const Dashboard = ({ url }) => {
 
             {/* Custom chart */}
             <div className="h-56 flex items-end justify-between gap-4 relative pt-4">
-              {stats.dailyRevenue?.map((d, i) => {
-                const maxRevenue = Math.max(...stats.dailyRevenue.map(item => item.revenue), 1)
+              {chartData.map((d, i) => {
+                const maxRevenue = Math.max(...chartData.map(item => item.revenue), 1)
                 const pct = (d.revenue / maxRevenue) * 100
-                const day = new Date(d.date).toLocaleDateString('en-US', { weekday: 'short' })
+                const day = new Date(d.date).toLocaleDateString('en-IN', { weekday: 'short' })
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                     {/* Hover detail box */}
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-150 absolute bottom-full mb-2 bg-zinc-950 text-white text-[9px] font-mono px-2.5 py-1.5 rounded-lg shadow-lg pointer-events-none z-35 text-center">
                       <p className="text-zinc-400 uppercase tracking-widest text-[8px] font-bold">
-                        {new Date(d.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                        {new Date(d.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                       </p>
-                      <p className="text-emerald-400 font-bold text-xs mt-0.5">${d.revenue.toFixed(2)}</p>
+                      <p className="text-emerald-400 font-bold text-xs mt-0.5">{formatPrice(d.revenue)}</p>
                     </div>
 
                     {/* Vertical Bar */}
@@ -263,7 +268,7 @@ const Dashboard = ({ url }) => {
                       <p className="text-xs font-bold text-zinc-850 truncate">{r.name}</p>
                       <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">{r.orderCount} orders completed</p>
                     </div>
-                    <span className="text-xs font-mono font-bold text-zinc-800">${r.totalRevenue.toFixed(2)}</span>
+                    <span className="text-xs font-mono font-bold text-zinc-800">{formatPrice(r.totalRevenue)}</span>
                   </div>
                 ))}
               </div>
@@ -293,7 +298,7 @@ const Dashboard = ({ url }) => {
                       <p className="font-bold text-zinc-800 truncate">{item.name}</p>
                       <p className="text-[9px] text-zinc-400 font-semibold mt-0.5">{item.count} orders placed</p>
                     </div>
-                    <span className="font-mono font-bold text-zinc-700">${item.revenue.toFixed(2)}</span>
+                    <span className="font-mono font-bold text-zinc-700">{formatPrice(item.revenue)}</span>
                   </div>
                 ))}
               </div>
@@ -322,7 +327,7 @@ const Dashboard = ({ url }) => {
                     <p className="text-xs font-bold text-zinc-800">
                       {order.address?.firstName} {order.address?.lastName}
                     </p>
-                    <span className="text-xs font-mono font-bold text-zinc-900">${order.amount.toFixed(2)}</span>
+                    <span className="text-xs font-mono font-bold text-zinc-900">{formatPrice(order.amount)}</span>
                   </div>
                   <div className="flex items-center justify-between text-[9px] font-semibold text-zinc-405">
                     <p className="truncate max-w-[120px]">{order.items?.map(i => i.name).join(', ')}</p>

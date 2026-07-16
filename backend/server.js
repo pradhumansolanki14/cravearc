@@ -19,6 +19,7 @@ import searchRouter from "./routes/searchRoute.js";
 import settingsModel from "./models/settingsModel.js";
 import notificationRouter from "./routes/notificationRoute.js";
 import announcementRouter from "./routes/announcementRoute.js";
+import paymentRouter from "./routes/paymentRoute.js";
 
 // Validate required environment variables before anything else
 const REQUIRED_ENV = [
@@ -36,7 +37,11 @@ if (missing.length > 0) {
 const app = express();
 const port = 4000;
 
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
@@ -88,6 +93,7 @@ app.use("/api/admin/restaurant", restaurantRouter);
 app.use("/api/search",   searchRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/announcements", announcementRouter);
+app.use("/api/payments", paymentRouter);
 
 app.get("/", (req, res) => res.send("API Working"));
 

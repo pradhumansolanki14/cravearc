@@ -280,15 +280,69 @@ const getUserDetail = async (req, res) => {
 // ─── SuperAdmin: platform-wide stats ─────────────────────────
 const platformStats = async (req, res) => {
   try {
-    const [totalVendors, totalUsers, totalOrders, restaurants] = await Promise.all([
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const priorWeekAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalVendors,
+      totalUsers,
+      totalOrders,
+      restaurants,
+      orders,
+      pendingApprovals,
+      priorVendors,
+      priorUsers
+    ] = await Promise.all([
       adminModel.countDocuments({ role: "vendor" }),
       userModel.countDocuments(),
-      orderModel.countDocuments(),
+      orderModel.countDocuments({ payment: true }),
       restaurantModel.find({ isApproved: true }).lean(),
+      orderModel.find({ payment: true }).populate('restaurantId', 'name'),
+      adminModel.countDocuments({ role: "vendor", isApproved: false }),
+      adminModel.countDocuments({ role: "vendor", createdAt: { $lt: weekAgo } }),
+      userModel.countDocuments({ createdAt: { $lt: weekAgo } })
     ]);
-    const orders = await orderModel.find({}).populate('restaurantId', 'name');
+
     const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
-    const pendingApprovals = await adminModel.countDocuments({ role: "vendor", isApproved: false });
+
+    // Last 7 days daily revenue & orders
+    const dailyRevenue = {};
+    const dailyOrders = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      dailyRevenue[key] = 0;
+      dailyOrders[key] = 0;
+    }
+
+    orders.filter(o => new Date(o.date) >= weekAgo).forEach(o => {
+      const key = new Date(o.date).toISOString().slice(0, 10);
+      if (dailyRevenue[key] !== undefined) dailyRevenue[key] += o.amount;
+      if (dailyOrders[key] !== undefined) dailyOrders[key] += 1;
+    });
+
+    // Compute dynamic trends (current week vs prior week)
+    const currentWeekOrders = orders.filter(o => new Date(o.date) >= weekAgo);
+    const priorWeekOrders = orders.filter(o => new Date(o.date) >= priorWeekAgo && new Date(o.date) < weekAgo);
+
+    const currentWeekRevenue = currentWeekOrders.reduce((sum, o) => sum + o.amount, 0);
+    const priorWeekRevenue = priorWeekOrders.reduce((sum, o) => sum + o.amount, 0);
+
+    const formatGrowth = (current, prior) => {
+      if (prior === 0) return current > 0 ? "+100%" : "0%";
+      const diff = ((current - prior) / prior) * 105 - 5; // slight variance for aesthetics if needed or pure math
+      const mathDiff = ((current - prior) / prior) * 100;
+      return (mathDiff >= 0 ? "+" : "") + mathDiff.toFixed(0) + "%";
+    };
+
+    const trends = {
+      restaurants: formatGrowth(totalVendors, priorVendors),
+      users: formatGrowth(totalUsers, priorUsers),
+      orders: formatGrowth(currentWeekOrders.length, priorWeekOrders.length),
+      revenue: formatGrowth(currentWeekRevenue, priorWeekRevenue)
+    };
 
     // Per-restaurant revenue breakdown
     const restaurantBreakdown = {};
@@ -320,11 +374,15 @@ const platformStats = async (req, res) => {
         totalRevenue,
         restaurants: restaurants.length,
         pendingApprovals,
-        restaurantBreakdown: restaurantStats, // NEW
+        restaurantBreakdown: restaurantStats,
+        dailyRevenue: Object.entries(dailyRevenue).map(([date, revenue]) => ({ date, revenue })),
+        dailyOrders: Object.entries(dailyOrders).map(([date, count]) => ({ date, count })),
+        trends
       },
     });
   } catch (error) {
-    res.json({ success: false, message: "Error" });
+    console.error(error);
+    res.json({ success: false, message: "Error fetching platform stats" });
   }
 };
 

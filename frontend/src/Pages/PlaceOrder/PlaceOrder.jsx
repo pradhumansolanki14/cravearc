@@ -175,16 +175,101 @@ const PlaceOrder = () => {
     };
 
     try {
+      // Step 1: Place unpaid draft order
       const response = await axios.post(url + "/api/order/place", orderData, { headers: { token } });
-      if (response.data.success) {
-        window.location.replace(response.data.session_url);
-      } else {
-        toast.error("Error placing order");
+      if (!response.data.success || !response.data.orderId) {
+        toast.error(response.data.message || "Error placing order");
+        setLoading(false);
+        return;
       }
+
+      const orderId = response.data.orderId;
+
+      // Step 2: Initialize Razorpay order creation on backend
+      const paymentRes = await axios.post(url + "/api/payments/create-order", { orderId }, { headers: { token } });
+      if (!paymentRes.data.success) {
+        toast.error(paymentRes.data.message || "Failed to initialize payment gateway");
+        setLoading(false);
+        return;
+      }
+
+      const { key_id, razorpayOrderId, amount, currency } = paymentRes.data;
+
+      // Step 3: Open Razorpay modal overlay
+      const options = {
+        key: key_id,
+        amount: amount,
+        currency: currency,
+        name: "CraveArc",
+        description: "Food Delivery Checkout",
+        order_id: razorpayOrderId,
+        handler: async function (res) {
+          setLoading(true);
+          try {
+            // Step 4: Cryptographically verify transaction signature on backend
+            const verifyRes = await axios.post(url + "/api/payments/verify", {
+              orderId,
+              razorpay_payment_id: res.razorpay_payment_id,
+              razorpay_order_id: res.razorpay_order_id,
+              razorpay_signature: res.razorpay_signature
+            }, { headers: { token } });
+
+            if (verifyRes.data.success) {
+              toast.success("Payment verified, order placed successfully");
+              navigate("/order-success");
+            } else {
+              toast.error(verifyRes.data.message || "Payment verification failed");
+              setLoading(false);
+            }
+          } catch (err) {
+            console.error("Verification failed:", err);
+            toast.error("Error during payment verification");
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: async function () {
+            toast.error("Payment cancelled");
+            try {
+              await axios.post(url + "/api/payments/failure", { 
+                orderId, 
+                errorReason: "User dismissed checkout popup" 
+              }, { headers: { token } });
+            } catch (err) {
+              console.error("Failed to log checkout cancellation:", err);
+            }
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: `${data.firstName} ${data.lastName}`,
+          email: data.email,
+          contact: data.phone
+        },
+        theme: {
+          color: "#10b981"
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', async function (failedResponse) {
+        const errorDesc = failedResponse.error?.description || "Payment failed";
+        toast.error(errorDesc);
+        try {
+          await axios.post(url + "/api/payments/failure", {
+            orderId,
+            errorReason: errorDesc
+          }, { headers: { token } });
+        } catch (err) {
+          console.error("Failed to log payment failure reason:", err);
+        }
+        setLoading(false);
+      });
+
+      rzp.open();
     } catch (error) {
       console.error(error);
       toast.error("Something went wrong. Please try again");
-    } finally {
       setLoading(false);
     }
   };
@@ -609,7 +694,7 @@ const PlaceOrder = () => {
                 {/* secure checkout guarantee */}
                 <div className="flex items-center justify-center gap-1.5 mt-4 text-slate-400">
                   <FiLock size={12} className="text-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-center">Secured Stripe checkout</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-center">Secured Razorpay checkout</span>
                 </div>
               </div>
             </Card>

@@ -119,18 +119,10 @@ const placeOrder = async (req, res) => {
       quantity: 1,
     });
 
-    const session = await getStripe().checkout.sessions.create({
-      line_items,
-      mode: "payment",
-      success_url: `${frontend_url}/verify?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontend_url}/verify?success=false`,
-      metadata: { orderId: newOrder._id.toString(), userId },
-    });
-
-    res.json({ success: true, session_url: session.url });
+    res.json({ success: true, orderId: newOrder._id.toString() });
   } catch (error) {
-    console.error("Stripe Session Error:", error);
-    res.json({ success: false, message: "Error creating checkout session" });
+    console.error("Order Placement Error:", error);
+    res.json({ success: false, message: "Error placing order" });
   }
 };
 
@@ -211,7 +203,7 @@ const userOrders = async (req, res) => {
 // ─── List All Orders (Vendor sees own, SuperAdmin sees all) ───
 const listOrders = async (req, res) => {
   try {
-    const filter = {};
+    const filter = { payment: true };
     // If called from vendor context, scope to their restaurant
     if (req.restaurantId) filter.restaurantId = req.restaurantId;
     const orders = await orderModel.find(filter).sort({ date: -1 });
@@ -317,7 +309,7 @@ const updateStatus = async (req, res) => {
 // ─── Admin Dashboard Stats (vendor-scoped or platform-wide) ──
 const adminStats = async (req, res) => {
   try {
-    const filter = {};
+    const filter = { payment: true };
     if (req.restaurantId) filter.restaurantId = req.restaurantId;
 
     const orders = await orderModel.find(filter);
@@ -327,19 +319,49 @@ const adminStats = async (req, res) => {
     const outForDelivery = orders.filter(o => o.status === 'Out for Delivery').length;
     const delivered = orders.filter(o => o.status === 'Delivered').length;
 
-    // Last 7 days revenue
     const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const priorWeekAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    // Last 7 days daily revenue & orders
     const dailyRevenue = {};
+    const dailyOrders = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      dailyRevenue[d.toISOString().slice(0, 10)] = 0;
+      const key = d.toISOString().slice(0, 10);
+      dailyRevenue[key] = 0;
+      dailyOrders[key] = 0;
     }
-    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
     orders.filter(o => new Date(o.date) >= weekAgo).forEach(o => {
       const key = new Date(o.date).toISOString().slice(0, 10);
       if (dailyRevenue[key] !== undefined) dailyRevenue[key] += o.amount;
+      if (dailyOrders[key] !== undefined) dailyOrders[key] += 1;
     });
+
+    // Compute dynamic trends (current week vs prior week)
+    const currentWeekOrders = orders.filter(o => new Date(o.date) >= weekAgo);
+    const priorWeekOrders = orders.filter(o => new Date(o.date) >= priorWeekAgo && new Date(o.date) < weekAgo);
+
+    const currentWeekRevenue = currentWeekOrders.reduce((sum, o) => sum + o.amount, 0);
+    const priorWeekRevenue = priorWeekOrders.reduce((sum, o) => sum + o.amount, 0);
+
+    const currentWeekDelivered = currentWeekOrders.filter(o => o.status === 'Delivered').length;
+    const priorWeekDelivered = priorWeekOrders.filter(o => o.status === 'Delivered').length;
+
+    const formatGrowth = (current, prior) => {
+      if (prior === 0) return current > 0 ? "+100%" : "0%";
+      const diff = ((current - prior) / prior) * 100;
+      return (diff >= 0 ? "+" : "") + diff.toFixed(0) + "%";
+    };
+
+    const trends = {
+      revenue: formatGrowth(currentWeekRevenue, priorWeekRevenue),
+      orders: formatGrowth(currentWeekOrders.length, priorWeekOrders.length),
+      processing: "Active",
+      delivered: formatGrowth(currentWeekDelivered, priorWeekDelivered)
+    };
 
     // Top selling items
     const itemCounts = {};
@@ -354,9 +376,16 @@ const adminStats = async (req, res) => {
     res.json({
       success: true,
       data: {
-        totalOrders, totalRevenue, processing, outForDelivery, delivered,
+        totalOrders,
+        totalRevenue,
+        processing,
+        outForDelivery,
+        delivered,
         dailyRevenue: Object.entries(dailyRevenue).map(([date, revenue]) => ({ date, revenue })),
-        topItems, recentOrders
+        dailyOrders: Object.entries(dailyOrders).map(([date, count]) => ({ date, count })),
+        trends,
+        topItems,
+        recentOrders
       }
     });
   } catch (error) {
