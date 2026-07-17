@@ -19,7 +19,6 @@ const runTest = async () => {
   await settlementModel.deleteMany({ vendorId });
   await vendorWalletModel.deleteMany({ vendorId });
   await financialLedgerModel.deleteMany({ vendorId });
-  await orderModel.deleteMany({ restaurantId: "6a491167c2b82a9b3b0d8c55", settled: false }); // Clean up older orders
   console.log("Database cleared for vendor:", vendorId);
 
   // 2. Setup Wallet with initial available balance

@@ -4,6 +4,7 @@ import axios from "axios";
 import { FiArrowLeft, FiShoppingBag, FiTruck, FiCheckCircle, FiClock, FiRefreshCw, FiEye } from "react-icons/fi";
 import { StoreContext } from "../../context/StoreContext";
 import { Container, Button, Card, Badge, Skeleton } from "../../components/ui";
+import useToast from "../../hooks/useToast";
 
 const statusConfig = {
   "Food Processing": { 
@@ -29,15 +30,119 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Refund states
+  const toast = useToast();
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [selectedOrderForRefund, setSelectedOrderForRefund] = useState(null);
+  const [refundType, setRefundType] = useState("FULL");
+  const [refundAmountVal, setRefundAmountVal] = useState("");
+  const [reason, setReason] = useState("");
+  const [customerMessage, setCustomerMessage] = useState("");
+  const [refundsMap, setRefundsMap] = useState({});
+
+  const getRefundBadge = (order) => {
+    const refund = refundsMap[order._id];
+    const status = refund?.status || order.refundStatus || "NONE";
+
+    switch (status) {
+      case "REQUESTED":
+        return { variant: "warning", text: "Refund Requested" };
+      case "UNDER_REVIEW":
+        return { variant: "warning", text: "Refund Under Review" };
+      case "APPROVED":
+        return { variant: "success", text: "Refund Approved" };
+      case "PROCESSING":
+        return { variant: "primary", text: "Refund Processing" };
+      case "COMPLETED":
+        return { variant: "success", text: `Refund Completed: ${formatPrice(order.refundAmount || refund?.approvedAmount)}` };
+      case "FAILED":
+        return { variant: "danger", text: "Refund Failed (Retry Available)" };
+      case "REJECTED":
+        return { variant: "danger", text: "Refund Rejected (Retry Available)" };
+      default:
+        if (order.refundStatus === "REFUNDED") {
+          return { variant: "success", text: `Refunded: ${formatPrice(order.refundAmount)}` };
+        } else if (order.refundStatus === "PARTIAL") {
+          return { variant: "secondary", text: `Partial Refunded: ${formatPrice(order.refundAmount)}` };
+        }
+        return null;
+    }
+  };
+
+  const canRequestRefund = (order) => {
+    if (!order.payment) return false;
+
+    const refund = refundsMap[order._id];
+    const status = refund?.status || order.refundStatus || "NONE";
+
+    if (["REQUESTED", "UNDER_REVIEW", "APPROVED", "PROCESSING", "COMPLETED"].includes(status)) {
+      return false;
+    }
+
+    if (order.refundStatus === "REFUNDED") {
+      return false;
+    }
+
+    const remainingRefundable = order.amount - (order.refundAmount || 0);
+    if (remainingRefundable <= 0) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleRequestRefundSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        orderId: selectedOrderForRefund._id,
+        refundType,
+        requestedAmount: refundType === "FULL" ? selectedOrderForRefund.amount - (selectedOrderForRefund.refundAmount || 0) : parseFloat(refundAmountVal),
+        reason,
+        customerMessage
+      };
+
+      const response = await axios.post(url + "/api/refunds/request", payload, { headers: { token } });
+      if (response.data.success) {
+        toast.success("Refund request submitted successfully!");
+        setShowRefundModal(false);
+        fetchOrders();
+      } else {
+        toast.error(response.data.message || "Failed to submit refund request");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Error submitting request");
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(url + "/api/order/userorders", {}, { headers: { token } });
-      if (response.data.success) {
-        setData(response.data.data);
+      const [ordersRes, refundsRes] = await Promise.all([
+        axios.post(url + "/api/order/userorders", {}, { headers: { token } }),
+        axios.get(url + "/api/refunds/my", { headers: { token } })
+      ]);
+      if (ordersRes.data.success) {
+        setData(ordersRes.data.data);
+      }
+      if (refundsRes.data.success) {
+        const map = {};
+        const sortedRefunds = [...refundsRes.data.data].sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.requestedAt || 0);
+          const dateB = new Date(b.createdAt || b.requestedAt || 0);
+          return dateB - dateA;
+        });
+        sortedRefunds.forEach(r => {
+          const ordId = r.orderId?._id || r.orderId;
+          if (!map[ordId]) {
+            map[ordId] = r;
+          }
+        });
+        setRefundsMap(map);
       }
     } catch (err) {
-      console.error("Error loading orders:", err);
+      console.error("Error loading orders/refunds:", err);
     }
     setLoading(false);
   };
@@ -171,6 +276,21 @@ const MyOrders = () => {
                             {order.status}
                           </Badge>
 
+                          {(() => {
+                            const badgeInfo = getRefundBadge(order);
+                            if (!badgeInfo) return null;
+                            return (
+                              <Badge 
+                                variant={badgeInfo.variant} 
+                                size="md" 
+                                rounded="md" 
+                                className="font-bold border-0 px-3 py-1 ml-2 bg-slate-100 text-rose-600"
+                              >
+                                {badgeInfo.text}
+                              </Badge>
+                            );
+                          })()}
+
                           {/* Details page link */}
                           <Button
                             onClick={() => navigate(`/order/${order._id}`)}
@@ -205,6 +325,25 @@ const MyOrders = () => {
                               Order Again
                             </Button>
                           )}
+
+                          {/* Request Refund button */}
+                          {canRequestRefund(order) && (
+                            <Button
+                              onClick={() => {
+                                setSelectedOrderForRefund(order);
+                                setRefundType("FULL");
+                                setRefundAmountVal(String(order.amount - (order.refundAmount || 0)));
+                                setReason("");
+                                setCustomerMessage("");
+                                setShowRefundModal(true);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="h-8 text-2xs font-bold uppercase tracking-wider border-rose-250 hover:bg-rose-50 text-rose-600 rounded-xl"
+                            >
+                              Request Refund
+                            </Button>
+                          )}
                         </div>
 
                       </div>
@@ -216,6 +355,101 @@ const MyOrders = () => {
           </div>
         )}
       </Container>
+
+      {showRefundModal && selectedOrderForRefund && (
+        <div className="fixed inset-0 bg-black/55 flex items-center justify-center z-50 animate-fadeIn p-4">
+          <form onSubmit={handleRequestRefundSubmit} className="bg-white border border-slate-100 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+              <h3 className="font-poppins font-extrabold text-base text-slate-800 tracking-tight">Request Order Refund</h3>
+              <button 
+                type="button" 
+                onClick={() => setShowRefundModal(false)}
+                className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors text-slate-400 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Refund Method</label>
+              <select
+                value={refundType}
+                onChange={(e) => {
+                  setRefundType(e.target.value);
+                  if (e.target.value === "FULL") {
+                    setRefundAmountVal(String(selectedOrderForRefund.amount - (selectedOrderForRefund.refundAmount || 0)));
+                  } else {
+                    setRefundAmountVal("");
+                  }
+                }}
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-150 rounded-xl focus:outline-none focus:border-slate-350"
+              >
+                <option value="FULL">Full Refund</option>
+                <option value="PARTIAL">Partial Refund</option>
+              </select>
+            </div>
+
+            {refundType === "PARTIAL" && (
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Partial Refund Amount (Max: {formatPrice(selectedOrderForRefund.amount - (selectedOrderForRefund.refundAmount || 0))})</label>
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  max={selectedOrderForRefund.amount - (selectedOrderForRefund.refundAmount || 0)}
+                  value={refundAmountVal}
+                  onChange={(e) => setRefundAmountVal(e.target.value)}
+                  placeholder="e.g. 50"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-150 rounded-xl focus:outline-none"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Reason Category *</label>
+              <select
+                required
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-150 rounded-xl focus:outline-none"
+              >
+                <option value="">Select a reason</option>
+                <option value="Items Missing">Items Missing</option>
+                <option value="Poor Quality">Poor Food Quality</option>
+                <option value="Late Delivery">Very Late Delivery</option>
+                <option value="Wrong Items Delivered">Wrong Items Delivered</option>
+                <option value="Other">Other (Describe below)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Customer Message / Details</label>
+              <textarea
+                value={customerMessage}
+                onChange={(e) => setCustomerMessage(e.target.value)}
+                placeholder="Detail the issue to support approval..."
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-150 rounded-xl focus:outline-none h-20 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 text-2xs">
+              <button
+                type="button"
+                onClick={() => setShowRefundModal(false)}
+                className="px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-650 font-bold rounded-xl transition-all uppercase tracking-wider"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-3.5 py-2 bg-rose-650 hover:bg-rose-750 text-white font-bold rounded-xl transition-all uppercase tracking-wider shadow-sm"
+              >
+                Submit Claim
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

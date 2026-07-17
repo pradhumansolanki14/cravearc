@@ -23,6 +23,7 @@ import Wallet from './pages/Wallet/Wallet'
 import Finance from './pages/Finance/Finance'
 import Settlements from './pages/Settlements/Settlements'
 import SettlementManagement from './pages/Settlements/SettlementManagement'
+import RefundManagement from './pages/Refunds/RefundManagement'
 import { Toaster } from 'react-hot-toast'
 import { useAdmin } from './context/AdminContext'
 
@@ -168,6 +169,11 @@ const App = () => {
             <Route path='/settlement-management' element={
               <RouteGuard allowedRoles={['superadmin']}>
                 <SettlementManagement url={url} />
+              </RouteGuard>
+            } />
+            <Route path='/refund-management' element={
+              <RouteGuard allowedRoles={['superadmin']}>
+                <RefundManagement url={url} />
               </RouteGuard>
             } />
 

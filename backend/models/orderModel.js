@@ -37,6 +37,11 @@ const orderSchema = new mongoose.Schema({
   settled:                 { type: Boolean, default: false },
   settlementId:            { type: mongoose.Schema.Types.ObjectId, ref: "settlement", default: null },
   settledAt:               { type: Date, default: null },
+
+  // Refund tracking (P3-R4.4)
+  refundStatus:            { type: String, enum: ["NONE", "REQUESTED", "PARTIAL", "REFUNDED"], default: "NONE" },
+  refundAmount:            { type: Number, default: 0 },
+  refundId:                { type: mongoose.Schema.Types.ObjectId, ref: "refund", default: null },
 }, { timestamps: true });
 
 const orderModel = mongoose.models.order || mongoose.model("order", orderSchema);

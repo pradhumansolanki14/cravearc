@@ -23,6 +23,8 @@ const financialLedgerSchema = new mongoose.Schema({
       "COMMISSION",
       "PAYMENT_GATEWAY_FEE",
       "REFUND",
+      "PARTIAL_REFUND",
+      "FULL_REFUND",
       "SETTLEMENT",
       "MANUAL_ADJUSTMENT",
       "ORDER_CREDIT_AVAILABLE"
