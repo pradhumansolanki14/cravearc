@@ -127,7 +127,11 @@ const Wallet = ({ url }) => {
             <h2 className="text-xl font-mono font-bold text-zinc-800 tracking-tight">
               {formatPrice(wallet?.availableBalance || 0)}
             </h2>
-            <p className="text-[9px] text-zinc-400 font-semibold mt-1">Released earnings available for payout</p>
+            <p className="text-[9px] text-zinc-400 font-semibold mt-1">
+              {wallet?.availableBalance === 0 && wallet?.totalSettled > 0
+                ? "All available funds have been settled."
+                : "Released earnings available for payout"}
+            </p>
           </div>
         </div>
 

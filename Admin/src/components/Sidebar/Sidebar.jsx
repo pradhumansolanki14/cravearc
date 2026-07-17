@@ -5,7 +5,7 @@ import {
   FiGrid, FiList, FiPlusCircle, FiFolder, FiGlobe, 
   FiImage, FiTag, FiShoppingBag, FiUsers, FiMessageSquare, 
   FiSettings, FiUser, FiActivity, FiArrowLeft, FiArrowRight, FiX, FiCheckCircle, FiSend,
-  FiDollarSign, FiCreditCard
+  FiDollarSign, FiCreditCard, FiBriefcase
 } from 'react-icons/fi'
 
 const superAdminGroups = [
@@ -13,7 +13,8 @@ const superAdminGroups = [
     title: 'Overview',
     items: [
       { to: '/dashboard', label: 'Console', sub: 'Analytics', icon: <FiGrid size={15} /> },
-      { to: '/finance', label: 'Finance', sub: 'Accounting', icon: <FiDollarSign size={15} /> }
+      { to: '/finance', label: 'Finance', sub: 'Accounting', icon: <FiDollarSign size={15} /> },
+      { to: '/settlement-management', label: 'Settlements', sub: 'Vendor payouts', icon: <FiBriefcase size={15} /> }
     ]
   },
   {
@@ -49,7 +50,8 @@ const vendorGroups = [
     title: 'Overview',
     items: [
       { to: '/dashboard', label: 'Dashboard', sub: 'Realtime stats', icon: <FiGrid size={15} /> },
-      { to: '/wallet', label: 'Wallet', sub: 'My earnings', icon: <FiCreditCard size={15} /> }
+      { to: '/wallet', label: 'Wallet', sub: 'My earnings', icon: <FiCreditCard size={15} /> },
+      { to: '/settlements', label: 'Payouts', sub: 'Bank transfers', icon: <FiBriefcase size={15} /> }
     ]
   },
   {

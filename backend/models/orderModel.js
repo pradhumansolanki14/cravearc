@@ -32,6 +32,11 @@ const orderSchema = new mongoose.Schema({
   vendorNetAmount:         { type: Number, default: 0 },
   walletProcessed:         { type: Boolean, default: false },
   walletProcessedAt:       { type: Date, default: null },
+
+  // Weekly Settlement tracking (P3-R4.3)
+  settled:                 { type: Boolean, default: false },
+  settlementId:            { type: mongoose.Schema.Types.ObjectId, ref: "settlement", default: null },
+  settledAt:               { type: Date, default: null },
 }, { timestamps: true });
 
 const orderModel = mongoose.models.order || mongoose.model("order", orderSchema);

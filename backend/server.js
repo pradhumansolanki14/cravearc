@@ -21,6 +21,7 @@ import notificationRouter from "./routes/notificationRoute.js";
 import announcementRouter from "./routes/announcementRoute.js";
 import paymentRouter from "./routes/paymentRoute.js";
 import financeRouter from "./routes/financeRoute.js";
+import settlementRouter from "./routes/settlementRoute.js";
 
 // Validate required environment variables before anything else
 const REQUIRED_ENV = [
@@ -96,6 +97,7 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/announcements", announcementRouter);
 app.use("/api/payments", paymentRouter);
 app.use("/api/finance", financeRouter);
+app.use("/api/settlements", settlementRouter);
 
 app.get("/", (req, res) => res.send("API Working"));
 
