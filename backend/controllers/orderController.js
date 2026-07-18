@@ -19,7 +19,7 @@ const getStripe = () => {
 
 // ─── Place Order ─────────────────────────────────────────────
 const placeOrder = async (req, res) => {
-  const frontend_url = "http://localhost:5173";
+  const frontend_url = process.env.FRONTEND_URL || "http://localhost:5173";
   try {
     // Check Stripe configuration
     if (!process.env.STRIPE_SECRET_KEY) {

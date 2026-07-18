@@ -7,7 +7,7 @@ const AdminContextProvider = ({ children }) => {
   const [adminName, setAdminName] = useState(localStorage.getItem("adminName") || "");
   const [adminRole, setAdminRole] = useState(localStorage.getItem("adminRole") || "");
   const [restaurantId, setRestaurantId] = useState(localStorage.getItem("restaurantId") || null);
-  const url = "http://localhost:4000";
+  const url = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
   const adminLogin = (token, name, role, restId) => {
     setAdminToken(token);

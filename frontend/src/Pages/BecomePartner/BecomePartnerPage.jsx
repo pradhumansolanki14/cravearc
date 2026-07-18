@@ -487,7 +487,7 @@ const BecomePartnerPage = () => {
           <p className="text-center text-[11px] text-zinc-400 font-semibold mt-6">
             Already have a vendor account?{' '}
             <a
-              href="http://localhost:5174/partner/login"
+              href={`${import.meta.env.VITE_VENDOR_APP || "http://localhost:5174"}/partner/login`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-emerald-600 font-bold hover:underline"

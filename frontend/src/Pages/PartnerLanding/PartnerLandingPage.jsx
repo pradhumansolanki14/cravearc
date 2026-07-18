@@ -220,7 +220,7 @@ const PartnerLandingPage = () => {
                 <FiArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <a
-                href="http://localhost:5174/partner/login"
+                href={`${import.meta.env.VITE_VENDOR_APP || "http://localhost:5174"}/partner/login`}
                 className="flex items-center gap-2.5 px-8 py-4 rounded-2xl border border-emerald-500/30 text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/50 text-sm font-bold transition-all duration-200"
               >
                 Partner Login
