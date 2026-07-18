@@ -27,31 +27,13 @@ import cuisineModel from '../models/cuisineModel.js';
  * Categories mirror the hardcoded menu_list from the customer frontend:
  * frontend/src/assets/assets.js → menu_list
  */
-const DEFAULT_CATEGORIES = [
-  { name: 'Salad',    description: 'Fresh and healthy salads',         isActive: true },
-  { name: 'Rolls',    description: 'Wraps and rolls',                  isActive: true },
-  { name: 'Deserts',  description: 'Sweets and desserts',              isActive: true },
-  { name: 'Sandwich', description: 'Hot and cold sandwiches',          isActive: true },
-  { name: 'Cake',     description: 'Cakes and pastries',               isActive: true },
-  { name: 'Pure Veg', description: 'Strictly vegetarian dishes',       isActive: true },
-  { name: 'Pasta',    description: 'Pasta and Italian dishes',         isActive: true },
-  { name: 'Noodles',  description: 'Noodles and Asian dishes',         isActive: true },
-];
+const DEFAULT_CATEGORIES = [];
 
 /**
  * Default cuisine types for restaurant tagging and customer filtering.
  * Matches Requirement 6.6 default set.
  */
-const DEFAULT_CUISINES = [
-  { name: 'Italian',       icon: '🍝', isActive: true },
-  { name: 'Chinese',       icon: '🥡', isActive: true },
-  { name: 'Indian',        icon: '🍛', isActive: true },
-  { name: 'American',      icon: '🍔', isActive: true },
-  { name: 'Mexican',       icon: '🌮', isActive: true },
-  { name: 'Japanese',      icon: '🍱', isActive: true },
-  { name: 'Thai',          icon: '🍜', isActive: true },
-  { name: 'Mediterranean', icon: '🥙', isActive: true },
-];
+const DEFAULT_CUISINES = [];
 
 // ─── Main ─────────────────────────────────────────────────────
 

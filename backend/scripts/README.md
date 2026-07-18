@@ -217,7 +217,7 @@ Loading user IDs...
 ## Seed Script — `seed.js`
 
 ### Purpose
-Populates the `categories` and `cuisines` collections with default data if they are empty. Mirrors the hardcoded lists that previously lived in the customer frontend.
+Connects to MongoDB and prepares collections. Currently configured empty to allow 100% clean initialization where all categories and cuisines are managed dynamically directly from the Platform Administrator Panel.
 
 ### Usage
 
@@ -225,66 +225,15 @@ Populates the `categories` and `cuisines` collections with default data if they 
 node scripts/seed.js
 ```
 
-### What It Seeds
-
-**Categories (8 items — mirrors `frontend/src/assets/assets.js` `menu_list`):**
-- Salad, Rolls, Deserts, Sandwich, Cake, Pure Veg, Pasta, Noodles
-
-**Cuisines (8 items — per Requirement 6.6):**
-- Italian 🍝, Chinese 🥡, Indian 🍛, American 🍔, Mexican 🌮, Japanese 🍱, Thai 🍜, Mediterranean 🥙
+### Clean Initial State
+By default, the seed arrays inside `seed.js` are empty to ensure a clean slate setup. If you wish to pre-populate custom default categories or cuisines during deployment, edit the `DEFAULT_CATEGORIES` and `DEFAULT_CUISINES` constants directly inside `backend/scripts/seed.js` before executing the script.
 
 ### Safety Guarantees
 
 - **Idempotent**: Checks `countDocuments()` before inserting; if collection is non-empty, skips entirely
 - **Non-destructive**: Never modifies existing documents
-- **Logs counts**: Prints exact number of inserted documents
 - **Exit code 0**: Always exits 0 on completion
 
-### Sample Output
-
-**First run (empty collections):**
-```
-Connecting to MongoDB...
-✓ Connected
-
-─── Seeding categories ──────────────────────────────
-  ✓ Inserted 8 categories:
-    • Salad
-    • Rolls
-    • Deserts
-    • Sandwich
-    • Cake
-    • Pure Veg
-    • Pasta
-    • Noodles
-
-─── Seeding cuisines ────────────────────────────────
-  ✓ Inserted 8 cuisines:
-    • 🍝  Italian
-    • 🥡  Chinese
-    • 🍛  Indian
-    • 🍔  American
-    • 🌮  Mexican
-    • 🍱  Japanese
-    • 🍜  Thai
-    • 🥙  Mediterranean
-
-═══ Seed complete ═══════════════════════════════════
-  Categories and cuisines are now available in the database.
-
-✓ Disconnected from MongoDB
-```
-
-**Second run (idempotent — collections already have data):**
-```
-─── Seeding categories ──────────────────────────────
-  ✓ Categories collection already has 8 document(s) — skipping (idempotent)
-
-─── Seeding cuisines ────────────────────────────────
-  ✓ Cuisines collection already has 8 document(s) — skipping (idempotent)
-
-═══ Seed complete ═══════════════════════════════════
-```
 
 ### When to Run
 - Once, when setting up a new environment

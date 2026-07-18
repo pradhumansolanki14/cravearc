@@ -722,25 +722,6 @@ const SpecialOffers = () => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fallbackOffers = [
-    {
-      _id: "mock1",
-      code: "WELCOME20",
-      discountType: "percent",
-      discount: 20,
-      minOrder: 199,
-      description: "Get free delivery plus 20% discount on orders above ₹199."
-    },
-    {
-      _id: "mock2",
-      code: "FEASTWEEK",
-      discountType: "fixed",
-      discount: 50,
-      minOrder: 399,
-      description: "Get ₹50 off on midweek orders. Enjoy double reward points."
-    }
-  ];
-
   useEffect(() => {
     const fetchOffers = async () => {
       try {
@@ -748,16 +729,20 @@ const SpecialOffers = () => {
         if (res.data.success && res.data.data && res.data.data.length > 0) {
           setOffers(res.data.data);
         } else {
-          setOffers(fallbackOffers);
+          setOffers([]);
         }
       } catch (err) {
         console.error("Error fetching public offers:", err);
-        setOffers(fallbackOffers);
+        setOffers([]);
       }
       setLoading(false);
     };
     fetchOffers();
   }, [url]);
+
+  if (!loading && offers.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-20 bg-slate-50 border-y border-slate-100">
