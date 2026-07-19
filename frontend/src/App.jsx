@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
@@ -9,29 +9,29 @@ import Footer from './components/Footer/Footer'
 // ── Modals / Overlays ─────────────────────────────────────────
 import LoginPopup from './components/LoginPopup/LoginPopup'
 
-// ── Pages ─────────────────────────────────────────────────────
-import Home from './Pages/Home/Home'
-import Cart from './Pages/Cart/Cart'
-import PlaceOrder from './Pages/PlaceOrder/PlaceOrder'
-import Verify from './Pages/Verify/Verify'
-import MyOrders from './Pages/MyOrders/MyOrders'
-import Profile from './Pages/Profile/Profile'
-import NotFound from './Pages/NotFound/NotFound'
-import SearchPage from './Pages/Search/SearchPage'
-import OrderSuccess from './Pages/OrderSuccess/OrderSuccess'
-import Favorites from './Pages/Favorites/Favorites'
-import MenuPage from './Pages/MenuPage/MenuPage'
-import CategoriesPage from './Pages/Categories/CategoriesPage'
-import AppPage from './Pages/AppPage/AppPage'
-import ContactPage from './Pages/ContactPage/ContactPage'
-import OrderDetail from './Pages/OrderDetail/OrderDetail'
-import RestaurantsPage from './Pages/Restaurants/RestaurantsPage'
-import RestaurantDetail from './Pages/RestaurantDetail/RestaurantDetail'
-import BecomePartnerPage from './Pages/BecomePartner/BecomePartnerPage'
-import PartnerLandingPage from './Pages/PartnerLanding/PartnerLandingPage'
-import VerifyEmailPage from './Pages/VerifyEmail/VerifyEmailPage'
-import ForgotPasswordPage from './Pages/ForgotPassword/ForgotPasswordPage'
-import ResetPasswordPage from './Pages/ResetPassword/ResetPasswordPage'
+// ── Lazy-loaded Pages ─────────────────────────────────────────
+const Home = lazy(() => import('./Pages/Home/Home'))
+const Cart = lazy(() => import('./Pages/Cart/Cart'))
+const PlaceOrder = lazy(() => import('./Pages/PlaceOrder/PlaceOrder'))
+const Verify = lazy(() => import('./Pages/Verify/Verify'))
+const MyOrders = lazy(() => import('./Pages/MyOrders/MyOrders'))
+const Profile = lazy(() => import('./Pages/Profile/Profile'))
+const NotFound = lazy(() => import('./Pages/NotFound/NotFound'))
+const SearchPage = lazy(() => import('./Pages/Search/SearchPage'))
+const OrderSuccess = lazy(() => import('./Pages/OrderSuccess/OrderSuccess'))
+const Favorites = lazy(() => import('./Pages/Favorites/Favorites'))
+const MenuPage = lazy(() => import('./Pages/MenuPage/MenuPage'))
+const CategoriesPage = lazy(() => import('./Pages/Categories/CategoriesPage'))
+const AppPage = lazy(() => import('./Pages/AppPage/AppPage'))
+const ContactPage = lazy(() => import('./Pages/ContactPage/ContactPage'))
+const OrderDetail = lazy(() => import('./Pages/OrderDetail/OrderDetail'))
+const RestaurantsPage = lazy(() => import('./Pages/Restaurants/RestaurantsPage'))
+const RestaurantDetail = lazy(() => import('./Pages/RestaurantDetail/RestaurantDetail'))
+const BecomePartnerPage = lazy(() => import('./Pages/BecomePartner/BecomePartnerPage'))
+const PartnerLandingPage = lazy(() => import('./Pages/PartnerLanding/PartnerLandingPage'))
+const VerifyEmailPage = lazy(() => import('./Pages/VerifyEmail/VerifyEmailPage'))
+const ForgotPasswordPage = lazy(() => import('./Pages/ForgotPassword/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./Pages/ResetPassword/ResetPasswordPage'))
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false)
@@ -96,43 +96,49 @@ const App = () => {
       <Navbar setShowLogin={setShowLogin} />
 
       {/* ── Routes ───────────────────────────────────────────── */}
-      <Routes>
-        {/* Core */}
-        <Route path='/' element={<Home setShowLogin={setShowLogin} />} />
-        <Route path='/cart' element={<Cart />} />
-        <Route path='/order' element={<PlaceOrder />} />
-        <Route path='/verify' element={<Verify />} />
-        <Route path='/order-success' element={<OrderSuccess />} />
-        <Route path='/myorders' element={<MyOrders />} />
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/favorites' element={<Favorites />} />
-        <Route path='/search' element={<SearchPage />} />
+      <Suspense fallback={
+        <div className="min-h-[50vh] flex items-center justify-center bg-white">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-emerald-500"></div>
+        </div>
+      }>
+        <Routes>
+          {/* Core */}
+          <Route path='/' element={<Home setShowLogin={setShowLogin} />} />
+          <Route path='/cart' element={<Cart />} />
+          <Route path='/order' element={<PlaceOrder />} />
+          <Route path='/verify' element={<Verify />} />
+          <Route path='/order-success' element={<OrderSuccess />} />
+          <Route path='/myorders' element={<MyOrders />} />
+          <Route path='/profile' element={<Profile />} />
+          <Route path='/favorites' element={<Favorites />} />
+          <Route path='/search' element={<SearchPage />} />
 
-        {/* Detail pages */}
-        <Route path='/order/:id' element={<OrderDetail />} />
+          {/* Detail pages */}
+          <Route path='/order/:id' element={<OrderDetail />} />
 
-        {/* Independent nav pages */}
-        <Route path='/menu' element={<MenuPage />} />
-        <Route path='/categories' element={<CategoriesPage />} />
-        <Route path='/app' element={<AppPage />} />
-        <Route path='/contact' element={<ContactPage />} />
+          {/* Independent nav pages */}
+          <Route path='/menu' element={<MenuPage />} />
+          <Route path='/categories' element={<CategoriesPage />} />
+          <Route path='/app' element={<AppPage />} />
+          <Route path='/contact' element={<ContactPage />} />
 
-        {/* Restaurant listing + detail */}
-        <Route path='/restaurants' element={<RestaurantsPage />} />
-        <Route path='/restaurant/:id' element={<RestaurantDetail />} />
+          {/* Restaurant listing + detail */}
+          <Route path='/restaurants' element={<RestaurantsPage />} />
+          <Route path='/restaurant/:id' element={<RestaurantDetail />} />
 
-        {/* Partner landing page → registration funnel */}
-        <Route path='/become-a-partner' element={<PartnerLandingPage />} />
-        <Route path='/vendor-register'  element={<BecomePartnerPage />} />
+          {/* Partner landing page → registration funnel */}
+          <Route path='/become-a-partner' element={<PartnerLandingPage />} />
+          <Route path='/vendor-register'  element={<BecomePartnerPage />} />
 
-        {/* Production Authentication (P3-R2) */}
-        <Route path='/verify-email' element={<VerifyEmailPage />} />
-        <Route path='/forgot-password' element={<ForgotPasswordPage />} />
-        <Route path='/reset-password' element={<ResetPasswordPage />} />
+          {/* Production Authentication (P3-R2) */}
+          <Route path='/verify-email' element={<VerifyEmailPage />} />
+          <Route path='/forgot-password' element={<ForgotPasswordPage />} />
+          <Route path='/reset-password' element={<ResetPasswordPage />} />
 
-        {/* 404 */}
-        <Route path='*' element={<NotFound />} />
-      </Routes>
+          {/* 404 */}
+          <Route path='*' element={<NotFound />} />
+        </Routes>
+      </Suspense>
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <Footer />
