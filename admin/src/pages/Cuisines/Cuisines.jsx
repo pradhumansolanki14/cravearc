@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import {
   FiBookOpen, FiPlus, FiX, FiUpload, FiTrash2, FiEdit2,
@@ -21,13 +21,11 @@ const Cuisines = ({ url }) => {
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null })
   const fileInputRef = useRef(null)
 
-  const token = localStorage.getItem("adminToken")
-
   /* ── Fetch ── */
   const fetchCuisines = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${url}/api/cuisines`)
+      const res = await api.get(`/api/cuisines`)
       if (res.data.success) setCuisines(res.data.data)
       else toast.error("Failed to load cuisines")
     } catch {
@@ -91,9 +89,9 @@ const Cuisines = ({ url }) => {
 
       let res
       if (editing) {
-        res = await axios.put(`${url}/api/cuisines/${editing._id}`, fd, { headers: { token } })
+        res = await api.put(`/api/cuisines/${editing._id}`, fd)
       } else {
-        res = await axios.post(`${url}/api/cuisines`, fd, { headers: { token } })
+        res = await api.post(`/api/cuisines`, fd)
       }
 
       if (res.data.success) {
@@ -118,7 +116,7 @@ const Cuisines = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const res = await axios.delete(`${url}/api/cuisines/${c._id}`, { headers: { token } })
+          const res = await api.delete(`/api/cuisines/${c._id}`)
           if (res.data.success) {
             toast.success("Cuisine deleted")
             fetchCuisines()

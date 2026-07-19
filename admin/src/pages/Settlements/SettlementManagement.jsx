@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import { useAdmin } from "../../context/AdminContext";
 import toast from "react-hot-toast";
 import {
@@ -35,17 +35,17 @@ const SettlementManagement = ({ url }) => {
       if (showToast) setRefreshing(true);
       
       // Fetch vendor wallets to populate filters
-      const walletsRes = await axios.get(`${url}/api/finance/vendors`, { headers: { token: adminToken } });
+      const walletsRes = await api.get(`/api/finance/vendors`);
       if (walletsRes.data.success) {
         setVendorWallets(walletsRes.data.data);
       }
 
       // Fetch filtered settlements
-      let queryUrl = `${url}/api/settlements?page=${page}&limit=10`;
+      let queryUrl = `/api/settlements?page=${page}&limit=10`;
       if (vendorId) queryUrl += `&vendorId=${vendorId}`;
       if (status) queryUrl += `&status=${status}`;
 
-      const settlementsRes = await axios.get(queryUrl, { headers: { token: adminToken } });
+      const settlementsRes = await api.get(queryUrl);
       if (settlementsRes.data.success) {
         setSettlements(settlementsRes.data.data);
         setTotalPages(settlementsRes.data.pagination.pages || 1);
@@ -63,7 +63,7 @@ const SettlementManagement = ({ url }) => {
 
   const fetchSettlementDetail = async (id) => {
     try {
-      const res = await axios.get(`${url}/api/settlements/${id}`, { headers: { token: adminToken } });
+      const res = await api.get(`/api/settlements/${id}`);
       if (res.data.success) {
         setSelectedSettlement(res.data.data);
       }
@@ -86,7 +86,7 @@ const SettlementManagement = ({ url }) => {
   const handleGenerate = async () => {
     try {
       setGenerating(true);
-      const res = await axios.post(`${url}/api/settlements/generate`, {}, { headers: { token: adminToken } });
+      const res = await api.post(`/api/settlements/generate`, {});
       if (res.data.success) {
         toast.success(res.data.message || "Weekly settlements processed successfully!");
         fetchManagementData();
@@ -102,10 +102,9 @@ const SettlementManagement = ({ url }) => {
   const handleCompletePayout = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/settlements/${actionSettlementId}/complete`,
-        { reference, notes },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/settlements/${actionSettlementId}/complete`,
+        { reference, notes }
       );
       if (res.data.success) {
         toast.success("Settlement payout marked COMPLETED");
@@ -126,10 +125,9 @@ const SettlementManagement = ({ url }) => {
   const handleFailPayout = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/settlements/${actionSettlementId}/fail`,
-        { failureReason },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/settlements/${actionSettlementId}/fail`,
+        { failureReason }
       );
       if (res.data.success) {
         toast.success("Settlement payout marked FAILED");
@@ -149,7 +147,7 @@ const SettlementManagement = ({ url }) => {
   const handleCancelPayout = async (id) => {
     if (!window.confirm("Are you sure you want to cancel this settlement? Included orders will be freed up.")) return;
     try {
-      const res = await axios.post(`${url}/api/settlements/${id}/cancel`, {}, { headers: { token: adminToken } });
+      const res = await api.post(`/api/settlements/${id}/cancel`, {});
       if (res.data.success) {
         toast.success("Settlement payout CANCELLED");
         fetchManagementData();
@@ -165,7 +163,7 @@ const SettlementManagement = ({ url }) => {
 
   const handleRetryPayout = async (id) => {
     try {
-      const res = await axios.post(`${url}/api/settlements/${id}/retry`, {}, { headers: { token: adminToken } });
+      const res = await api.post(`/api/settlements/${id}/retry`, {});
       if (res.data.success) {
         toast.success("Settlement status reset to PENDING for retry");
         fetchManagementData();

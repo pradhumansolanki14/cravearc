@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import { useAdmin } from "../../context/AdminContext";
 import toast from "react-hot-toast";
 import { 
@@ -20,8 +20,8 @@ const Wallet = ({ url }) => {
     try {
       if (showToast) setRefreshing(true);
       const [walletRes, transRes] = await Promise.all([
-        axios.get(`${url}/api/finance/wallet`, { headers: { token: adminToken } }),
-        axios.get(`${url}/api/finance/wallet/transactions?page=${page}&limit=10`, { headers: { token: adminToken } })
+        api.get(`/api/finance/wallet`),
+        api.get(`/api/finance/wallet/transactions?page=${page}&limit=10`)
       ]);
 
       if (walletRes.data.success) {

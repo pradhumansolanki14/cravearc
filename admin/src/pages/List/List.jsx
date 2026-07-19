@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import { FiEdit, FiTrash2, FiSearch, FiX, FiTag, FiClock, FiActivity, FiLayers, FiDollarSign, FiPlus, FiAlertCircle } from "react-icons/fi"
 import { Card, Badge, Button, ConfirmationModal } from "../../components/ui"
@@ -47,11 +47,9 @@ const EditModal = ({ item, url, onClose, onSaved, categories }) => {
     }
     setRequesting(true)
     try {
-      const token = localStorage.getItem("adminToken")
-      const res = await axios.post(
-        `${url}/api/categories/requests`,
-        { name: reqName, description: reqDesc, reason: reqReason },
-        { headers: { token } }
+      const res = await api.post(
+        `/api/categories/requests`,
+        { name: reqName, description: reqDesc, reason: reqReason }
       )
       if (res.data.success) {
         toast.success("Category request submitted successfully.")
@@ -95,8 +93,7 @@ const EditModal = ({ item, url, onClose, onSaved, categories }) => {
 
       if (newImage) formData.append("image", newImage)
 
-      const token = localStorage.getItem("adminToken")
-      const res = await axios.put(`${url}/api/food/${item._id}`, formData, { headers: { token } })
+      const res = await api.put(`/api/food/${item._id}`, formData)
       if (res.data.success) {
         toast.success("Dish updated successfully!")
         onSaved()
@@ -348,9 +345,8 @@ const List = ({ url }) => {
   const fetchList = async () => {
     setLoading(true)
     try {
-      const endpoint = adminRole === "vendor" ? `${url}/api/food/my/items` : `${url}/api/food/list`
-      const headers = adminRole === "vendor" ? { headers: { token: adminToken } } : {}
-      const response = await axios.get(endpoint, headers)
+      const endpoint = adminRole === "vendor" ? "/api/food/my/items" : "/api/food/list"
+      const response = await api.get(endpoint)
       if (response.data.success) {
         setList(response.data.data)
       } else {
@@ -364,7 +360,7 @@ const List = ({ url }) => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${url}/api/categories`)
+      const res = await api.get(`/api/categories`)
       if (res.data.success) {
         setCategories(res.data.data)
       }
@@ -381,8 +377,7 @@ const List = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const token = localStorage.getItem("adminToken")
-          const res = await axios.post(`${url}/api/food/remove`, { id: foodId }, { headers: { token } })
+          const res = await api.post(`/api/food/remove`, { id: foodId })
           if (res.data.success) {
             toast.success("Dish deleted successfully!")
             fetchList()

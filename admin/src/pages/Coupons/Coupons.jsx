@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import { 
   FiTag, FiPlus, FiTrash2, FiX, FiCalendar, FiClock, 
@@ -36,7 +36,7 @@ const Coupons = ({ url }) => {
   const fetchCoupons = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${url}/api/coupons/list`, { headers: { token: adminToken } })
+      const res = await api.get(`/api/coupons/list`)
       if (res.data.success) {
         setCoupons(res.data.data)
       }
@@ -49,7 +49,7 @@ const Coupons = ({ url }) => {
   const fetchRestaurants = async () => {
     if (adminRole === "superadmin") {
       try {
-        const res = await axios.get(`${url}/api/food/restaurants`)
+        const res = await api.get(`/api/food/restaurants`)
         if (res.data.success) {
           setRestaurantsList(res.data.data)
         }
@@ -137,9 +137,9 @@ const Coupons = ({ url }) => {
 
       let res
       if (editing) {
-        res = await axios.put(`${url}/api/coupons/${editing._id}`, payload, { headers: { token: adminToken } })
+        res = await api.put(`/api/coupons/${editing._id}`, payload)
       } else {
-        res = await axios.post(`${url}/api/coupons/create`, payload, { headers: { token: adminToken } })
+        res = await api.post(`/api/coupons/create`, payload)
       }
 
       if (res.data.success) {
@@ -157,7 +157,7 @@ const Coupons = ({ url }) => {
 
   const toggleCoupon = async (id) => {
     try {
-      const res = await axios.patch(`${url}/api/coupons/${id}/toggle`, {}, { headers: { token: adminToken } })
+      const res = await api.patch(`/api/coupons/${id}/toggle`, {});
       if (res.data.success) { 
         toast.success(res.data.message || "Status updated") 
         fetchCoupons() 
@@ -177,7 +177,7 @@ const Coupons = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const res = await axios.delete(`${url}/api/coupons/${id}`, { headers: { token: adminToken } })
+          const res = await api.delete(`/api/coupons/${id}`)
           if (res.data.success) { 
             toast.success("Coupon code deleted") 
             fetchCoupons() 

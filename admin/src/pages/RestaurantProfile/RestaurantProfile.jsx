@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 import { FiHome, FiStar, FiMessageSquare, FiAward, FiUpload, FiMapPin, FiPhone, FiMail, FiClock, FiDollarSign, FiInfo, FiGlobe, FiWifi, FiCheck, FiZap, FiTrash2, FiPlus } from "react-icons/fi";
 import { MdOutlineLocalParking, MdOutlineFoodBank, MdOutlineTableRestaurant } from "react-icons/md";
 import { Card, Badge, Button, Input } from "../../components/ui";
@@ -34,7 +34,7 @@ const RestaurantProfile = ({ url }) => {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${url}/api/admin/restaurant/profile`, { headers: { token } });
+      const res = await api.get(`/api/admin/restaurant/profile`);
       if (res.data.success) {
         const d = res.data.data;
         setProfile(d);
@@ -100,7 +100,7 @@ const RestaurantProfile = ({ url }) => {
     try {
       const fd = new FormData();
       fd.append("isOpen", newVal);
-      const res = await axios.put(`${url}/api/admin/restaurant/profile`, fd, { headers: { token } });
+      const res = await api.put(`/api/admin/restaurant/profile`, fd);
       if (res.data.success) {
         setProfile(p => ({ ...p, isOpen: newVal }));
         toast.success(newVal ? "Restaurant is now Open" : "Restaurant is now Closed");
@@ -131,7 +131,7 @@ const RestaurantProfile = ({ url }) => {
         fd.append("gallery", file);
       });
 
-      const res = await axios.put(`${url}/api/admin/restaurant/profile`, fd, { headers: { token } });
+      const res = await api.put(`/api/admin/restaurant/profile`, fd);
       if (res.data.success) {
         toast.success("Profile updated");
         const updatedData = res.data.data;

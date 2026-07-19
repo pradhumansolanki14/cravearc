@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import { useAdmin } from "../../context/AdminContext";
 import toast from "react-hot-toast";
 import {
@@ -29,8 +29,8 @@ const Finance = ({ url }) => {
 
       // 1. Fetch Overview & Vendor Wallets
       const [overviewRes, vendorsRes] = await Promise.all([
-        axios.get(`${url}/api/finance/overview`, { headers: { token: adminToken } }),
-        axios.get(`${url}/api/finance/vendors`, { headers: { token: adminToken } })
+        api.get(`/api/finance/overview`),
+        api.get(`/api/finance/vendors`)
       ]);
 
       if (overviewRes.data.success) {
@@ -41,13 +41,13 @@ const Finance = ({ url }) => {
       }
 
       // 2. Fetch Ledger (paginated and filtered)
-      let ledgerUrl = `${url}/api/finance/ledger?page=${page}&limit=10`;
+      let ledgerUrl = `/api/finance/ledger?page=${page}&limit=10`;
       if (transactionType) ledgerUrl += `&transactionType=${transactionType}`;
       if (selectedVendor) ledgerUrl += `&vendorId=${selectedVendor}`;
       if (startDate) ledgerUrl += `&startDate=${startDate}`;
       if (endDate) ledgerUrl += `&endDate=${endDate}`;
 
-      const ledgerRes = await axios.get(ledgerUrl, { headers: { token: adminToken } });
+      const ledgerRes = await api.get(ledgerUrl);
       if (ledgerRes.data.success) {
         setLedger(ledgerRes.data.data);
         setTotalPages(ledgerRes.data.pagination.pages || 1);

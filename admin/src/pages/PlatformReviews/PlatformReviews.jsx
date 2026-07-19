@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 import { FiStar, FiMessageSquare, FiRefreshCw } from "react-icons/fi";
 import { Card, Button } from "../../components/ui";
 
@@ -27,7 +27,7 @@ const PlatformReviews = ({ url }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const revRes = await axios.get(`${url}/api/reviews/platform`);
+      const revRes = await api.get(`/api/reviews/platform`);
       if (revRes.data.success) {
         setReviews(revRes.data.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       }
@@ -49,7 +49,7 @@ const PlatformReviews = ({ url }) => {
     }
     setSavingReply(review._id);
     try {
-      const res = await axios.post(`${url}/api/reviews/platform/admin/${review._id}`, { reply }, { headers: { token } });
+      const res = await api.post(`/api/reviews/platform/admin/${review._id}`, { reply });
       if (res.data.success) {
         toast.success("Admin reply successfully posted.");
         setReviews(prev => prev.map(r => r._id === review._id ? { ...r, adminReply: reply, adminRepliedAt: new Date() } : r));

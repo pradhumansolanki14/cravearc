@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import {
   FiFolder, FiPlus, FiX, FiUpload, FiTrash2, FiEdit2,
@@ -21,13 +21,13 @@ const Categories = ({ url }) => {
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null })
   const fileInputRef = useRef(null)
 
-  const token = localStorage.getItem("adminToken")
+  // Fetch categories
 
   /* ── Fetch ── */
   const fetchCategories = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${url}/api/categories`)
+      const res = await api.get(`/api/categories`)
       if (res.data.success) setCategories(res.data.data)
       else toast.error("Failed to load categories")
     } catch {
@@ -92,9 +92,9 @@ const Categories = ({ url }) => {
 
       let res
       if (editing) {
-        res = await axios.put(`${url}/api/categories/${editing._id}`, fd, { headers: { token } })
+        res = await api.put(`/api/categories/${editing._id}`, fd)
       } else {
-        res = await axios.post(`${url}/api/categories`, fd, { headers: { token } })
+        res = await api.post(`/api/categories`, fd)
       }
 
       if (res.data.success) {
@@ -119,7 +119,7 @@ const Categories = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const res = await axios.delete(`${url}/api/categories/${cat._id}`, { headers: { token } })
+          const res = await api.delete(`/api/categories/${cat._id}`)
           if (res.data.success) {
             toast.success("Category deleted")
             fetchCategories()
@@ -137,10 +137,9 @@ const Categories = ({ url }) => {
   const toggleFeatured = async (cat) => {
     try {
       const nextFeatured = !cat.featured;
-      const res = await axios.put(
-        `${url}/api/categories/${cat._id}`,
-        { featured: nextFeatured },
-        { headers: { token } }
+      const res = await api.put(
+        `/api/categories/${cat._id}`,
+        { featured: nextFeatured }
       );
       if (res.data.success) {
         toast.success(nextFeatured ? "Marked as featured" : "Removed from featured");
@@ -156,10 +155,9 @@ const Categories = ({ url }) => {
   const toggleActive = async (cat) => {
     try {
       const nextActive = !cat.isActive;
-      const res = await axios.put(
-        `${url}/api/categories/${cat._id}`,
-        { isActive: nextActive },
-        { headers: { token } }
+      const res = await api.put(
+        `/api/categories/${cat._id}`,
+        { isActive: nextActive }
       );
       if (res.data.success) {
         toast.success(nextActive ? "Category activated" : "Category deactivated");

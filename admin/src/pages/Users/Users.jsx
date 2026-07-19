@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import { FiUsers, FiShoppingBag, FiDollarSign, FiX, FiChevronRight, FiUser, FiPhone, FiMail, FiCalendar, FiSearch, FiAlertCircle, FiTag } from "react-icons/fi"
 import { Card, Badge, ConfirmationModal } from "../../components/ui"
@@ -20,7 +20,7 @@ const Users = ({ url }) => {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${url}/api/admin/users`, { headers: { token: adminToken } })
+      const res = await api.get(`/api/admin/users`)
       if (res.data.success) {
         setUsers(res.data.data)
       }
@@ -33,7 +33,7 @@ const Users = ({ url }) => {
   const fetchUserDetail = async (id) => {
     setDetailLoading(true)
     try {
-      const res = await axios.get(`${url}/api/admin/users/${id}`, { headers: { token: adminToken } })
+      const res = await api.get(`/api/admin/users/${id}`)
       if (res.data.success) {
         setUserDetail(res.data.data)
       }
@@ -55,7 +55,7 @@ const Users = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const res = await axios.put(`${url}/api/admin/users/${user._id}`, { isActive: !user.isActive }, { headers: { token: adminToken } })
+          const res = await api.put(`/api/admin/users/${user._id}`, { isActive: !user.isActive })
           if (res.data.success) {
             toast.success(res.data.message || `Customer access updated!`)
             fetchUsers()

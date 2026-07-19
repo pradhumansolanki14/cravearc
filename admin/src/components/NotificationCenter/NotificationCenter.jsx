@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../../lib/axios';
 import { 
   FiBell, FiShoppingBag, FiTag, FiMessageSquare, 
   FiSettings, FiCheck, FiTrash2, FiAlertCircle, FiArrowRight 
@@ -17,12 +17,12 @@ const NotificationCenter = () => {
   const fetchNotifications = async () => {
     if (!adminToken) return;
     try {
-      const res = await axios.get(`${url}/api/notifications`, { headers: { token: adminToken } });
+      const res = await api.get(`/api/notifications`);
       if (res.data.success) {
         setNotifications(res.data.data || []);
       }
       
-      const countRes = await axios.get(`${url}/api/notifications/unread-count`, { headers: { token: adminToken } });
+      const countRes = await api.get(`/api/notifications/unread-count`);
       if (countRes.data.success) {
         setUnreadCount(countRes.data.count || 0);
       }
@@ -49,7 +49,7 @@ const NotificationCenter = () => {
 
   const markRead = async (id) => {
     try {
-      const res = await axios.put(`${url}/api/notifications/${id}/read`, {}, { headers: { token: adminToken } });
+      const res = await api.put(`/api/notifications/${id}/read`, {});
       if (res.data.success) {
         setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
         setUnreadCount(prev => Math.max(0, prev - 1));
@@ -61,7 +61,7 @@ const NotificationCenter = () => {
 
   const markAllRead = async () => {
     try {
-      const res = await axios.put(`${url}/api/notifications/read-all`, {}, { headers: { token: adminToken } });
+      const res = await api.put(`/api/notifications/read-all`, {});
       if (res.data.success) {
         setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
@@ -74,7 +74,7 @@ const NotificationCenter = () => {
 
   const deleteNotif = async (id, isRead) => {
     try {
-      const res = await axios.delete(`${url}/api/notifications/${id}`, { headers: { token: adminToken } });
+      const res = await api.delete(`/api/notifications/${id}`);
       if (res.data.success) {
         setNotifications(prev => prev.filter(n => n._id !== id));
         if (!isRead) {

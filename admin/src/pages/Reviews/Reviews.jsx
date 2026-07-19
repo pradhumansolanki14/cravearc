@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 import { FiStar, FiMessageSquare, FiRefreshCw, FiArrowRight, FiX, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { Card, Badge, Button, Select } from "../../components/ui";
 
@@ -35,10 +35,10 @@ const Reviews = ({ url }) => {
       // 1. Fetch restaurant profile to get restaurantId and then its reviews
       let rReviews = [];
       try {
-        const profileRes = await axios.get(`${url}/api/admin/restaurant/profile`, { headers: { token } });
+        const profileRes = await api.get(`/api/admin/restaurant/profile`);
         if (profileRes.data.success && profileRes.data.data) {
           const restaurantId = profileRes.data.data._id;
-          const restRes = await axios.get(`${url}/api/reviews/restaurant/${restaurantId}`);
+          const restRes = await api.get(`/api/reviews/restaurant/${restaurantId}`);
           if (restRes.data.success) {
             rReviews = restRes.data.data;
           }
@@ -49,7 +49,7 @@ const Reviews = ({ url }) => {
       setRestaurantReviews(rReviews);
 
       // 2. Fetch food items for food reviews
-      const foodRes = await axios.get(`${url}/api/food/my/items`, { headers: { token } });
+      const foodRes = await api.get(`/api/food/my/items`);
       if (foodRes.data.success) {
         const items = foodRes.data.data;
         setFoodItems(items);
@@ -57,7 +57,7 @@ const Reviews = ({ url }) => {
         const allReviews = [];
         for (const food of items) {
           try {
-            const revRes = await axios.get(`${url}/api/reviews/food/${food._id}`);
+            const revRes = await api.get(`/api/reviews/food/${food._id}`);
             if (revRes.data.success) {
               revRes.data.data.forEach(r => allReviews.push({ ...r, foodName: food.name }));
             }
@@ -84,9 +84,9 @@ const Reviews = ({ url }) => {
     setSavingReply(review._id);
     try {
       const endpoint = activeTab === "food"
-        ? `${url}/api/reviews/food/vendor/${review._id}`
-        : `${url}/api/reviews/restaurant/vendor/${review._id}`;
-      const res = await axios.post(endpoint, { reply }, { headers: { token } });
+        ? `/api/reviews/food/vendor/${review._id}`
+        : `/api/reviews/restaurant/vendor/${review._id}`;
+      const res = await api.post(endpoint, { reply });
       if (res.data.success) {
         toast.success("Vendor reply successfully posted.");
         if (activeTab === "food") {

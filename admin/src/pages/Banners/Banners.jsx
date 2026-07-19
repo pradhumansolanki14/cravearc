@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import { FiLayers, FiPlus, FiX, FiUpload, FiTrash2, FiEdit, FiClock } from "react-icons/fi"
 import { Card, Badge, ConfirmationModal } from "../../components/ui"
@@ -18,15 +18,15 @@ const Banners = ({ url }) => {
   const [saving, setSaving] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: "", message: "", onConfirm: null })
   
-  const token = localStorage.getItem("adminToken")
+  // Fetch data
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const bannerRes = await axios.get(`${url}/api/banners`)
+      const bannerRes = await api.get(`/api/banners`)
       if (bannerRes.data.success) setBanners(bannerRes.data.data)
       
-      const restRes = await axios.get(`${url}/api/admin/restaurant/`, { headers: { token } })
+      const restRes = await api.get(`/api/admin/restaurant/`)
       if (restRes.data.success) setRestaurants(restRes.data.data)
     } catch { 
       toast.error("Failed to load banners metadata") 
@@ -98,9 +98,9 @@ const Banners = ({ url }) => {
 
       let res
       if (editing) {
-        res = await axios.put(`${url}/api/banners/${editing._id}`, fd, { headers: { token } })
+        res = await api.put(`/api/banners/${editing._id}`, fd)
       } else {
-        res = await axios.post(`${url}/api/banners`, fd, { headers: { token } })
+        res = await api.post(`/api/banners`, fd)
       }
       if (res.data.success) {
         toast.success(editing ? "Promotion banner updated!" : "Homepage banner created successfully!")
@@ -123,7 +123,7 @@ const Banners = ({ url }) => {
       onConfirm: async () => {
         setConfirmDialog(d => ({ ...d, isOpen: false }))
         try {
-          const res = await axios.delete(`${url}/api/banners/${b._id}`, { headers: { token } })
+          const res = await api.delete(`/api/banners/${b._id}`)
           if (res.data.success) {
             toast.success("Banner deleted")
             fetchData()

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { toast } from "react-hot-toast"
-import axios from "axios"
+import api from "../../lib/axios"
 import {
   FiShoppingBag, FiClock, FiTruck, FiCheckCircle,
   FiRefreshCw, FiDollarSign, FiUser, FiMapPin, FiPhone, FiAlertCircle,
@@ -42,7 +42,7 @@ const Orders = ({ url }) => {
   const fetchAllOrders = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(url + "/api/order/list", { headers: { token: adminToken } })
+      const response = await api.get("/api/order/list")
       if (response.data.success) {
         setOrders(response.data.data)
         // Auto-select first order if none selected
@@ -60,7 +60,7 @@ const Orders = ({ url }) => {
 
   const fetchRestaurants = async () => {
     try {
-      const res = await axios.get(`${url}/api/admin/restaurant/`, { headers: { token: adminToken } })
+      const res = await api.get(`/api/admin/restaurant/`)
       if (res.data.success) {
         setRestaurants(res.data.data)
         const mapping = {}
@@ -74,7 +74,7 @@ const Orders = ({ url }) => {
 
   const statusHandler = async (newStatus, orderId) => {
     try {
-      const response = await axios.post(url + "/api/order/status", { orderId, status: newStatus }, { headers: { token: adminToken } })
+      const response = await api.post("/api/order/status", { orderId, status: newStatus })
       if (response.data.success) {
         toast.success("Order status updated!")
 

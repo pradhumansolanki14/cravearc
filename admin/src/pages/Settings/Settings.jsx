@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 import { FiSettings, FiCheck, FiInfo, FiTruck, FiDollarSign, FiClock, FiMail, FiPhone, FiMapPin, FiHome } from "react-icons/fi";
 import { Card, Badge, Button, Input, Select } from "../../components/ui";
 
@@ -15,7 +15,7 @@ const Settings = ({ url }) => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${url}/api/settings`);
+      const res = await api.get(`/api/settings`);
       if (res.data.success) {
         setSettings(res.data.data);
       }
@@ -29,7 +29,7 @@ const Settings = ({ url }) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await axios.put(`${url}/api/settings`, settings, { headers: { token: adminToken } });
+      const res = await api.put(`/api/settings`, settings);
       if (res.data.success) { 
         toast.success("Platform settings saved successfully!"); 
         setSettings(res.data.data); 

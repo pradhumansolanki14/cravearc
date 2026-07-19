@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import toast from "react-hot-toast";
 import { 
   FiFolder, FiPlusCircle, FiCheckCircle, FiXCircle, 
@@ -31,10 +31,10 @@ const CategoryRequests = ({ url }) => {
     setLoading(true);
     try {
       const endpoint = adminRole === "superadmin" 
-        ? `${url}/api/categories/requests/all`
-        : `${url}/api/categories/requests/my`;
+        ? "/api/categories/requests/all"
+        : "/api/categories/requests/my";
       
-      const res = await axios.get(endpoint, { headers: { token: adminToken } });
+      const res = await api.get(endpoint);
       if (res.data.success) {
         setRequests(res.data.data);
       } else {
@@ -61,10 +61,9 @@ const CategoryRequests = ({ url }) => {
     }
     setSubmitting(true);
     try {
-      const res = await axios.post(
-        `${url}/api/categories/requests`,
-        { name: reqName, description: reqDesc, reason: reqReason },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/categories/requests`,
+        { name: reqName, description: reqDesc, reason: reqReason }
       );
       if (res.data.success) {
         toast.success("Category request submitted successfully.");
@@ -86,10 +85,9 @@ const CategoryRequests = ({ url }) => {
   const handleApprove = async (id) => {
     if (!window.confirm("Are you sure you want to approve this category and add it to the master catalog?")) return;
     try {
-      const res = await axios.post(
-        `${url}/api/categories/requests/${id}/approve`,
-        {},
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/categories/requests/${id}/approve`,
+        {}
       );
       if (res.data.success) {
         toast.success("Category approved.");
@@ -108,10 +106,9 @@ const CategoryRequests = ({ url }) => {
     if (!selectedRequest) return;
     setRejecting(true);
     try {
-      const res = await axios.post(
-        `${url}/api/categories/requests/${selectedRequest._id}/reject`,
-        { rejectionReason: rejectReasonText },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/categories/requests/${selectedRequest._id}/reject`,
+        { rejectionReason: rejectReasonText }
       );
       if (res.data.success) {
         toast.success("Category rejected.");

@@ -45,6 +45,9 @@ const port = process.env.PORT || 4000;
 // Global security headers
 app.use(helmet());
 
+// CORS preflight policy configuration
+app.use(cors());
+
 // Global rate limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -60,7 +63,6 @@ app.use(express.json({
     req.rawBody = buf.toString();
   }
 }));
-app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 // Global query sanitization & object id validation

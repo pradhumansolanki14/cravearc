@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { useNavigate } from 'react-router-dom'
 import { 
   FiShoppingBag, FiDollarSign, FiClock, FiCheckCircle, 
@@ -72,7 +72,7 @@ const Dashboard = ({ url }) => {
   const fetchAnnouncements = async () => {
     try {
       const role = adminRole === 'superadmin' ? 'superadmin' : 'vendor'
-      const res = await axios.get(url + `/api/announcements?role=${role}`)
+      const res = await api.get(`/api/announcements?role=${role}`)
       if (res.data.success) {
         setAnnouncements(res.data.data || [])
       }
@@ -84,10 +84,10 @@ const Dashboard = ({ url }) => {
   const fetchStats = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(url + '/api/order/stats', { headers: { token } })
+      const res = await api.get('/api/order/stats')
       if (res.data.success) setStats(res.data.data)
       if (adminRole === 'superadmin') {
-        const pRes = await axios.get(url + '/api/admin/platform-stats', { headers: { token } })
+        const pRes = await api.get('/api/admin/platform-stats')
         if (pRes.data.success) setPlatformStats(pRes.data.data)
       }
     } catch (e) { 

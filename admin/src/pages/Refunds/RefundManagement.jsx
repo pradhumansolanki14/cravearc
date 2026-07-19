@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import { useAdmin } from "../../context/AdminContext";
 import toast from "react-hot-toast";
 import {
@@ -36,10 +36,10 @@ const RefundManagement = ({ url }) => {
     try {
       if (showToast) setRefreshing(true);
       
-      let queryUrl = `${url}/api/refunds?page=${page}&limit=10`;
+      let queryUrl = `/api/refunds?page=${page}&limit=10`;
       if (statusFilter) queryUrl += `&status=${statusFilter}`;
 
-      const res = await axios.get(queryUrl, { headers: { token: adminToken } });
+      const res = await api.get(queryUrl);
       if (res.data.success) {
         setRefunds(res.data.data);
         setTotalPages(res.data.pagination.pages || 1);
@@ -56,7 +56,7 @@ const RefundManagement = ({ url }) => {
 
   const fetchRefundDetail = async (id) => {
     try {
-      const res = await axios.get(`${url}/api/refunds/${id}`, { headers: { token: adminToken } });
+      const res = await api.get(`/api/refunds/${id}`);
       if (res.data.success) {
         setSelectedRefund(res.data.data);
       }
@@ -79,10 +79,9 @@ const RefundManagement = ({ url }) => {
   const handleApprove = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/refunds/${actionRefundId}/approve`,
-        { approvedAmount: approvedAmount ? parseFloat(approvedAmount) : undefined, adminRemark },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/refunds/${actionRefundId}/approve`,
+        { approvedAmount: approvedAmount ? parseFloat(approvedAmount) : undefined, adminRemark }
       );
       if (res.data.success) {
         toast.success("Refund request approved");
@@ -103,10 +102,9 @@ const RefundManagement = ({ url }) => {
   const handleReject = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/refunds/${actionRefundId}/reject`,
-        { adminRemark },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/refunds/${actionRefundId}/reject`,
+        { adminRemark }
       );
       if (res.data.success) {
         toast.success("Refund request rejected");
@@ -125,7 +123,7 @@ const RefundManagement = ({ url }) => {
 
   const handleProcess = async (id) => {
     try {
-      const res = await axios.post(`${url}/api/refunds/${id}/process`, {}, { headers: { token: adminToken } });
+      const res = await api.post(`/api/refunds/${id}/process`, {});
       if (res.data.success) {
         toast.success("Refund status set to PROCESSING");
         fetchRefundsData();
@@ -142,10 +140,9 @@ const RefundManagement = ({ url }) => {
   const handleComplete = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/refunds/${actionRefundId}/complete`,
-        { gatewayReference },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/refunds/${actionRefundId}/complete`,
+        { gatewayReference }
       );
       if (res.data.success) {
         toast.success("Refund COMPLETED successfully");
@@ -165,10 +162,9 @@ const RefundManagement = ({ url }) => {
   const handleFail = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${url}/api/refunds/${actionRefundId}/fail`,
-        { failureReason },
-        { headers: { token: adminToken } }
+      const res = await api.post(
+        `/api/refunds/${actionRefundId}/fail`,
+        { failureReason }
       );
       if (res.data.success) {
         toast.success("Refund status set to FAILED");

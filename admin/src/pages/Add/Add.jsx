@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast } from "react-hot-toast"
 import { FiPlus, FiCamera, FiTrash2, FiTag, FiClock, FiActivity, FiCheck, FiFolder } from "react-icons/fi"
 import { Card, Button, Input } from "../../components/ui"
@@ -34,11 +34,9 @@ const Add = ({ url }) => {
     }
     setRequesting(true)
     try {
-      const token = localStorage.getItem("adminToken")
-      const res = await axios.post(
-        `${url}/api/categories/requests`,
-        { name: reqName, description: reqDesc, reason: reqReason },
-        { headers: { token } }
+      const res = await api.post(
+        `/api/categories/requests`,
+        { name: reqName, description: reqDesc, reason: reqReason }
       )
       if (res.data.success) {
         toast.success("Category request submitted successfully.")
@@ -58,7 +56,7 @@ const Add = ({ url }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(`${url}/api/categories`)
+        const res = await api.get(`/api/categories`)
         if (res.data.success) {
           setCategories(res.data.data)
           if (res.data.data.length > 0) {
@@ -108,8 +106,7 @@ const Add = ({ url }) => {
     }
 
     try {
-      const token = localStorage.getItem("adminToken")
-      const response = await axios.post(`${url}/api/food/add`, formData, { headers: { token } })
+      const response = await api.post(`/api/food/add`, formData)
       if (response.data.success) {
         setData({ 
           name: "", 

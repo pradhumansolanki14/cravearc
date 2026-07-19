@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { FiMail, FiLock, FiArrowRight, FiLoader, FiAlertCircle, FiEye, FiEyeOff } from "react-icons/fi"
-import axios from "axios"
+import api from "../../lib/axios"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAdmin } from "../../context/AdminContext"
 import { BrandLogo } from "../../components/ui"
@@ -21,7 +21,7 @@ const Login = () => {
     setLoading(true)
     setError("")
     try {
-      const res = await axios.post(`${url}/api/admin/login`, data)
+      const res = await api.post(`/api/admin/login`, data)
       if (res.data.success) {
         adminLogin(res.data.token, res.data.name, res.data.role, res.data.restaurantId)
         navigate("/dashboard", { replace: true })

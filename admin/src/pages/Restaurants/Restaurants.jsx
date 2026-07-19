@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import api from "../../lib/axios";
+import toast from "react-hot-toast";
 import { FiHome, FiCheck, FiX, FiRefreshCw, FiStar, FiTrash2, FiSearch, FiLayers, FiCheckCircle, FiClock, FiAlertCircle } from "react-icons/fi";
 import { Card, Badge, Button, Input, ConfirmationModal } from "../../components/ui";
 
@@ -16,7 +16,7 @@ const Restaurants = ({ url }) => {
   const fetchRestaurants = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${url}/api/admin/restaurant/`, { headers: { token } });
+      const res = await api.get(`/api/admin/restaurant/`);
       if (res.data.success) {
         setRestaurants(res.data.data);
       } else {
@@ -35,10 +35,10 @@ const Restaurants = ({ url }) => {
   const handleApprove = async (r, approved) => {
     setActioning(r._id + (approved ? "_approve" : "_reject"));
     try {
-      const res = await axios.post(`${url}/api/admin/vendors/approve`, { 
+      const res = await api.post(`/api/admin/vendors/approve`, { 
         vendorId: r.ownerId?._id || r.ownerId, 
         approved 
-      }, { headers: { token } });
+      });
       if (res.data.success) {
         toast.success(`Restaurant ${approved ? "approved" : "rejected"} successfully!`);
         fetchRestaurants();
@@ -54,7 +54,7 @@ const Restaurants = ({ url }) => {
   const handleToggleFeatured = async (r) => {
     setActioning(r._id + "_featured");
     try {
-      const res = await axios.patch(`${url}/api/admin/restaurant/${r._id}/featured`, {}, { headers: { token } });
+      const res = await api.patch(`/api/admin/restaurant/${r._id}/featured`, {});
       if (res.data.success) {
         toast.success(`Featured state ${res.data.data?.featured ? "enabled" : "disabled"}`);
         fetchRestaurants();
@@ -76,7 +76,7 @@ const Restaurants = ({ url }) => {
         setConfirmDialog(d => ({ ...d, isOpen: false }));
         setActioning(r._id + "_delete");
         try {
-          const res = await axios.delete(`${url}/api/admin/restaurant/${r._id}`, { headers: { token } });
+          const res = await api.delete(`/api/admin/restaurant/${r._id}`);
           if (res.data.success) {
             toast.success("Restaurant successfully deactivated!");
             fetchRestaurants();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/axios";
 import { useAdmin } from "../../context/AdminContext";
 import toast from "react-hot-toast";
 import {
@@ -21,8 +21,8 @@ const Settlements = ({ url }) => {
     try {
       if (showToast) setRefreshing(true);
       const [walletRes, settlementsRes] = await Promise.all([
-        axios.get(`${url}/api/finance/wallet`, { headers: { token: adminToken } }),
-        axios.get(`${url}/api/settlements?page=${page}&limit=10`, { headers: { token: adminToken } })
+        api.get(`/api/finance/wallet`),
+        api.get(`/api/settlements?page=${page}&limit=10`)
       ]);
 
       if (walletRes.data.success) {
@@ -44,7 +44,7 @@ const Settlements = ({ url }) => {
 
   const fetchSettlementDetail = async (id) => {
     try {
-      const res = await axios.get(`${url}/api/settlements/${id}`, { headers: { token: adminToken } });
+      const res = await api.get(`/api/settlements/${id}`);
       if (res.data.success) {
         setSelectedSettlement(res.data.data);
       }

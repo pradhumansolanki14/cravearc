@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../lib/axios';
 import { useAdmin } from '../../context/AdminContext';
 import { 
   FiPlus, FiEdit2, FiTrash2, FiSend, 
@@ -22,7 +22,7 @@ const AnnouncementsPage = () => {
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${url}/api/announcements/all`, { headers: { token: adminToken } });
+      const res = await api.get(`/api/announcements/all`);
       if (res.data.success) {
         setAnnouncements(res.data.data || []);
       }
@@ -44,14 +44,14 @@ const AnnouncementsPage = () => {
     try {
       if (editingId) {
         // Update
-        const res = await axios.put(`${url}/api/announcements/${editingId}`, form, { headers: { token: adminToken } });
+        const res = await api.put(`/api/announcements/${editingId}`, form);
         if (res.data.success) {
           toast.success("Announcement updated");
           setEditingId(null);
         }
       } else {
         // Create
-        const res = await axios.post(`${url}/api/announcements`, form, { headers: { token: adminToken } });
+        const res = await api.post(`/api/announcements`, form);
         if (res.data.success) {
           toast.success("Announcement created as draft");
         }
@@ -75,7 +75,7 @@ const AnnouncementsPage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this announcement?")) return;
     try {
-      const res = await axios.delete(`${url}/api/announcements/${id}`, { headers: { token: adminToken } });
+      const res = await api.delete(`/api/announcements/${id}`);
       if (res.data.success) {
         toast.success("Announcement deleted");
         fetchAnnouncements();
@@ -87,7 +87,7 @@ const AnnouncementsPage = () => {
 
   const handlePublish = async (id) => {
     try {
-      const res = await axios.post(`${url}/api/announcements/${id}/publish`, {}, { headers: { token: adminToken } });
+      const res = await api.post(`/api/announcements/${id}/publish`, {});
       if (res.data.success) {
         toast.success("Announcement published and broadcasted!");
         fetchAnnouncements();
