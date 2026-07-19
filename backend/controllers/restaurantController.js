@@ -11,7 +11,7 @@ const getRestaurantProfile = async (req, res) => {
     }
     res.json({ success: true, data: restaurant });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -124,7 +124,7 @@ const updateRestaurantProfile = async (req, res) => {
     const updated = await restaurant.save();
     res.json({ success: true, data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -138,7 +138,7 @@ const listAllRestaurants = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, data: restaurants });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -154,7 +154,7 @@ const toggleFeatured = async (req, res) => {
     const updated = await restaurant.save();
     res.json({ success: true, data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -171,7 +171,7 @@ const softDeleteRestaurant = async (req, res) => {
     await restaurant.save();
     res.json({ success: true, message: "Restaurant has been deactivated" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };

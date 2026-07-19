@@ -31,7 +31,7 @@ const createBanner = async (req, res) => {
 
     res.json({ success: true, message: "Banner created", data: banner });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error creating banner" });
   }
 };
@@ -73,7 +73,7 @@ const updateBanner = async (req, res) => {
     const updated = await bannerModel.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ success: true, message: "Banner updated", data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error updating banner" });
   }
 };
@@ -92,7 +92,7 @@ const deleteBanner = async (req, res) => {
     await bannerModel.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Banner deleted" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error deleting banner" });
   }
 };
@@ -103,7 +103,7 @@ const listBanners = async (req, res) => {
     const banners = await bannerModel.find({ isActive: true }).sort({ order: 1 });
     res.json({ success: true, data: banners });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error listing banners" });
   }
 };

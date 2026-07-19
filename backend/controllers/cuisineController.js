@@ -34,7 +34,7 @@ const createCuisine = async (req, res) => {
 
     res.json({ success: true, message: "Cuisine created", data: cuisine });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error creating cuisine" });
   }
 };
@@ -68,7 +68,7 @@ const updateCuisine = async (req, res) => {
     const updated = await cuisineModel.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ success: true, message: "Cuisine updated", data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error updating cuisine" });
   }
 };
@@ -95,7 +95,7 @@ const deleteCuisine = async (req, res) => {
     await cuisineModel.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Cuisine deleted" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error deleting cuisine" });
   }
 };
@@ -106,7 +106,7 @@ const listCuisines = async (req, res) => {
     const cuisines = await cuisineModel.find({ isActive: true }).sort({ name: 1 });
     res.json({ success: true, data: cuisines });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error listing cuisines" });
   }
 };

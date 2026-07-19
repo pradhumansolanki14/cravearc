@@ -15,7 +15,7 @@ const getFavorites = async (req, res) => {
 
     res.json({ success: true, data: { foods, restaurants } });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -32,7 +32,7 @@ const getFavoriteIds = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -61,7 +61,7 @@ const toggleFavorite = async (req, res) => {
       return res.json({ success: false, message: "Either foodId or restaurantId is required" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };

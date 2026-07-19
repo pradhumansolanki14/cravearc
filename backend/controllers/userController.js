@@ -50,7 +50,7 @@ const loginUser = async (req, res) => {
     const token = createToken(user._id)
     res.json({ success: true, token })
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.json({ success: false, message: "Error" })
   }
 }
@@ -116,7 +116,7 @@ const registerUser = async (req, res) => {
       email: user.email
     })
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.json({ success: false, message: "Error" })
   }
 }
@@ -128,7 +128,7 @@ const getProfile = async (req, res) => {
     if (!user) return res.json({ success: false, message: "User not found" })
     res.json({ success: true, data: user })
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.json({ success: false, message: "Error fetching profile" })
   }
 }
@@ -144,7 +144,7 @@ const updateProfile = async (req, res) => {
     const user = await userModel.findByIdAndUpdate(req.userId, updates, { new: true }).select('-password -cartData')
     res.json({ success: true, data: user, message: "Profile updated" })
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.json({ success: false, message: "Error updating profile" })
   }
 }
@@ -172,7 +172,7 @@ const changePassword = async (req, res) => {
 
     res.json({ success: true, message: "Password changed successfully" })
   } catch (error) {
-    console.log(error)
+    console.error(error)
     res.json({ success: false, message: "Error changing password" })
   }
 }
@@ -206,7 +206,7 @@ const verifyEmail = async (req, res) => {
 
     res.json({ success: true, message: "Email verified successfully!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error verifying email" });
   }
 };
@@ -233,7 +233,7 @@ const resendVerification = async (req, res) => {
 
     res.json({ success: true, message: "A new verification link has been sent to your email!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error resending verification link" });
   }
 };
@@ -259,7 +259,7 @@ const forgotPassword = async (req, res) => {
 
     res.json({ success: true, message: "If that email is registered, we have sent a reset password link" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error sending reset email" });
   }
 };
@@ -309,7 +309,7 @@ const resetPassword = async (req, res) => {
 
     res.json({ success: true, message: "Your password has been reset successfully!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error resetting password" });
   }
 };
@@ -321,7 +321,7 @@ const getAddresses = async (req, res) => {
     if (!user) return res.json({ success: false, message: "User not found" });
     res.json({ success: true, data: user.addresses || [] });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -338,7 +338,7 @@ const addAddress = async (req, res) => {
     
     res.json({ success: true, message: "Address added", data: user.addresses });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -355,7 +355,7 @@ const deleteAddress = async (req, res) => {
     
     res.json({ success: true, message: "Address deleted", data: user.addresses });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };

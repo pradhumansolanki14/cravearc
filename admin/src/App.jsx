@@ -37,7 +37,7 @@ const RouteGuard = ({ children, allowedRoles }) => {
 }
 
 const App = () => {
-  const url = 'http://localhost:4000'
+  const url = import.meta.env.VITE_API_URL || 'http://localhost:4000'
   const { adminToken } = useAdmin()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {

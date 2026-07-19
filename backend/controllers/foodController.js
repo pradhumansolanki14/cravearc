@@ -43,7 +43,7 @@ const addFood = async (req, res) => {
     await food.save();
     res.json({ success: true, message: "Food Added" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -94,7 +94,7 @@ const listFood = async (req, res) => {
     const foodsWithStats = await attachRatingStats(filtered);
     res.json({ success: true, data: foodsWithStats });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -253,7 +253,7 @@ const listRestaurants = async (req, res) => {
     const restaurants = await restaurantModel.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: restaurants });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };

@@ -38,7 +38,7 @@ const loginAdmin = async (req, res) => {
       restaurantId: admin.restaurantId,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -60,7 +60,7 @@ const registerSuperAdmin = async (req, res) => {
     const token = createAdminToken(admin._id);
     res.json({ success: true, token, message: "Super admin created" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -83,7 +83,7 @@ const registerVendor = async (req, res) => {
     if (password.length < 8) return res.json({ success: false, message: "Password must be at least 8 characters" });
     if (!restaurantName) return res.json({ success: false, message: "Restaurant name required" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.json({ success: false, message: "Error registering vendor" });
   }
 
@@ -239,7 +239,7 @@ const approveVendor = async (req, res) => {
 
     res.json({ success: true, message: `Vendor ${approved ? "approved" : "rejected"}` });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -401,7 +401,7 @@ const toggleUserActive = async (req, res) => {
       data: { isActive: user.isActive },
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -427,7 +427,7 @@ const forgotAdminPassword = async (req, res) => {
 
     res.json({ success: true, message: "If that email is registered, we have sent a reset password link" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error sending reset email" });
   }
 };
@@ -476,7 +476,7 @@ const resetAdminPassword = async (req, res) => {
 
     res.json({ success: true, message: "Your password has been reset successfully!" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error resetting password" });
   }
 };

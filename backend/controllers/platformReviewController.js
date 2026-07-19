@@ -10,7 +10,7 @@ const getReviews = async (req, res) => {
       : 0;
     res.json({ success: true, data: reviews, average: parseFloat(avg), count: reviews.length });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -42,7 +42,7 @@ const addReview = async (req, res) => {
     });
     res.json({ success: true, message: "Review added", data: review });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error adding review" });
   }
 };
@@ -56,7 +56,7 @@ const deleteReview = async (req, res) => {
     await review.deleteOne();
     res.json({ success: true, message: "Review deleted" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -67,7 +67,7 @@ const adminDeleteReview = async (req, res) => {
     await platformReviewModel.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Review deleted" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -91,7 +91,7 @@ const replyToReview = async (req, res) => {
 
     res.json({ success: true, message: "Reply added", data: review });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };

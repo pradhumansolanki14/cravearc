@@ -27,7 +27,7 @@ const validateCoupon = async (req, res) => {
       value: coupon.discount,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error validating coupon" });
   }
 };
@@ -64,7 +64,7 @@ const createCoupon = async (req, res) => {
     });
     res.json({ success: true, message: "Coupon created", data: coupon });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error creating coupon" });
   }
 };
@@ -148,7 +148,7 @@ const updateCoupon = async (req, res) => {
     const updated = await couponModel.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ success: true, message: "Coupon updated", data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error updating coupon" });
   }
 };

@@ -36,7 +36,7 @@ const createCategory = async (req, res) => {
 
     res.json({ success: true, message: "Category created", data: category });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error creating category" });
   }
 };
@@ -87,7 +87,7 @@ const updateCategory = async (req, res) => {
 
     res.json({ success: true, message: "Category updated", data: updated });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error updating category" });
   }
 };
@@ -115,7 +115,7 @@ const deleteCategory = async (req, res) => {
     await categoryModel.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Category deleted" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error deleting category" });
   }
 };
@@ -126,7 +126,7 @@ const listCategories = async (req, res) => {
     const categories = await categoryModel.find({ isActive: true }).sort({ name: 1 });
     res.json({ success: true, data: categories });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error listing categories" });
   }
 };

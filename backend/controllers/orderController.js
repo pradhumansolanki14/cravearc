@@ -110,7 +110,7 @@ const userOrders = async (req, res) => {
     const orders = await orderModel.find({ userId: req.userId }).sort({ date: -1 });
     res.json({ success: true, data: orders });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -124,7 +124,7 @@ const listOrders = async (req, res) => {
     const orders = await orderModel.find(filter).sort({ date: -1 });
     res.json({ success: true, data: orders });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -233,7 +233,7 @@ const updateStatus = async (req, res) => {
 
     res.json({ success: true, message: "Status Updated" });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error" });
   }
 };
@@ -321,7 +321,7 @@ const adminStats = async (req, res) => {
       }
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error fetching stats" });
   }
 };
@@ -336,7 +336,7 @@ const getOrder = async (req, res) => {
     }
     res.json({ success: true, data: order });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Error" });
   }
 };

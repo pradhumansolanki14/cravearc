@@ -27,7 +27,7 @@ const updateSettings = async (req, res) => {
     await settings.save();
     res.json({ success: true, message: "Settings updated", data: settings });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.json({ success: false, message: "Error updating settings" });
   }
 };
