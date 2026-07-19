@@ -74,63 +74,65 @@ const BannerCarousel = () => {
   // Render nothing while loading or when array is empty (Req 24.4)
   if (loading || banners.length === 0) return null;
 
-  const active = banners[current];
+  const displayBanners = [];
+  if (banners.length > 0) {
+    displayBanners.push(banners[current]);
+    if (banners.length > 1) {
+      displayBanners.push(banners[(current + 1) % banners.length]);
+    }
+  }
 
   return (
-    <section className="relative w-full overflow-hidden bg-slate-900 select-none" aria-label="Promotional banners">
-      {/* Slide track */}
-      <div className="relative w-full" style={{ paddingBottom: 'clamp(220px, 32vw, 420px)' }}>
-        {banners.map((banner, i) => {
-          const isActive = i === current;
+    <div className="w-full relative select-none">
+      <div className={`grid grid-cols-1 ${banners.length > 1 ? 'md:grid-cols-2' : ''} gap-6`}>
+        {displayBanners.map((banner) => {
           const imgSrc = banner.image;
           const hasImgError = imgErrors[banner._id];
 
           return (
             <div
               key={banner._id}
-              aria-hidden={!isActive}
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-              } ${banner.restaurantId ? 'cursor-pointer' : 'cursor-default'}`}
-              onClick={() => isActive && handleBannerClick(banner)}
+              onClick={() => handleBannerClick(banner)}
+              className={`group relative w-full h-44 sm:h-52 md:h-56 lg:h-64 rounded-3xl overflow-hidden shadow-sm border border-slate-100 bg-slate-900 transition-all duration-300 hover:shadow-md hover:scale-[1.01] ${
+                banner.restaurantId ? 'cursor-pointer' : 'cursor-default'
+              }`}
             >
               {/* Image */}
               {!hasImgError ? (
                 <img
                   src={imgSrc}
                   alt={banner.title}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-103"
                   onError={() => setImgErrors(prev => ({ ...prev, [banner._id]: true }))}
                   draggable={false}
                 />
               ) : (
-                // Fallback gradient when image fails to load
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
-                  <span className="text-6xl">🍽️</span>
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center">
+                  <span className="text-4xl">🍽️</span>
                 </div>
               )}
 
-              {/* Dark overlay for text contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-slate-900/20 to-transparent" />
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/40 to-transparent" />
 
               {/* Text content */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 lg:p-12">
-                <div className="max-w-xl">
+              <div className="absolute inset-0 p-5 sm:p-6 lg:p-8 flex flex-col justify-end">
+                <div className="max-w-md">
                   {banner.title && (
-                    <h2 className="font-bold text-white text-xl sm:text-2xl lg:text-3xl leading-tight mb-1 drop-shadow-sm">
+                    <h3 className="font-poppins font-bold text-white text-base sm:text-lg lg:text-xl leading-tight mb-1 drop-shadow-sm">
                       {banner.title}
-                    </h2>
+                    </h3>
                   )}
                   {banner.subtitle && (
-                    <p className="text-white/80 text-sm sm:text-base leading-relaxed drop-shadow-sm">
+                    <p className="text-white/85 text-2xs sm:text-xs lg:text-sm font-semibold leading-relaxed drop-shadow-sm line-clamp-2">
                       {banner.subtitle}
                     </p>
                   )}
                   {banner.restaurantId && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl text-white text-xs font-semibold transition-all hover:bg-white/30">
-                      View Restaurant
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/15 backdrop-blur-xs border border-white/20 rounded-xl text-white text-3xs sm:text-2xs font-extrabold uppercase tracking-wider transition-all group-hover:bg-white/25">
+                      Order Now
+                      <svg className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
                   )}
@@ -141,47 +143,49 @@ const BannerCarousel = () => {
         })}
       </div>
 
-      {/* Prev / Next arrows — only show when >1 banner */}
-      {banners.length > 1 && (
-        <>
+      {/* Prev / Next navigation arrows on the sides of the grid */}
+      {banners.length > 2 && (
+        <div className="hidden lg:block">
           <button
             onClick={prev}
-            aria-label="Previous banner"
-            className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white transition-all"
+            aria-label="Previous banners"
+            className="absolute -left-5 top-1/2 -translate-y-1/2 z-25 w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-650 hover:text-emerald-600 hover:border-emerald-300 shadow-sm flex items-center justify-center transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
           <button
             onClick={next}
-            aria-label="Next banner"
-            className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-white/20 hover:bg-white/40 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white transition-all"
+            aria-label="Next banners"
+            className="absolute -right-5 top-1/2 -translate-y-1/2 z-25 w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-655 hover:text-emerald-600 hover:border-emerald-300 shadow-sm flex items-center justify-center transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-
-          {/* Dot indicators */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goTo(i)}
-                aria-label={`Go to banner ${i + 1}`}
-                className={`transition-all duration-300 rounded-full ${
-                  i === current
-                    ? 'w-6 h-2 bg-white'
-                    : 'w-2 h-2 bg-white/50 hover:bg-white/80'
-                }`}
-              />
-            ))}
-          </div>
-        </>
+        </div>
       )}
-    </section>
+
+      {/* Dots underneath the grid for indicators */}
+      {banners.length > 2 && (
+        <div className="flex items-center justify-center gap-1.5 mt-5">
+          {banners.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              aria-label={`Go to set ${i + 1}`}
+              className={`transition-all duration-300 rounded-full h-1.5 cursor-pointer ${
+                i === current
+                  ? 'w-5 bg-emerald-600'
+                  : 'w-1.5 bg-slate-200 hover:bg-slate-350'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

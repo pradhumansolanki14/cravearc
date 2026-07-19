@@ -7,27 +7,18 @@ import { FiSearch, FiX, FiSliders, FiGrid, FiLayers } from 'react-icons/fi';
 import { Container, Button } from '../../components/ui';
 
 const MenuPage = () => {
-  const { url } = useContext(StoreContext);
+  const { food_list, url } = useContext(StoreContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'All';
   const [activeCategory, setActiveCategory] = useState(categoryParam);
   const [sortBy, setSortBy] = useState('default');
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categories, setCategories] = useState([]);
   const [vegOnly, setVegOnly] = useState(false);
-  const [priceRange, setPriceRange] = useState('all'); // 'all' | 'under-150' | '150-500' | 'over-500'
+  const [priceRange, setPriceRange] = useState('all'); // 'all' | 'under-10' | '10-20' | 'over-20'
   const [minRating, setMinRating] = useState(0); // 0 | 4.0 | 4.5
   const [maxPrepTime, setMaxPrepTime] = useState(999); // 999 | 20 | 30
   const [inStockOnly, setInStockOnly] = useState(false);
-
-  // Pagination states
-  const [foods, setFoods] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const limit = 8;
 
   useEffect(() => {
     setActiveCategory(categoryParam);
@@ -45,52 +36,37 @@ const MenuPage = () => {
     fetchCategories();
   }, [url]);
 
-  // Debounce search input to avoid redundant API requests
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1); // Reset page to 1 when search term changes
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [search]);
+  let filtered = food_list.filter(item => {
+    const matchesCat = activeCategory === 'All' || item.category === activeCategory;
+    const matchesSearch = !search || 
+      item.name.toLowerCase().includes(search.toLowerCase()) || 
+      item.description.toLowerCase().includes(search.toLowerCase());
+    const matchesVeg = !vegOnly || item.isVeg === true || item.isVeg === 'true';
+    
+    // Price Filter
+    let matchesPrice = true;
+    if (priceRange === 'under-150') matchesPrice = item.price < 150;
+    else if (priceRange === '150-500') matchesPrice = item.price >= 150 && item.price <= 500;
+    else if (priceRange === 'over-500') matchesPrice = item.price > 500;
 
-  // Reset page when any filter modifies
-  useEffect(() => {
-    setPage(1);
-  }, [activeCategory, vegOnly, priceRange, minRating, maxPrepTime, inStockOnly, sortBy]);
+    // Rating Filter
+    const charSum = item.name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const itemRating = item.averageRating > 0 ? item.averageRating : parseFloat((4.0 + ((charSum % 10) / 10)).toFixed(1));
+    const matchesRating = itemRating >= minRating;
 
-  const fetchFoods = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      params.set('page', page);
-      params.set('limit', limit);
-      if (activeCategory !== 'All') params.set('category', activeCategory);
-      if (debouncedSearch) params.set('search', debouncedSearch);
-      if (vegOnly) params.set('vegOnly', 'true');
-      if (priceRange !== 'all') params.set('priceRange', priceRange);
-      if (minRating > 0) params.set('minRating', minRating);
-      if (maxPrepTime !== 999) params.set('maxPrepTime', maxPrepTime);
-      if (inStockOnly) params.set('inStockOnly', 'true');
-      if (sortBy !== 'default') params.set('sortBy', sortBy);
+    // Prep Time Filter
+    const itemPrep = item.preparationTime !== undefined && item.preparationTime !== null ? item.preparationTime : (15 + (charSum % 20));
+    const matchesPrep = itemPrep <= maxPrepTime;
 
-      const res = await axios.get(`${url}/api/food/list?${params.toString()}`);
-      if (res.data.success) {
-        setFoods(res.data.data || []);
-        setTotalPages(res.data.pagination?.pages || 1);
-        setTotalItems(res.data.pagination?.total || 0);
-      }
-    } catch {
-      setFoods([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    }
-    setLoading(false);
-  };
+    // Availability Filter
+    const matchesAvailability = !inStockOnly || item.isAvailable === true || item.isAvailable === 'true';
 
-  useEffect(() => {
-    fetchFoods();
-  }, [page, activeCategory, debouncedSearch, vegOnly, priceRange, minRating, maxPrepTime, inStockOnly, sortBy]);
+    return matchesCat && matchesSearch && matchesVeg && matchesPrice && matchesRating && matchesPrep && matchesAvailability;
+  });
+
+  if (sortBy === 'price-asc') filtered = [...filtered].sort((a, b) => a.price - b.price);
+  if (sortBy === 'price-desc') filtered = [...filtered].sort((a, b) => b.price - a.price);
+  if (sortBy === 'name') filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
 
   const handleClearFilters = () => {
     setActiveCategory('All');
@@ -302,21 +278,7 @@ const MenuPage = () => {
         </div>
 
         {/* ─── Grid List ─── */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
-                <div className="w-full h-40 bg-slate-100 rounded-2xl" />
-                <div className="h-4 bg-slate-100 rounded w-2/3" />
-                <div className="h-3 bg-slate-100 rounded w-1/2" />
-                <div className="flex gap-2 pt-2">
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : foods.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto bg-white border border-slate-105 rounded-3xl shadow-card p-8 animate-fadeUp">
             <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-150 flex items-center justify-center text-slate-450 mb-5">
               <FiSliders size={24} />
@@ -335,68 +297,27 @@ const MenuPage = () => {
             </Button>
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
-              {foods.map(item => (
-                <FoodItem 
-                  key={item._id} 
-                  id={item._id} 
-                  name={item.name} 
-                  description={item.description} 
-                  price={item.price} 
-                  image={item.image} 
-                  category={item.category}
-                  preparationTime={item.preparationTime}
-                  isVeg={item.isVeg}
-                  calories={item.calories}
-                  restaurantId={item.restaurantId}
-                  isAvailable={item.isAvailable}
-                  averageRating={item.averageRating}
-                  reviewCount={item.reviewCount}
-                  discount={item.discount}
-                />
-              ))}
-            </div>
-
-            {/* ── Pagination Controls ── */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12 pb-6">
-                <Button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  variant="outline"
-                  size="sm"
-                  className="font-bold border-slate-200 text-slate-600 disabled:opacity-50"
-                >
-                  Previous
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-xl text-xs font-bold transition-all duration-200 ${
-                      page === p
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-350 hover:text-slate-805'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-
-                <Button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  variant="outline"
-                  size="sm"
-                  className="font-bold border-slate-200 text-slate-600 disabled:opacity-50"
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
+            {filtered.map(item => (
+              <FoodItem 
+                key={item._id} 
+                id={item._id} 
+                name={item.name} 
+                description={item.description} 
+                price={item.price} 
+                image={item.image} 
+                category={item.category}
+                preparationTime={item.preparationTime}
+                isVeg={item.isVeg}
+                calories={item.calories}
+                restaurantId={item.restaurantId}
+                isAvailable={item.isAvailable}
+                averageRating={item.averageRating}
+                reviewCount={item.reviewCount}
+                discount={item.discount}
+              />
+            ))}
+          </div>
         )}
 
       </Container>

@@ -20,6 +20,8 @@
 
   html {
     scroll-behavior: smooth;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
   }
 
   body {
@@ -27,6 +29,8 @@
     font-family: 'Poppins', 'Inter', sans-serif;
     background-color: #ffffff;
     color: #0f172a;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
   }
 
   a {

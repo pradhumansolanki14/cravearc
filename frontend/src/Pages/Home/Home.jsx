@@ -174,8 +174,7 @@ const Hero = ({ setShowLogin }) => {
             className="font-poppins text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-[1.08] tracking-tight mb-6"
           >
             Your favorite cravings,<br />
-            delivered in{' '}
-            <span className="text-gradient-emerald">flow.</span>
+            delivered in <span className="text-gradient-emerald">flow.</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -183,70 +182,10 @@ const Hero = ({ setShowLogin }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-xl mb-10 font-semibold"
+            className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-xl mb-0 font-semibold"
           >
             Order premium dishes from the city&apos;s best rated culinary houses. Fresh ingredients, chef-crafted recipes, and contactless delivery.
           </motion.p>
-
-          {/* Search bar */}
-          <motion.form
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            onSubmit={handleSearchSubmit}
-            className="w-full max-w-2xl flex flex-col sm:flex-row gap-3 mb-8 bg-slate-900/60 border border-slate-800 rounded-3xl p-2.5 focus-within:border-emerald-500/70 focus-within:shadow-[0_8px_40px_rgba(16,185,129,0.13)] transition-all duration-500"
-          >
-            {/* Location selector */}
-            <HomeLocationSelector url={url} token={token} />
-
-            {/* Search input */}
-            <div className="flex-1 flex items-center gap-2.5 px-2 min-w-0">
-              <FiSearch className="text-slate-500 flex-shrink-0" size={17} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search restaurants, cuisines or dishes..."
-                className="flex-1 min-w-0 bg-transparent text-sm font-semibold text-white placeholder-slate-500 outline-none"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              className="font-bold shadow-emerald-sm py-3.5 px-7 rounded-2xl whitespace-nowrap flex-shrink-0"
-            >
-              Search
-            </Button>
-          </motion.form>
-
-          {/* CTA buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-wrap gap-4 justify-center mb-6"
-          >
-            <Button
-              onClick={() => navigate('/restaurants')}
-              variant="primary"
-              size="lg"
-              className="font-bold shadow-emerald"
-            >
-              Browse Restaurants
-            </Button>
-            {!token && (
-              <Button
-                onClick={() => navigate('/become-a-partner')}
-                variant="outline"
-                size="lg"
-                className="font-bold text-white border-slate-700 hover:border-slate-500 hover:bg-white/5"
-              >
-                Become a Partner
-              </Button>
-            )}
-          </motion.div>
 
         </div>
       </Container>
@@ -319,9 +258,9 @@ const CategoriesSection = () => {
   const featuredCategories = categories.filter(c => c.featured === true).slice(0, 10);
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-8 bg-white">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
               <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Explore Categories</span>
@@ -701,9 +640,9 @@ const SpecialOffers = () => {
   }
 
   return (
-    <section className="py-20 bg-slate-50 border-y border-slate-100">
+    <section className="py-8 bg-slate-50 border-y border-slate-100">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
               <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Promotions</span>
@@ -925,7 +864,7 @@ const Home = ({ setShowLogin }) => {
   return (
     <div className="bg-white flex flex-col min-h-screen">
       {/* Hero Header & Search Centerpiece */}
-      <Hero setShowLogin={setShowLogin} />
+      {!token && <Hero setShowLogin={setShowLogin} />}
 
       {/* Quick Search Categories */}
       {token && <PopularCategories />}
@@ -933,28 +872,37 @@ const Home = ({ setShowLogin }) => {
       {/* Live System Announcements Broadcast */}
       {token && <AnnouncementsFeed />}
 
-      {/* Dynamic Banner Carousel wrapper */}
-      {token && (
-        <div className="py-8 bg-white border-b border-slate-50">
-          <Container>
-            <div className="rounded-3xl overflow-hidden shadow-card border border-slate-100/60">
-              <BannerCarousel />
-            </div>
-          </Container>
-        </div>
-      )}
-
       {/* Main categories navigation grid */}
       <CategoriesSection />
-
-      {/* Special Offers Promotional Section */}
-      {token && <SpecialOffers />}
 
       {/* Featured dynamic restaurants */}
       <FeaturedRestaurants />
 
       {/* Popular dynamic food items */}
       <FeaturedFoods />
+
+      {/* Special Offers Promotional Section */}
+      {token && <SpecialOffers />}
+
+      {/* Dynamic Banner Carousel wrapper */}
+      {token && (
+        <section className="py-8 bg-white border-b border-slate-50">
+          <Container>
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
+                  <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Highlights</span>
+                </div>
+                <h2 className="font-poppins text-2xl font-extrabold text-slate-900 tracking-tight">
+                  Featured <span className="text-gradient-emerald">Promotions</span>
+                </h2>
+              </div>
+            </div>
+
+            <BannerCarousel />
+          </Container>
+        </section>
+      )}
 
       {/* Customer Reviews demo carousel */}
       <Testimonials />

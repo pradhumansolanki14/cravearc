@@ -42,22 +42,86 @@ const amenityIcon = (tag) => {
 };
 
 const StorefrontSkeleton = () => (
-  <div className="min-h-screen bg-gray-50 animate-pulse">
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
-      <div className="relative rounded-3xl bg-slate-200 h-44 sm:h-60" />
-      <div className="flex items-end gap-5 mt-4">
-        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-slate-300 border-4 border-white shadow-lg flex-shrink-0" style={{ marginTop: "-48px" }} />
-        <div className="mb-4 space-y-2">
-          <div className="h-6 w-48 bg-slate-300 rounded-xl" />
-          <div className="h-4 w-32 bg-slate-300 rounded-lg" />
+  <div className="min-h-screen bg-slate-50 animate-pulse">
+    {/* Cover banner full-bleed skeleton */}
+    <div className="relative bg-slate-900 w-full overflow-hidden pt-24 pb-8">
+      {/* Glow ambient background block */}
+      <div className="absolute inset-0 bg-slate-800/80" />
+      
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 z-10">
+        {/* Back button representation */}
+        <div className="w-9 h-9 rounded-xl bg-slate-700/50 mb-6" />
+        
+        {/* Banner Details Row */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex items-center sm:items-end gap-5 flex-wrap sm:flex-nowrap">
+            {/* Logo placeholder */}
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-slate-700 border-2 border-slate-600/40 flex-shrink-0" />
+            
+            {/* Title / meta placeholders */}
+            <div className="space-y-3 pb-2">
+              <div className="flex gap-2">
+                <div className="h-5 w-16 bg-slate-700 rounded-md" />
+                <div className="h-5 w-20 bg-slate-700 rounded-md" />
+              </div>
+              <div className="h-8 w-56 sm:w-64 bg-slate-700 rounded-2xl" />
+              <div className="h-4 w-40 bg-slate-700 rounded-lg" />
+            </div>
+          </div>
+          
+          {/* OverviewCard Placeholder */}
+          <div className="w-full md:w-80 h-28 bg-slate-800 rounded-2xl border border-slate-700/60 p-4 space-y-3 flex-shrink-0" />
         </div>
       </div>
     </div>
-    <div className="h-14 bg-white border-b border-slate-100 mt-6 flex items-center gap-8 px-6">
-      {[1,2,3,4].map(i => <div key={i} className="h-4 w-16 bg-slate-100 rounded-lg" />)}
+
+    {/* Section navigation tabs skeleton */}
+    <div className="h-14 bg-white border-b border-slate-100 flex items-center justify-start gap-8 px-6 sm:px-12 md:px-24">
+      <div className="h-5 w-16 bg-slate-200 rounded-lg" />
+      <div className="h-5 w-16 bg-slate-100 rounded-lg" />
+      <div className="h-5 w-16 bg-slate-100 rounded-lg" />
     </div>
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 pb-20 space-y-5">
-      {[1,2,3].map(i => <div key={i} className="h-32 bg-slate-100 rounded-2xl" />)}
+
+    {/* Section body skeleton */}
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 pb-20 space-y-8">
+      {/* Offers Card slider placeholder */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-5 space-y-4">
+        <div className="h-4 w-36 bg-slate-200 rounded-lg" />
+        <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="w-64 h-24 bg-slate-100 rounded-2xl flex-shrink-0" />
+          ))}
+        </div>
+      </div>
+
+      {/* Menu items grid matching the real layout */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-40 bg-slate-200 rounded-lg" />
+          <div className="h-5 w-12 bg-slate-200 rounded-lg" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2, 4, 5].map(i => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-100 flex gap-0 overflow-hidden h-32 p-4">
+              {/* Left Image Placeholder */}
+              <div className="w-28 sm:w-32 bg-slate-100 rounded-xl flex-shrink-0 self-stretch" />
+              
+              {/* Right content layout */}
+              <div className="flex-1 min-w-0 pl-4 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-slate-200 rounded-lg" />
+                  <div className="h-3 w-48 bg-slate-100 rounded" />
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                  <div className="h-5 w-16 bg-slate-200 rounded" />
+                  <div className="h-8 w-16 bg-slate-200 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   </div>
 );

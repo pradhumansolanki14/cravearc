@@ -12,42 +12,17 @@ const RestaurantsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCuisine, setSelectedCuisine] = useState('');
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  // Pagination State
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const limit = 8;
 
-  // Debounce search input to avoid redundant API requests
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1); // Reset page to 1 when search term changes
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  const fetchRestaurants = async (pageNum, cuisineId, searchVal) => {
+  const fetchRestaurants = async (cuisineId) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (cuisineId) params.set('cuisineId', cuisineId);
-      if (searchVal) params.set('search', searchVal);
-      params.set('page', pageNum);
-      params.set('limit', limit);
-
-      const res = await axios.get(`${url}/api/food/restaurants?${params.toString()}`);
+      const params = cuisineId ? `?cuisineId=${cuisineId}` : '';
+      const res = await axios.get(`${url}/api/food/restaurants${params}`);
       if (res.data.success) {
-        setRestaurants(res.data.data || []);
-        setTotalPages(res.data.pagination?.pages || 1);
-        setTotalItems(res.data.pagination?.total || 0);
+        setRestaurants(res.data.data);
       }
     } catch {
       setRestaurants([]);
-      setTotalPages(1);
-      setTotalItems(0);
     }
     setLoading(false);
   };
@@ -61,18 +36,21 @@ const RestaurantsPage = () => {
 
   useEffect(() => {
     fetchCuisines();
+    fetchRestaurants('');
     window.scrollTo(0, 0);
   }, []);
 
-  // Fetch paginated data when page, cuisine, or search values shift
-  useEffect(() => {
-    fetchRestaurants(page, selectedCuisine, debouncedSearch);
-  }, [page, selectedCuisine, debouncedSearch]);
-
   const handleCuisineChange = (id) => {
     setSelectedCuisine(id);
-    setPage(1); // Reset to first page on category change
+    fetchRestaurants(id);
   };
+
+  // Client-side search filter by name or cuisine text
+  const filtered = restaurants.filter(r => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return r.name?.toLowerCase().includes(q) || r.cuisine?.toLowerCase().includes(q);
+  });
 
   return (
     <div className="min-h-screen bg-slate-50/50">
@@ -86,7 +64,7 @@ const RestaurantsPage = () => {
                 Gourmet <span className="text-emerald-600">Kitchens</span>
               </h1>
               <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider mt-0.5">
-                {loading ? 'Searching kitchens...' : `${totalItems} kitchens available near you`}
+                {loading ? 'Searching kitchens...' : `${filtered.length} kitchens available near you`}
               </p>
             </div>
             
@@ -187,7 +165,7 @@ const RestaurantsPage = () => {
               </div>
             ))}
           </div>
-        ) : restaurants.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto bg-white border border-slate-100/80 rounded-3xl shadow-card p-8 animate-fadeUp">
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-5">
               <FiIcons.FiInfo size={28} />
@@ -210,52 +188,11 @@ const RestaurantsPage = () => {
             )}
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
-              {restaurants.map(r => (
-                <RestaurantCard key={r._id} restaurant={r} url={url} />
-              ))}
-            </div>
-
-            {/* ── Pagination Controls ── */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12 pb-6">
-                <Button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  variant="outline"
-                  size="sm"
-                  className="font-bold border-slate-200 text-slate-600 disabled:opacity-50"
-                >
-                  Previous
-                </Button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-xl text-xs font-bold transition-all duration-200 ${
-                      page === p
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-350 hover:text-slate-805'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-
-                <Button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  variant="outline"
-                  size="sm"
-                  className="font-bold border-slate-200 text-slate-600 disabled:opacity-50"
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fadeUp">
+            {filtered.map(r => (
+              <RestaurantCard key={r._id} restaurant={r} url={url} />
+            ))}
+          </div>
         )}
 
       </Container>
