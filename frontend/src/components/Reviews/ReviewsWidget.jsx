@@ -119,12 +119,12 @@ const ReviewsWidget = ({ title = "Reviews", domain, entityId = "" }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-        <h3 className="font-poppins font-extrabold text-xl text-slate-900">{title}</h3>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-slate-100 pb-3 sm:pb-4">
+        <h3 className="font-poppins font-extrabold text-base sm:text-xl text-slate-900">{title}</h3>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <StarRating rating={average} />
-          <span className="text-sm font-bold text-slate-700">{average}</span>
-          <span className="text-xs text-slate-400">({reviews.length})</span>
+          <span className="text-xs sm:text-sm font-bold text-slate-700">{average}</span>
+          <span className="text-[11px] sm:text-xs text-slate-400">({reviews.length})</span>
         </div>
       </div>
 

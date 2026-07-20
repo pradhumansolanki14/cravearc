@@ -152,24 +152,24 @@ const Hero = ({ setShowLogin }) => {
       {/* Dot mesh */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.022] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:28px_28px]" />
 
-      {/* Left Wall Image (Desi Paneer Tikka & Veggie Pizza on Round Board - Half emerging from left edge) */}
+      {/* Left / Top Image (Desi Paneer Tikka & Veggie Pizza - Top-Left on Mobile, Left-Wall on Desktop) */}
       <motion.img
         src="/hero-left.png"
         alt="Desi Paneer Tikka & Veggie Pizza"
-        initial={{ x: -120, opacity: 0 }}
-        animate={{ x: 0, opacity: 0.95 }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute -left-20 sm:-left-24 md:-left-28 lg:-left-32 xl:-left-36 top-1/2 -translate-y-1/2 w-56 sm:w-72 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)]"
+        className="absolute -top-16 -left-16 sm:-top-20 sm:-left-20 md:top-1/2 md:-translate-y-1/2 md:-left-28 lg:-left-32 xl:-left-36 w-52 sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
       />
 
-      {/* Right Wall Image (Indian Veg Dish on Round Board - Half emerging from right edge) */}
+      {/* Right / Bottom Image (Indian Veg Dish - Bottom-Right on Mobile, Right-Wall on Desktop) */}
       <motion.img
         src="/hero-right.png"
         alt="Indian Veg Platter"
-        initial={{ x: 120, opacity: 0 }}
-        animate={{ x: 0, opacity: 0.95 }}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute -right-20 sm:-right-24 md:-right-28 lg:-right-32 xl:-right-36 top-1/2 -translate-y-1/2 w-56 sm:w-72 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)]"
+        className="absolute -bottom-16 -right-16 sm:-bottom-20 sm:-right-20 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:-right-28 lg:-right-32 xl:-right-36 w-52 sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
       />
 
       <Container>
@@ -278,14 +278,14 @@ const CategoriesSection = () => {
   const featuredCategories = categories.filter(c => c.featured === true).slice(0, 10);
 
   return (
-    <section className="py-8 bg-white">
+    <section className="py-6 sm:py-10 bg-white">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-5 sm:mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Explore Categories</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-3">
+              <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Explore Categories</span>
             </div>
-            <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="font-poppins text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
               Explore your <span className="text-gradient-emerald">cravings</span>
             </h2>
           </div>
@@ -294,7 +294,7 @@ const CategoriesSection = () => {
             variant="outline"
             size="sm"
             rightIcon={<FiChevronRight />}
-            className="font-bold text-slate-600 hover:border-emerald-300"
+            className="font-bold text-slate-600 hover:border-emerald-300 self-start sm:self-auto"
           >
             Explore All Categories
           </Button>
@@ -302,11 +302,11 @@ const CategoriesSection = () => {
 
         {/* Loading skeletons */}
         {loading && (
-          <div className="flex gap-5 sm:gap-8 overflow-x-auto py-4 pb-6 scrollbar-hide">
+          <div className="flex gap-3 sm:gap-6 md:gap-8 overflow-x-auto py-2 sm:py-4 pb-4 sm:pb-6 scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 animate-pulse min-w-[96px] md:min-w-[128px] lg:min-w-[144px]">
-                <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full bg-slate-100" />
-                <div className="h-3.5 w-16 rounded bg-slate-100 mt-2" />
+              <div key={i} className="flex flex-col items-center gap-2 sm:gap-3 flex-shrink-0 animate-pulse min-w-[80px] sm:min-w-[96px] md:min-w-[128px] lg:min-w-[144px]">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full bg-slate-100" />
+                <div className="h-3 w-14 sm:h-3.5 sm:w-16 rounded bg-slate-100 mt-1.5" />
               </div>
             ))}
           </div>
@@ -323,16 +323,16 @@ const CategoriesSection = () => {
 
         {/* Swiggy/Zomato style category scroll strip */}
         {!loading && featuredCategories.length > 0 && (
-          <div className="flex gap-5 sm:gap-8 overflow-x-auto py-4 pb-6 scrollbar-hide">
+          <div className="flex gap-3 sm:gap-6 md:gap-8 overflow-x-auto py-2 sm:py-4 pb-4 sm:pb-6 scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
             {featuredCategories.map((item) => (
               <motion.button
                 key={item._id}
                 whileHover={{ y: -6 }}
                 onClick={() => navigate(`/menu?category=${item.name}`)}
-                className="group flex flex-col items-center gap-3 focus:outline-none flex-shrink-0 min-w-[96px] md:min-w-[128px] lg:min-w-[144px]"
+                className="group flex flex-col items-center gap-2 sm:gap-3 focus:outline-none flex-shrink-0 min-w-[80px] sm:min-w-[96px] md:min-w-[128px] lg:min-w-[144px]"
               >
                 {/* Double nested container to completely prevent subpixel browser border clipping on rounded-full overflow */}
-                <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full border-2 border-slate-100/50 group-hover:border-emerald-500 shadow-sm transition-all duration-300 bg-white p-0.5 flex-shrink-0 flex items-center justify-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full border-2 border-slate-100/50 group-hover:border-emerald-500 shadow-sm transition-all duration-300 bg-white p-0.5 flex-shrink-0 flex items-center justify-center">
                   <div className="w-full h-full rounded-full overflow-hidden bg-white">
                     {item.image ? (
                       <img
@@ -342,12 +342,12 @@ const CategoriesSection = () => {
                       />
                     ) : (
                       <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300">
-                        <FiPackage size={28} />
+                        <FiPackage size={24} />
                       </div>
                     )}
                   </div>
                 </div>
-                <span className="text-[11px] font-extrabold text-slate-700 group-hover:text-emerald-600 transition-colors tracking-tight text-center uppercase">
+                <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-700 group-hover:text-emerald-600 transition-colors tracking-tight text-center uppercase">
                   {item.name}
                 </span>
               </motion.button>
@@ -371,7 +371,7 @@ const FeaturedRestaurants = () => {
       try {
         const res = await axios.get(`${url}/api/food/restaurants`);
         if (res.data.success && Array.isArray(res.data.data)) {
-          setRestaurants(res.data.data.slice(0, 4)); // Get top 4 restaurants
+          setRestaurants(res.data.data.slice(0, 12)); // Display up to 12 featured restaurants
         }
       } catch (err) {
         console.error("Error loading homepage restaurants:", err);
@@ -382,15 +382,18 @@ const FeaturedRestaurants = () => {
     fetchRestaurants();
   }, [url]);
 
+  const row1 = restaurants.slice(0, 6);
+  const row2 = restaurants.slice(6, 12);
+
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-10 sm:py-20 bg-slate-50">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-5 sm:mb-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Featured</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-3">
+              <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Featured</span>
             </div>
-            <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="font-poppins text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
               Best rated <span className="text-gradient-emerald">restaurants</span> near you
             </h2>
           </div>
@@ -399,22 +402,46 @@ const FeaturedRestaurants = () => {
             variant="outline"
             size="sm"
             rightIcon={<FiChevronRight />}
-            className="font-bold text-slate-600 hover:border-emerald-300"
+            className="font-bold text-slate-600 hover:border-emerald-300 self-start sm:self-auto"
           >
             Explore All Restaurants
           </Button>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(idx => (
-              <div key={idx} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
-                <Skeleton variant="card" />
-                <Skeleton variant="title" className="w-2/3" />
-                <Skeleton variant="text" className="w-1/2" />
+          <>
+            {/* Mobile Loading Skeletons (2 stacked horizontal rows) */}
+            <div className="block sm:hidden space-y-3">
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-1 scrollbar-hide">
+                {[1, 2, 3, 4, 5, 6].map(idx => (
+                  <div key={idx} className="min-w-[155px] xs:min-w-[170px] w-[calc(48%-6px)] max-w-[210px] flex-shrink-0 bg-white rounded-2xl border border-slate-100 overflow-hidden p-3 space-y-3 shadow-sm">
+                    <Skeleton variant="card" />
+                    <Skeleton variant="title" className="w-2/3" />
+                    <Skeleton variant="text" className="w-1/2" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide">
+                {[7, 8, 9, 10, 11, 12].map(idx => (
+                  <div key={idx} className="min-w-[155px] xs:min-w-[170px] w-[calc(48%-6px)] max-w-[210px] flex-shrink-0 bg-white rounded-2xl border border-slate-100 overflow-hidden p-3 space-y-3 shadow-sm">
+                    <Skeleton variant="card" />
+                    <Skeleton variant="title" className="w-2/3" />
+                    <Skeleton variant="text" className="w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Desktop Loading Skeletons (4-column grid) */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(idx => (
+                <div key={idx} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
+                  <Skeleton variant="card" />
+                  <Skeleton variant="title" className="w-2/3" />
+                  <Skeleton variant="text" className="w-1/2" />
+                </div>
+              ))}
+            </div>
+          </>
         ) : restaurants.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center max-w-sm mx-auto bg-white border border-slate-100 rounded-3xl shadow-card p-8 animate-fadeUp">
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-5 shadow-xs">
@@ -424,11 +451,34 @@ const FeaturedRestaurants = () => {
             <p className="text-slate-400 text-sm leading-relaxed">Please try again later or check your network connection.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {restaurants.map((rest) => (
-              <RestaurantCard key={rest._id} restaurant={rest} url={url} />
-            ))}
-          </div>
+          <>
+            {/* Mobile view: 2 stacked horizontal scroll rows (6 top, 6 bottom) */}
+            <div className="block sm:hidden space-y-3">
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-1 scrollbar-hide">
+                {row1.map((rest) => (
+                  <div key={rest._id} className="min-w-[155px] xs:min-w-[170px] w-[calc(48%-6px)] max-w-[210px] flex-shrink-0 flex flex-col h-full">
+                    <RestaurantCard restaurant={rest} url={url} />
+                  </div>
+                ))}
+              </div>
+              {row2.length > 0 && (
+                <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide">
+                  {row2.map((rest) => (
+                    <div key={rest._id} className="min-w-[155px] xs:min-w-[170px] w-[calc(48%-6px)] max-w-[210px] flex-shrink-0 flex flex-col h-full">
+                      <RestaurantCard restaurant={rest} url={url} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop/Tablet view: Unchanged 4-column responsive grid */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {restaurants.map((rest) => (
+                <RestaurantCard key={rest._id} restaurant={rest} url={url} />
+              ))}
+            </div>
+          </>
         )}
       </Container>
     </section>
@@ -465,21 +515,23 @@ const FeaturedFoods = () => {
       // Filter items with positive discounts
       items = items.filter(item => item.discount > 0);
     }
-    return items.slice(0, 8); // Display top 8 items
+    return items.slice(0, 12); // Display top 12 signature items
   };
 
   const discoveryItems = getDiscoveryItems();
+  const foodRow1 = discoveryItems.slice(0, 6);
+  const foodRow2 = discoveryItems.slice(6, 12);
 
   return (
-    <section className="py-24 bg-white">
+    <section className="py-10 sm:py-20 bg-white">
       <Container>
         {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-5 sm:mb-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Discovery</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-3">
+              <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Discovery</span>
             </div>
-            <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="font-poppins text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
               Explore our <span className="text-gradient-emerald font-black">signature dishes</span>
             </h2>
           </div>
@@ -495,7 +547,7 @@ const FeaturedFoods = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === tab.id
+                className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === tab.id
                   ? "bg-slate-900 text-white shadow-sm"
                   : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
                   }`}
@@ -508,15 +560,39 @@ const FeaturedFoods = () => {
 
         {/* Show skeletons only while still loading */}
         {!foodListLoaded ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map(idx => (
-              <div key={idx} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
-                <Skeleton variant="card" />
-                <Skeleton variant="title" className="w-2/3" />
-                <Skeleton variant="text" className="w-1/2" />
+          <>
+            {/* Mobile Loading Skeletons */}
+            <div className="block sm:hidden space-y-3">
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-1 scrollbar-hide">
+                {[1, 2, 3, 4, 5, 6].map(idx => (
+                  <div key={idx} className="min-w-[200px] xs:min-w-[220px] w-[64vw] max-w-[250px] flex-shrink-0 bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
+                    <Skeleton variant="card" />
+                    <Skeleton variant="title" className="w-2/3" />
+                    <Skeleton variant="text" className="w-1/2" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide">
+                {[7, 8, 9, 10, 11, 12].map(idx => (
+                  <div key={idx} className="min-w-[200px] xs:min-w-[220px] w-[64vw] max-w-[250px] flex-shrink-0 bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
+                    <Skeleton variant="card" />
+                    <Skeleton variant="title" className="w-2/3" />
+                    <Skeleton variant="text" className="w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Desktop Loading Skeletons */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(idx => (
+                <div key={idx} className="bg-white rounded-3xl border border-slate-100 overflow-hidden p-4 space-y-4 shadow-sm">
+                  <Skeleton variant="card" />
+                  <Skeleton variant="title" className="w-2/3" />
+                  <Skeleton variant="text" className="w-1/2" />
+                </div>
+              ))}
+            </div>
+          </>
         ) : food_list.length === 0 ? (
           /* Loaded but no dishes exist at all */
           <div className="flex justify-center py-8">
@@ -540,27 +616,80 @@ const FeaturedFoods = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {discoveryItems.map(item => (
-              <FoodItem
-                key={item._id}
-                id={item._id}
-                name={item.name}
-                description={item.description}
-                price={item.price}
-                image={item.image}
-                category={item.category}
-                preparationTime={item.preparationTime}
-                isVeg={item.isVeg}
-                calories={item.calories}
-                restaurantId={item.restaurantId}
-                isAvailable={item.isAvailable}
-                averageRating={item.averageRating}
-                reviewCount={item.reviewCount}
-                discount={item.discount}
-              />
-            ))}
-          </div>
+          <>
+            {/* Mobile view: 2 stacked horizontal scroll rows (6 top, 6 bottom) */}
+            <div className="block sm:hidden space-y-3">
+              <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-1 scrollbar-hide">
+                {foodRow1.map(item => (
+                  <div key={item._id} className="min-w-[200px] xs:min-w-[220px] w-[64vw] max-w-[250px] flex-shrink-0 flex flex-col h-full">
+                    <FoodItem
+                      id={item._id}
+                      name={item.name}
+                      description={item.description}
+                      price={item.price}
+                      image={item.image}
+                      category={item.category}
+                      preparationTime={item.preparationTime}
+                      isVeg={item.isVeg}
+                      calories={item.calories}
+                      restaurantId={item.restaurantId}
+                      isAvailable={item.isAvailable}
+                      averageRating={item.averageRating}
+                      reviewCount={item.reviewCount}
+                      discount={item.discount}
+                    />
+                  </div>
+                ))}
+              </div>
+              {foodRow2.length > 0 && (
+                <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide">
+                  {foodRow2.map(item => (
+                    <div key={item._id} className="min-w-[200px] xs:min-w-[220px] w-[64vw] max-w-[250px] flex-shrink-0 flex flex-col h-full">
+                      <FoodItem
+                        id={item._id}
+                        name={item.name}
+                        description={item.description}
+                        price={item.price}
+                        image={item.image}
+                        category={item.category}
+                        preparationTime={item.preparationTime}
+                        isVeg={item.isVeg}
+                        calories={item.calories}
+                        restaurantId={item.restaurantId}
+                        isAvailable={item.isAvailable}
+                        averageRating={item.averageRating}
+                        reviewCount={item.reviewCount}
+                        discount={item.discount}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop/Tablet view: Standard 4-column responsive grid */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {discoveryItems.map(item => (
+                <FoodItem
+                  key={item._id}
+                  id={item._id}
+                  name={item.name}
+                  description={item.description}
+                  price={item.price}
+                  image={item.image}
+                  category={item.category}
+                  preparationTime={item.preparationTime}
+                  isVeg={item.isVeg}
+                  calories={item.calories}
+                  restaurantId={item.restaurantId}
+                  isAvailable={item.isAvailable}
+                  averageRating={item.averageRating}
+                  reviewCount={item.reviewCount}
+                  discount={item.discount}
+                />
+              ))}
+            </div>
+          </>
         )}
       </Container>
     </section>
@@ -580,45 +709,45 @@ const CouponTicketCard = ({ coupon }) => {
   const isPercent = coupon.discountType === "percent";
 
   return (
-    <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-3xl p-5 sm:p-6 flex items-stretch shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
+    <div className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 flex items-stretch shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
       {/* Semi-circle notch decorations on left and right borders of the ticket (match bg-slate-50) */}
-      <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-50 z-10" />
-      <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-50 z-10" />
+      <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-50 z-10" />
+      <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-slate-50 z-10" />
 
       {/* Main Left Side of Ticket */}
-      <div className="flex-1 pr-6 flex flex-col justify-between min-w-0">
+      <div className="flex-1 pr-3 sm:pr-6 flex flex-col justify-between min-w-0">
         <div>
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/20 text-white text-[10px] font-black uppercase rounded-lg tracking-wider mb-2.5">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-white/20 text-white text-[9px] sm:text-[10px] font-black uppercase rounded-md sm:rounded-lg tracking-wider mb-1.5 sm:mb-2.5">
             {isPercent ? `${coupon.discount}% Discount` : `₹${coupon.discount} Discount`}
           </div>
-          <h3 className="font-poppins font-black text-white text-base leading-tight">
+          <h3 className="font-poppins font-black text-white text-xs sm:text-base leading-tight truncate">
             {isPercent ? `Save ${coupon.discount}% Off` : `₹${coupon.discount} Flat Off`}
           </h3>
-          <p className="text-xs text-white/80 font-semibold leading-relaxed mt-1.5 line-clamp-2">
+          <p className="text-[10px] sm:text-xs text-white/85 font-semibold leading-snug mt-1 sm:mt-1.5 line-clamp-2">
             {coupon.description || `Apply code ${coupon.code} on checkout to redeem discount.`}
           </p>
         </div>
 
-        <div className="text-[10px] font-extrabold text-white/70 uppercase tracking-widest mt-4">
+        <div className="text-[9px] sm:text-[10px] font-extrabold text-white/75 uppercase tracking-widest mt-2.5 sm:mt-4">
           Min Order: <span className="text-white font-black">₹{coupon.minOrder || 0}</span>
         </div>
       </div>
 
       {/* Dashed vertical divider with tear notches */}
-      <div className="w-[1px] border-l-2 border-dashed border-white/20 relative my-1">
+      <div className="w-[1px] border-l-2 border-dashed border-white/20 relative my-0.5 sm:my-1">
         <div className="absolute -top-3.5 -left-1 w-2 h-2 rounded-full bg-slate-50" />
         <div className="absolute -bottom-3.5 -left-1 w-2 h-2 rounded-full bg-slate-50" />
       </div>
 
       {/* Right side of Ticket */}
-      <div className="pl-6 w-28 flex flex-col justify-center items-center text-center flex-shrink-0">
-        <span className="text-[9px] font-extrabold text-white/70 uppercase tracking-wider mb-2">PROMO CODE</span>
-        <div className="w-full py-2 bg-white/15 border-2 border-dashed border-white/20 rounded-xl font-mono font-black text-xs text-white tracking-wide select-all uppercase">
+      <div className="pl-3 sm:pl-6 w-24 sm:w-28 flex flex-col justify-center items-center text-center flex-shrink-0">
+        <span className="text-[8px] sm:text-[9px] font-extrabold text-white/70 uppercase tracking-wider mb-1 sm:mb-2">PROMO CODE</span>
+        <div className="w-full py-1.5 sm:py-2 bg-white/15 border border-dashed border-white/20 rounded-lg sm:rounded-xl font-mono font-black text-[10px] sm:text-xs text-white tracking-tight sm:tracking-wide select-all uppercase truncate px-1">
           {coupon.code}
         </div>
         <button
           onClick={handleCopy}
-          className={`w-full py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase mt-2.5 transition-all duration-200 ${copied
+          className={`w-full py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[9px] sm:text-[10px] font-black tracking-wider uppercase mt-2 sm:mt-2.5 transition-all duration-200 ${copied
             ? 'bg-emerald-500 text-white shadow-sm'
             : 'bg-white text-slate-900 hover:bg-slate-100'
             }`}
@@ -658,28 +787,30 @@ const SpecialOffers = () => {
   }
 
   return (
-    <section className="py-8 bg-slate-50 border-y border-slate-100">
+    <section className="py-5 sm:py-8 bg-slate-50 border-y border-slate-100">
       <Container>
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-3.5 sm:mb-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-              <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Promotions</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-3">
+              <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Promotions</span>
             </div>
-            <h2 className="font-poppins text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="font-poppins text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Exclusive <span className="text-gradient-emerald">offers</span> for you
             </h2>
           </div>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
-            <div className="h-32 bg-slate-100 rounded-3xl w-full"></div>
-            <div className="h-32 bg-slate-100 rounded-3xl w-full"></div>
+          <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide md:grid md:grid-cols-2 md:gap-6 md:mx-0 md:px-0 md:pb-0 animate-pulse">
+            <div className="h-28 sm:h-32 bg-slate-100 rounded-2xl sm:rounded-3xl min-w-[240px] xs:min-w-[260px] w-[72vw] max-w-[290px] flex-shrink-0 md:w-full md:min-w-0 md:max-w-none"></div>
+            <div className="h-28 sm:h-32 bg-slate-100 rounded-2xl sm:rounded-3xl min-w-[240px] xs:min-w-[260px] w-[72vw] max-w-[290px] flex-shrink-0 md:w-full md:min-w-0 md:max-w-none"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex overflow-x-auto gap-3 -mx-4 px-4 pb-2 scrollbar-hide md:grid md:grid-cols-2 md:gap-6 md:mx-0 md:px-0 md:pb-0">
             {offers.map(coupon => (
-              <CouponTicketCard key={coupon._id} coupon={coupon} />
+              <div key={coupon._id} className="min-w-[240px] xs:min-w-[260px] w-[72vw] max-w-[290px] flex-shrink-0 md:w-auto md:min-w-0 md:max-w-none md:flex-shrink">
+                <CouponTicketCard coupon={coupon} />
+              </div>
             ))}
           </div>
         )}
@@ -714,16 +845,16 @@ const WhyChooseUs = () => {
   ];
 
   return (
-    <section className="py-24 bg-white border-b border-slate-100">
+    <section className="py-12 sm:py-24 bg-white border-b border-slate-100">
       <Container>
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-4">
-            <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Benefits</span>
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-4">
+            <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Benefits</span>
           </div>
-          <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="font-poppins text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Why choose <span className="text-gradient-emerald">{BRAND.NAME}</span>?
           </h2>
-          <p className="text-sm text-slate-400 mt-3.5 leading-relaxed font-semibold">
+          <p className="text-xs sm:text-sm text-slate-400 mt-2 sm:mt-3.5 leading-relaxed font-semibold">
             We deliver visual refinement and culinary perfection from the kitchen straight to your fork.
           </p>
         </div>
@@ -778,16 +909,16 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-24 bg-slate-50">
+    <section className="py-12 sm:py-24 bg-slate-50">
       <Container>
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-4">
-            <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Timeline</span>
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-4">
+            <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Timeline</span>
           </div>
-          <h2 className="font-poppins text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="font-poppins text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             How it works
           </h2>
-          <p className="text-sm text-slate-400 mt-3.5 leading-relaxed font-semibold">
+          <p className="text-xs sm:text-sm text-slate-400 mt-2 sm:mt-3.5 leading-relaxed font-semibold">
             Your gourmet delivery journey completed in three intentional steps.
           </p>
         </div>
@@ -823,7 +954,7 @@ const HowItWorks = () => {
 // ─── Platform Reviews Section ────────────
 const Testimonials = () => {
   return (
-    <section className="py-24 bg-white border-b border-slate-100">
+    <section className="py-12 sm:py-24 bg-white border-b border-slate-100">
       <Container>
         <div className="max-w-4xl mx-auto">
           <ReviewsWidget title="Platform Reviews" domain="platform" />
@@ -837,17 +968,17 @@ const Testimonials = () => {
 const CTASection = () => {
   const navigate = useNavigate();
   return (
-    <section className="py-24 bg-slate-950 relative overflow-hidden">
+    <section className="py-14 sm:py-24 bg-slate-950 relative overflow-hidden">
       {/* Background patterns */}
       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(255,255,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.07)_1px,transparent_1px)] bg-[size:40px_40px]" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full opacity-10 pointer-events-none filter blur-3xl" style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }} />
 
       <Container>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="font-poppins text-3xl sm:text-4xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+          <h2 className="font-poppins text-2xl sm:text-4xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight">
             Order your favorite meal in <span className="text-gradient-emerald font-black">seconds</span>
           </h2>
-          <p className="text-slate-400 text-base max-w-lg mx-auto mb-10 leading-relaxed font-semibold">
+          <p className="text-slate-400 text-xs sm:text-base max-w-lg mx-auto mb-8 sm:mb-10 leading-relaxed font-semibold">
             Download our top-rated application on the App Store or Google Play for exclusive deals, interactive tracking, and simpler checkouts.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -906,12 +1037,12 @@ const Home = ({ setShowLogin }) => {
       {token && (
         <section className="py-8 bg-white border-b border-slate-50">
           <Container>
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl mb-3">
-                  <span className="text-2xs font-bold text-emerald-700 uppercase tracking-widest">Highlights</span>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg sm:rounded-xl mb-2 sm:mb-3">
+                  <span className="text-[10px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Highlights</span>
                 </div>
-                <h2 className="font-poppins text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="font-poppins text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                   Featured <span className="text-gradient-emerald">Promotions</span>
                 </h2>
               </div>
