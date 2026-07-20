@@ -2,9 +2,9 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiTruck, FiShield, FiThumbsUp, FiCheckCircle, FiChevronRight, 
-  FiSearch, FiMapPin, FiStar, FiArrowRight, FiChevronDown, 
+import {
+  FiTruck, FiShield, FiThumbsUp, FiCheckCircle, FiChevronRight,
+  FiSearch, FiMapPin, FiStar, FiArrowRight, FiChevronDown,
   FiZap, FiPackage, FiMessageSquare, FiUser, FiActivity, FiHome
 } from 'react-icons/fi';
 import { StoreContext } from '../../context/StoreContext';
@@ -152,6 +152,26 @@ const Hero = ({ setShowLogin }) => {
       {/* Dot mesh */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.022] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:28px_28px]" />
 
+      {/* Left Wall Image (Desi Paneer Tikka & Veggie Pizza on Round Board - Half emerging from left edge) */}
+      <motion.img
+        src="/hero-left.png"
+        alt="Desi Paneer Tikka & Veggie Pizza"
+        initial={{ x: -120, opacity: 0 }}
+        animate={{ x: 0, opacity: 0.95 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute -left-20 sm:-left-24 md:-left-28 lg:-left-32 xl:-left-36 top-1/2 -translate-y-1/2 w-56 sm:w-72 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)]"
+      />
+
+      {/* Right Wall Image (Indian Veg Dish on Round Board - Half emerging from right edge) */}
+      <motion.img
+        src="/hero-right.png"
+        alt="Indian Veg Platter"
+        initial={{ x: 120, opacity: 0 }}
+        animate={{ x: 0, opacity: 0.95 }}
+        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute -right-20 sm:-right-24 md:-right-28 lg:-right-32 xl:-right-36 top-1/2 -translate-y-1/2 w-56 sm:w-72 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)]"
+      />
+
       <Container>
         <div className="flex flex-col items-center text-center relative z-10 max-w-4xl mx-auto">
 
@@ -171,7 +191,7 @@ const Hero = ({ setShowLogin }) => {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-poppins text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-[1.08] tracking-tight mb-6"
+            className="font-poppins text-3xl sm:text-4xl lg:text-4xl xl:text-6xl font-extrabold text-white leading-[1.08] tracking-tight mb-5"
           >
             Your favorite cravings,<br />
             delivered in <span className="text-gradient-emerald">flow.</span>
@@ -182,9 +202,9 @@ const Hero = ({ setShowLogin }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-xl mb-0 font-semibold"
+            className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-xl mb-0 font-semibold"
           >
-            Order premium dishes from the city&apos;s best rated culinary houses. Fresh ingredients, chef-crafted recipes, and contactless delivery.
+            Discover top-rated local restaurants and chef-crafted dishes. Fast, fresh, and delivered straight to your door.
           </motion.p>
 
         </div>
@@ -283,7 +303,7 @@ const CategoriesSection = () => {
         {/* Loading skeletons */}
         {loading && (
           <div className="flex gap-5 sm:gap-8 overflow-x-auto py-4 pb-6 scrollbar-hide">
-            {[1,2,3,4,5,6,7,8].map(i => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
               <div key={i} className="flex flex-col items-center gap-3 flex-shrink-0 animate-pulse min-w-[96px] md:min-w-[128px] lg:min-w-[144px]">
                 <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full bg-slate-100" />
                 <div className="h-3.5 w-16 rounded bg-slate-100 mt-2" />
@@ -463,7 +483,7 @@ const FeaturedFoods = () => {
               Explore our <span className="text-gradient-emerald font-black">signature dishes</span>
             </h2>
           </div>
-          
+
           {/* Discovery Selector Tabs */}
           <div className="flex flex-wrap gap-2 bg-slate-50 border border-slate-100 p-1.5 rounded-2xl md:self-end">
             {[
@@ -475,11 +495,10 @@ const FeaturedFoods = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
-                  activeTab === tab.id 
-                    ? "bg-slate-900 text-white shadow-sm" 
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
-                }`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${activeTab === tab.id
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-100/50"
+                  }`}
               >
                 {tab.label}
               </button>
@@ -523,13 +542,13 @@ const FeaturedFoods = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {discoveryItems.map(item => (
-              <FoodItem 
-                key={item._id} 
-                id={item._id} 
-                name={item.name} 
-                description={item.description} 
-                price={item.price} 
-                image={item.image} 
+              <FoodItem
+                key={item._id}
+                id={item._id}
+                name={item.name}
+                description={item.description}
+                price={item.price}
+                image={item.image}
                 category={item.category}
                 preparationTime={item.preparationTime}
                 isVeg={item.isVeg}
@@ -599,11 +618,10 @@ const CouponTicketCard = ({ coupon }) => {
         </div>
         <button
           onClick={handleCopy}
-          className={`w-full py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase mt-2.5 transition-all duration-200 ${
-            copied 
-              ? 'bg-emerald-500 text-white shadow-sm' 
-              : 'bg-white text-slate-900 hover:bg-slate-100'
-          }`}
+          className={`w-full py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase mt-2.5 transition-all duration-200 ${copied
+            ? 'bg-emerald-500 text-white shadow-sm'
+            : 'bg-white text-slate-900 hover:bg-slate-100'
+            }`}
         >
           {copied ? 'Copied' : 'Copy'}
         </button>
