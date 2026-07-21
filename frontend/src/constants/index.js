@@ -18,7 +18,6 @@ export const ROUTES = {
   PROFILE:           '/profile',
   FAVORITES:         '/favorites',
   SEARCH:            '/search',
-  APP:               '/app',
   CONTACT:           '/contact',
   RESTAURANTS:       '/restaurants',
   RESTAURANT_DETAIL: '/restaurant/:id',

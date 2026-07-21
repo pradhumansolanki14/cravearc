@@ -268,19 +268,19 @@ const PartnerLandingPage = () => {
             whileInView="show"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6"
           >
             {FEATURES.map((f, i) => (
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="group p-7 rounded-2xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all duration-300"
+                className="group p-3.5 sm:p-7 rounded-2xl border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all duration-300 flex flex-col items-center sm:items-start text-center sm:text-left"
               >
-                <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-5 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-2 sm:mb-5 group-hover:scale-105 transition-transform flex-shrink-0">
                   {f.icon}
                 </div>
-                <h3 className="font-poppins font-bold text-slate-900 text-base mb-2">{f.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{f.body}</p>
+                <h3 className="font-poppins font-bold text-slate-900 text-xs sm:text-base mb-0 sm:mb-2 leading-tight">{f.title}</h3>
+                <p className="hidden sm:block text-slate-500 text-sm leading-relaxed">{f.body}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -313,7 +313,7 @@ const PartnerLandingPage = () => {
             whileInView="show"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
-            className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="relative grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6"
           >
             {/* Connector line (desktop only) */}
             <div className="hidden lg:block absolute top-10 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-emerald-200 to-transparent" />
@@ -322,14 +322,14 @@ const PartnerLandingPage = () => {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="relative flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm"
+                className="relative flex flex-col items-center text-center p-2.5 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-sm"
               >
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-5 relative z-10">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-2 sm:mb-5 relative z-10">
                   {s.icon}
                 </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-1">{s.step}</span>
-                <h3 className="font-poppins font-bold text-slate-900 text-base mb-2">{s.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{s.body}</p>
+                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-slate-400 mb-0.5 sm:mb-1">{s.step}</span>
+                <h3 className="font-poppins font-bold text-slate-900 text-xs sm:text-base mb-0 sm:mb-2 leading-tight">{s.title}</h3>
+                <p className="hidden sm:block text-slate-500 text-sm leading-relaxed">{s.body}</p>
               </motion.div>
             ))}
           </motion.div>

@@ -160,7 +160,7 @@ const Hero = ({ setShowLogin }) => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute -top-16 -left-16 sm:-top-20 sm:-left-20 md:top-1/2 md:-translate-y-1/2 md:-left-28 lg:-left-32 xl:-left-36 w-52 sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
+        className="absolute -top-20 -left-20 xs:-top-24 xs:-left-24 sm:-top-20 sm:-left-20 md:top-1/2 md:-translate-y-1/2 md:-left-28 lg:-left-32 xl:-left-36 w-64 xs:w-72 sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
       />
 
       {/* Right / Bottom Image (Indian Veg Dish - Bottom-Right on Mobile, Right-Wall on Desktop) */}
@@ -170,7 +170,7 @@ const Hero = ({ setShowLogin }) => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute -bottom-16 -right-16 sm:-bottom-20 sm:-right-20 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:-right-28 lg:-right-32 xl:-right-36 w-52 sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
+        className="absolute -bottom-24 -right-24 xs:-bottom-28 xs:-right-28 sm:-bottom-20 sm:-right-20 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:-right-28 lg:-right-32 xl:-right-36 w-[310px] xs:w-[360px] sm:w-64 md:w-80 lg:w-[420px] xl:w-[500px] pointer-events-none select-none z-0 filter drop-shadow-[0_25px_60px_rgba(16,185,129,0.2)] opacity-85 md:opacity-95"
       />
 
       <Container>
@@ -788,58 +788,57 @@ const SpecialOffers = () => {
 const WhyChooseUs = () => {
   const items = [
     {
-      icon: <FiTruck size={24} className="text-emerald-600" />,
+      icon: <FiTruck className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
       title: "Fast Delivery",
-      desc: "Fresh, hot meals hand-delivered directly to your home in under 30 minutes average time."
+      desc: "Fresh, hot meals delivered in under 30 minutes average time."
     },
     {
-      icon: <FiCheckCircle size={24} className="text-emerald-600" />,
-      title: "Trusted Restaurants",
-      desc: "We screen every restaurant for high food safety standards and culinary approval."
+      icon: <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
+      title: "Trusted Spots",
+      desc: "We screen every restaurant for high safety & culinary approval."
     },
     {
-      icon: <FiThumbsUp size={24} className="text-emerald-600" />,
-      title: "Fresh Ingredients",
-      desc: "Access culinary partners who strictly prioritize fresh, local organic produce."
+      icon: <FiThumbsUp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
+      title: "Fresh Quality",
+      desc: "Access partners who prioritize fresh, local organic produce."
     },
     {
-      icon: <FiShield size={24} className="text-emerald-600" />,
-      title: "Secure Payments",
-      desc: "Seamless ordering experience protected by industry-standard encrypted payment gateways."
+      icon: <FiShield className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
+      title: "Safe Checkout",
+      desc: "Seamless ordering protected by encrypted payment gateways."
     }
   ];
 
   return (
-    <section className="py-12 sm:py-24 bg-white border-b border-slate-100">
+    <section className="py-10 sm:py-24 bg-white border-b border-slate-100">
       <Container>
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-16">
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-emerald-50 border border-emerald-100 rounded-md sm:rounded-xl mb-1.5 sm:mb-4">
             <span className="text-[9px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Benefits</span>
           </div>
           <h2 className="font-poppins text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Why choose <span className="text-gradient-emerald">{BRAND.NAME}</span>?
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 sm:mt-3.5 leading-relaxed font-semibold">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1.5 sm:mt-3.5 leading-relaxed font-semibold">
             We deliver visual refinement and culinary perfection from the kitchen straight to your fork.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-2 sm:gap-4 md:gap-6">
           {items.map((item, index) => (
             <Card
               key={index}
               variant="default"
               radius="2xl"
-              padding="lg"
-              className="border border-slate-100 text-center flex flex-col items-center hover:scale-[1.02] hover:shadow-[0_15px_35px_rgba(16,185,129,0.04)] transition-all duration-300"
+              className="border border-slate-100/90 p-2.5 sm:p-5 text-center flex flex-col items-center hover:scale-[1.02] hover:shadow-[0_15px_35px_rgba(16,185,129,0.04)] transition-all duration-300"
             >
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6 shadow-sm">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl bg-emerald-50 flex items-center justify-center mb-2.5 sm:mb-4 shadow-sm flex-shrink-0">
                 {item.icon}
               </div>
-              <h3 className="font-poppins font-bold text-slate-900 text-base mb-3">
+              <h3 className="font-poppins font-bold text-slate-900 text-xs sm:text-sm md:text-base mb-0 sm:mb-2 text-center leading-tight">
                 {item.title}
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+              <p className="hidden sm:block text-xs text-slate-400 leading-relaxed font-semibold">
                 {item.desc}
               </p>
             </Card>
@@ -857,56 +856,56 @@ const HowItWorks = () => {
       num: "1",
       title: "Discover",
       desc: "Browse a curated catalog of premium local dining partners.",
-      icon: <FiSearch size={22} className="text-emerald-600" />,
+      icon: <FiSearch className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
     },
     {
       num: "2",
       title: "Order",
       desc: "Customize your items and check out with security.",
-      icon: <FiPackage size={22} className="text-emerald-600" />,
+      icon: <FiPackage className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
     },
     {
       num: "3",
       title: "Enjoy",
       desc: "Track delivery live and eat delicious hot food.",
-      icon: <FiCheckCircle size={22} className="text-emerald-600" />,
+      icon: <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />,
     },
   ];
 
   return (
-    <section className="py-12 sm:py-24 bg-slate-50">
+    <section className="py-10 sm:py-24 bg-slate-50">
       <Container>
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-16">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-16">
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-emerald-50 border border-emerald-100 rounded-md sm:rounded-xl mb-1.5 sm:mb-4">
             <span className="text-[9px] sm:text-2xs font-bold text-emerald-700 uppercase tracking-wider">Timeline</span>
           </div>
           <h2 className="font-poppins text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             How it works
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 sm:mt-3.5 leading-relaxed font-semibold">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1.5 sm:mt-3.5 leading-relaxed font-semibold">
             Your gourmet delivery journey completed in three intentional steps.
           </p>
         </div>
 
         <div className="relative max-w-4xl mx-auto">
           {/* Connecting line */}
-          <div className="hidden md:block absolute top-[52px] left-[15%] right-[15%] h-0.5 border-t-2 border-dashed border-slate-200 z-0" />
+          <div className="absolute top-[28px] sm:top-[38px] md:top-[52px] left-[15%] right-[15%] h-0.5 border-t-2 border-dashed border-slate-200 z-0" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative z-10">
+          <div className="grid grid-cols-3 gap-2 sm:gap-6 md:gap-10 relative z-10">
             {steps.map((s, idx) => (
               <div key={idx} className="text-center flex flex-col items-center">
-                <div className="relative mb-6">
+                <div className="relative mb-3 sm:mb-6">
                   {/* Step Icon */}
-                  <div className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm text-emerald-600 transition-transform duration-300 hover:scale-105">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm text-emerald-600 transition-transform duration-300 hover:scale-105">
                     {s.icon}
                   </div>
                   {/* Step count badge */}
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center border-2 border-white">
+                  <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 text-white font-extrabold text-[10px] sm:text-xs flex items-center justify-center border-2 border-white">
                     {s.num}
                   </span>
                 </div>
-                <h3 className="font-poppins font-bold text-slate-900 text-lg mb-2">{s.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold max-w-[200px]">{s.desc}</p>
+                <h3 className="font-poppins font-bold text-slate-900 text-xs sm:text-base md:text-lg mb-0 sm:mb-2">{s.title}</h3>
+                <p className="hidden sm:block text-xs text-slate-400 leading-relaxed font-semibold max-w-[200px]">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -923,48 +922,6 @@ const Testimonials = () => {
       <Container>
         <div className="max-w-4xl mx-auto">
           <ReviewsWidget title="Platform Reviews" domain="platform" />
-        </div>
-      </Container>
-    </section>
-  );
-};
-
-// ─── CTA Section ──────────────────────────────────────────
-const CTASection = () => {
-  const navigate = useNavigate();
-  return (
-    <section className="py-14 sm:py-24 bg-slate-950 relative overflow-hidden">
-      {/* Background patterns */}
-      <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(255,255,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.07)_1px,transparent_1px)] bg-[size:40px_40px]" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full opacity-10 pointer-events-none filter blur-3xl" style={{ background: 'radial-gradient(circle, #10b981 0%, transparent 70%)' }} />
-
-      <Container>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="font-poppins text-2xl sm:text-4xl font-extrabold text-white mb-3 sm:mb-4 tracking-tight leading-tight">
-            Order your favorite meal in <span className="text-gradient-emerald font-black">seconds</span>
-          </h2>
-          <p className="text-slate-400 text-xs sm:text-base max-w-lg mx-auto mb-8 sm:mb-10 leading-relaxed font-semibold">
-            Download our top-rated application on the App Store or Google Play for exclusive deals, interactive tracking, and simpler checkouts.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              onClick={() => navigate('/app')}
-              variant="primary"
-              size="lg"
-              className="font-bold shadow-emerald-lg w-full sm:w-auto"
-            >
-              Get Mobile App
-            </Button>
-            <Button
-              onClick={() => navigate('/menu')}
-              variant="white"
-              size="lg"
-              rightIcon={<FiArrowRight />}
-              className="font-bold w-full sm:w-auto"
-            >
-              Browse Full Menu
-            </Button>
-          </div>
         </div>
       </Container>
     </section>
@@ -1032,9 +989,6 @@ const Home = ({ setShowLogin }) => {
 
           {/* Tomato benefits card checklist */}
           <WhyChooseUs />
-
-          {/* Brand CTA checkout section */}
-          <CTASection />
         </>
       )}
     </div>

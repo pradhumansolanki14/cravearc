@@ -578,7 +578,7 @@ const Navbar = ({ setShowLogin }) => {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${scrolled
           ? "bg-white/90 backdrop-blur-xl shadow-[0_2px_32px_-4px_rgba(0,0,0,0.10)] border-b border-slate-100/80"
           : isHome
-            ? "bg-slate-900/45 backdrop-blur-md border-b border-transparent"
+            ? "bg-slate-950/45 backdrop-blur-md border-b border-transparent"
             : "bg-white/60 backdrop-blur-sm border-b border-transparent"
           }`}
       >

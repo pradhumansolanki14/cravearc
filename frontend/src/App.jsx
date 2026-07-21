@@ -22,7 +22,6 @@ const OrderSuccess = lazy(() => import('./Pages/OrderSuccess/OrderSuccess'))
 const Favorites = lazy(() => import('./Pages/Favorites/Favorites'))
 const MenuPage = lazy(() => import('./Pages/MenuPage/MenuPage'))
 const CategoriesPage = lazy(() => import('./Pages/Categories/CategoriesPage'))
-const AppPage = lazy(() => import('./Pages/AppPage/AppPage'))
 const ContactPage = lazy(() => import('./Pages/ContactPage/ContactPage'))
 const OrderDetail = lazy(() => import('./Pages/OrderDetail/OrderDetail'))
 const RestaurantsPage = lazy(() => import('./Pages/Restaurants/RestaurantsPage'))
@@ -140,7 +139,6 @@ const App = () => {
           {/* Independent nav pages */}
           <Route path='/menu' element={<MenuPage />} />
           <Route path='/categories' element={<CategoriesPage />} />
-          <Route path='/app' element={<AppPage />} />
           <Route path='/contact' element={<ContactPage />} />
 
           {/* Restaurant listing + detail */}
